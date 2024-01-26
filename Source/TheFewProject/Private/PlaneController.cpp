@@ -24,6 +24,7 @@ void APlaneController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(CameraSwapAction, ETriggerEvent::Started, this, &APlaneController::SwapCamera);
 		EnhancedInputComponent->BindAction(CameraLookAction, ETriggerEvent::Triggered, this, &APlaneController::CameraMovement);
 		EnhancedInputComponent->BindAction(CameraLookAction, ETriggerEvent::Started, this, &APlaneController::ResetTimer);
+		EnhancedInputComponent->BindAction(LandingGearAction, ETriggerEvent::Started, this, &APlaneController::ToggleWheels);
 	}
 }
 
@@ -93,4 +94,9 @@ void APlaneController::CameraMovement(const FInputActionInstance& Instance)
 void APlaneController::ResetTimer()
 {
 	ControlledPlane->ResetCameraLerpTimer();
+}
+
+void APlaneController::ToggleWheels()
+{
+	ControlledPlane->ToggleLandingGear();
 }

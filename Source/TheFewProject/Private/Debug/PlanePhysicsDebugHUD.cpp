@@ -49,6 +49,7 @@ void APlanePhysicsDebugHUD::DrawSteering(APlanePawn* pl)
 	AddVector(TEXT("G Force Limit "), pl->PlanePhysicsComponent->GForceLimitDebug);
 	AddVector(TEXT("Control Input "), pl->PlanePhysicsComponent->InputDebug);
 	AddFloat(TEXT("Steering Power "), pl->PlanePhysicsComponent->SteeringPower);
+	AddFloat(TEXT("AoA "), FMath::RadiansToDegrees(pl->PlanePhysicsComponent->AngleOfAttack));
 
 
 }
@@ -70,4 +71,6 @@ void APlanePhysicsDebugHUD::DrawPlaneData(APlanePawn* player)
 	FRotator rot = player->PlaneBodyBox->GetComponentRotation();
 	FVector temp = FVector(rot.Roll, rot.Pitch, rot.Yaw);
 	AddVector(TEXT("Rotation"), temp);
+	AddVector(TEXT("Local Velocity"), player->PlanePhysicsComponent->LocalVelocity);
+	AddVector(TEXT("Forward Vector"), player->PlanePhysicsComponent->Rigidbody->GetForwardVector());
 }

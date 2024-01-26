@@ -31,7 +31,7 @@ protected:
 	void SwapCamera();
 	void CameraMovement(const FInputActionInstance& Instance);
 	void ResetTimer();
-
+	void ToggleWheels();
 protected:
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -49,6 +49,9 @@ protected:
 		UInputAction* CameraSwapAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		UInputAction* CameraLookAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		UInputAction* LandingGearAction;
+
 	APlanePawn* ControlledPlane;
 
 	FVector SteeringInput;

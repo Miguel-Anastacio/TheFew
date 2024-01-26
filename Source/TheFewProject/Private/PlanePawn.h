@@ -36,6 +36,8 @@ public:
 		rotTimer = 0;
 	};
 
+	void ToggleLandingGear();
+
 	UAircraftPhysics* GetPlanePhysicsComponent() { return PlanePhysicsComponent; };
 
 protected:
@@ -46,11 +48,11 @@ protected:
 	UPROPERTY(EditAnywhere )
 		USceneComponent* PlaneRoot;
 	UPROPERTY(EditAnywhere)
-		UCapsuleComponent* BackWheelCapsule;
+		UCapsuleComponent* BackWheel;
 	UPROPERTY(EditAnywhere)
-		UCapsuleComponent* FrontLeftWheelCapsule;
+		UCapsuleComponent* LeftWheelCollider;
 	UPROPERTY(EditAnywhere)
-		UCapsuleComponent* FrontRightWheelCapsule;
+		UCapsuleComponent* RightWheelCollider;
 	UPROPERTY(EditAnywhere)
 		UBoxComponent* PlaneBodyBox;
 
@@ -69,6 +71,10 @@ protected:
 		USceneComponent* AileronLeftRoot;
 	UPROPERTY(EditAnywhere)
 		USceneComponent* AileronRightRoot;
+	UPROPERTY(EditAnywhere)
+		USceneComponent* LeftLandingGearRoot;
+	UPROPERTY(EditAnywhere)
+		USceneComponent* RightLandingGearRoot;
 
 	UPROPERTY(EditAnywhere, Category = "Meshes")
 		UStaticMeshComponent* AileronLeftMesh;
@@ -78,6 +84,10 @@ protected:
 		UStaticMeshComponent* ElevatorMesh;
 	UPROPERTY(EditAnywhere, Category = "Meshes")
 		UStaticMeshComponent*RudderMesh;
+	UPROPERTY(EditAnywhere, Category = "Meshes")
+		UStaticMeshComponent* LeftLandingGearMesh;
+	UPROPERTY(EditAnywhere, Category = "Meshes")
+		UStaticMeshComponent* RightLandingGearMesh;
 
 	UPROPERTY(EditAnywhere, Category = "Tail Camera")
 		USpringArmComponent* TailCameraBoom;
@@ -104,10 +114,20 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Camera")
 		FVector2D MaxLookAngle = FVector2D(90, 180);
 
+	UPROPERTY(EditAnywhere, Category = "Landing Gear")
+		float DeploySpeed = 1.0f;
+	UPROPERTY(EditAnywhere, Category = "Landing Gear")
+	bool LandingGear = false;
+
 	FVector2D CameraInput = FVector2D(0, 0);
 	FRotator CameraRotDirection = FRotator(0, 0,0);
 	FQuat TargetCameraRotation;
 	float rotTimer = 0.0f;
 	FRotator DefaultCameraRotation;
+
+	FRotator LandingGearTargetRotation;
+
+	
+
 	friend class APlanePhysicsDebugHUD;
 };

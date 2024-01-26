@@ -17,14 +17,18 @@ APlanePawn::APlanePawn()
 	PlaneBodyBox = CreateDefaultSubobject<UBoxComponent>("Plane Body Collider");
 	PlaneBodyBox->SetupAttachment(RootComponent);
 
-	//BackWheelCapsule = CreateDefaultSubobject<UCapsuleComponent>("BackWheelCollider");
-	//BackWheelCapsule->SetupAttachment(PlaneBodyBox);
+	BackWheel = CreateDefaultSubobject<UCapsuleComponent>("Back Wheel");
+	BackWheel->SetupAttachment(PlaneBodyBox);
+	//BackWheelCapsule->bAutoActivate = fflae;
 
-	//FrontLeftWheelCapsule = CreateDefaultSubobject<UCapsuleComponent>("FrontLeftWheelCollider");
-	//FrontLeftWheelCapsule->SetupAttachment(PlaneBodyBox);
 
-	//FrontRightWheelCapsule = CreateDefaultSubobject<UCapsuleComponent>("FrontRightWheelCollider");
-	//FrontRightWheelCapsule->SetupAttachment(PlaneBodyBox);
+	LeftWheelCollider = CreateDefaultSubobject<UCapsuleComponent>("Left Wheel Collider");
+	LeftWheelCollider->SetupAttachment(PlaneBodyBox);
+	//FrontLeftWheelCapsule->bAutoActivate = false;
+
+	RightWheelCollider = CreateDefaultSubobject<UCapsuleComponent>("Right Wheel Collider");
+	RightWheelCollider->SetupAttachment(PlaneBodyBox);
+	//FrontRightWheelCapsule->bAutoActivate = false;
 
 	PlaneBodyMesh = CreateDefaultSubobject<UStaticMeshComponent>("Plane Mesh");
 	PlaneBodyMesh->SetupAttachment(PlaneBodyBox);
@@ -55,7 +59,18 @@ APlanePawn::APlanePawn()
 	ElevatorMesh = CreateDefaultSubobject<UStaticMeshComponent>("Elevator Mesh");
 	ElevatorMesh->SetupAttachment(ElevatorRoot);
 
-	////CreateMeshWithPivot(AileronRightRoot, AileronRightMesh, "Aileron Right Root", "Aileron Right Mesh");
+	LeftLandingGearRoot = CreateDefaultSubobject<USceneComponent>("Landing Gear Left Root");
+	LeftLandingGearRoot->SetupAttachment(PlaneBodyMesh);
+	LeftLandingGearMesh = CreateDefaultSubobject<UStaticMeshComponent>("Landing Gear Left Mesh");
+	LeftLandingGearMesh->SetupAttachment(LeftLandingGearRoot);
+
+	RightLandingGearRoot = CreateDefaultSubobject<USceneComponent>("Landing Gear Right Root");
+	RightLandingGearRoot->SetupAttachment(PlaneBodyMesh);
+	RightLandingGearMesh = CreateDefaultSubobject<UStaticMeshComponent>("Landing Gear Right Mesh");
+	RightLandingGearMesh->SetupAttachment(RightLandingGearRoot);
+	
+	
+	//CreateMeshWithPivot(LeftLandingGearRoot, LeftLandingGearMesh, "Landing Gear Left Root", "Landing Gear Left Mesh");
 	//CreateMeshWithPivot(RudderRoot, RudderMesh, "Rudder Root", "Rudder Mesh");
 	//CreateMeshWithPivot(ElevatorRoot, ElevatorMesh, "Elevator Root", "Elevator Mesh");
 
@@ -103,6 +118,10 @@ void APlanePawn::MoveCamera(FVector2D input)
 		CameraInput = input;
 		return;
 	}
+
+	//if (input.X * CameraInput.X < 0 || input.Y * CameraInput.Y < 0)
+	//	rotTimer = 0.0f;
+
 	if (abs(input.X) < 0.1)
 		input.X = 0;
 	if (abs(input.Y) < 0.1)
@@ -133,6 +152,32 @@ void APlanePawn::MoveCamera(FVector2D input)
 	//TailCameraBoom->AddLocalRotation(FRotator(inputLookAngle.Y, inputLookAngle.X, 0));
 }
 
+void APlanePawn::ToggleLandingGear()
+{
+	LandingGear = !LandingGear;
+	
+	if (LandingGear)
+	{
+		LeftLandingGearRoot->SetRelativeRotation(FRotator(90, 0, 0));
+		RightLandingGearRoot->SetRelativeRotation(FRotator(-90, 0, 0));
+		//FrontRightWheelCapsule->Activakte();
+
+		LeftWheelCollider->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+		RightWheelCollider->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+		BackWheel->SetCollisionEnabled(ECollisionEnabled::PhysicsOnly);
+	}
+	else
+	{
+		//FrontRightWheelCapsule->Deactivate();
+		LeftWheelCollider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		RightWheelCollider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		BackWheel->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		//FrontLeftWheelCapsule->Deactivate();
+		LeftLandingGearRoot->SetRelativeRotation(FRotator(0, 0, 0));
+		RightLandingGearRoot->SetRelativeRotation(FRotator(0, 0, 0));
+	}
+}
+
 // Called when the game starts or when spawned
 void APlanePawn::BeginPlay()
 {
@@ -141,6 +186,21 @@ void APlanePawn::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("Body Null"));
 	PlanePhysicsComponent->SetRigidbody(PlaneBodyBox);
 	DefaultCameraRotation = TailCameraBoom->GetRelativeRotation();
+
+	//FrontLeftWheelCollider->DestroyComponent();
+	//BackWheelCollider->DestroyComponent();
+	//FrontRightWheelCollider->DestroyComponent();
+
+	//LeftLandingGearMesh->DestroyComponent();
+	//RightLandingGearMesh->DestroyComponent();
+	//LandingGearMesh->DestroyComponent();
+
+	if (!LandingGear)
+	{
+		LeftWheelCollider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		RightWheelCollider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		BackWheel->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
 }
 
 void APlanePawn::CreateMeshWithPivot(USceneComponent* pivot, UStaticMeshComponent* mesh, FName name, FName nameMesh)
@@ -181,34 +241,8 @@ void APlanePawn::Tick(float DeltaTime)
 		AnimateControlSurface(PlanePhysicsComponent->GetDebugInput().X, AileronLeftRoot, FRotator(0, 0, 1), DeltaTime);
 	if (AileronRightRoot)
 		AnimateControlSurface(PlanePhysicsComponent->GetDebugInput().X, AileronRightRoot, FRotator(0, 0, 1), DeltaTime);
-		//RudderRoot->AddLocalRotation(FRotator(rotSpeed, 0, 0));
-			//PlanePhysicsComponent->GetControlInput().Y, PlanePhysicsComponent->GetControlInput().Z);
 
-	//float cameraSpeed = 5.00f * DeltaTime;
-	//FRotator targetLookAngle = FRotator(CameraInput.Y * MaxLookAngle.Y, CameraInput.X * MaxLookAngle.X, 0) + DefaultCameraRotation;
-	//CameraRotDirection = targetLookAngle - TailCameraBoom->GetRelativeRotation();
-	//CameraRotDirection.Normalize();
-
-	//if (CameraInput.SizeSquared() > 0.01)
-	//{
-	//	FVector rot = TailCameraBoom->GetRelativeRotation().Quaternion().Euler();
-	//	if (abs(MaxLookAngle.X) > abs(rot.Y))
-	//	{
-	//		TailCameraBoom->AddLocalRotation(FRotator(CameraRotDirection.Pitch * cameraSpeed, 0, 0));
-	//	}
-
-	//	if (abs(MaxLookAngle.Y) > abs(TailCameraBoom->GetRelativeRotation().Yaw))
-	//		TailCameraBoom->AddLocalRotation(FRotator(0, CameraRotDirection.Yaw * cameraSpeed, 0));
-	//	//TailCameraBoom->AddLocalRotation(CameraRotDirection * cameraSpeed);
-	//	//TailCameraBoom->setlocl
-
-	//	UE_LOG(LogTemp, Warning, TEXT("Pitch: %f"), rot.Y);
-	//	UE_LOG(LogTemp, Warning, TEXT("Yaw %f"), rot.Z);
-	//}
-	//else
-	//{
-	//	TailCameraBoom->AddLocalRotation(CameraRotDirection * cameraSpeed);
-	//}
+	// update camera position
 	rotTimer += DeltaTime;
 	rotTimer = FMath::Clamp(rotTimer, 0, 1);
 	if (CameraInput.SizeSquared() < 0.01)

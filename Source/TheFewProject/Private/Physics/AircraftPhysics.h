@@ -165,7 +165,7 @@ protected:
 
 	// input variables
 	float Throttle = 0;
-	float ThrottleInput = 1;
+	float ThrottleInput = 0;
 	FVector ControlInput = FVector(0, 0, 0);
 
 	// SteeringData
