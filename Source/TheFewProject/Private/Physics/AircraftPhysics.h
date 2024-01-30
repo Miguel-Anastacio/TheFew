@@ -51,6 +51,7 @@ public:
 
 
 	float GetThrottle() { return Throttle; };
+	float* GetThrottleRef() { return &Throttle; };
 	float GetMaxThrust() { return MaxThrust; };
 
 protected:

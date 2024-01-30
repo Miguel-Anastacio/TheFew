@@ -9,6 +9,7 @@
 class UInputMappingContext;
 class UInputAction;
 class APlanePawn;
+class UPlaneHUD;
 
 struct FInputActionInstance;
 /**
@@ -32,6 +33,7 @@ protected:
 	void CameraMovement(const FInputActionInstance& Instance);
 	void ResetTimer();
 	void ToggleWheels();
+	void Fire();
 protected:
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -51,8 +53,18 @@ protected:
 		UInputAction* CameraLookAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		UInputAction* LandingGearAction;
-
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		UInputAction* FireAction;
 	APlanePawn* ControlledPlane;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		FVector2D MovementDeadzone = FVector2D(0.1, 0.1);
+
+	// UI
+	UPROPERTY(EditAnywhere, Category = "UI")
+		TSubclassOf<UPlaneHUD> PlaneHUDClass;
+
+	UPlaneHUD* PlaneHUD;
 
 	FVector SteeringInput;
 };

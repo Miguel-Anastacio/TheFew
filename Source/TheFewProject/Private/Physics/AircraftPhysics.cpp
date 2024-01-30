@@ -65,6 +65,11 @@ void UAircraftPhysics::CalculateAngleOfAttack()
 	AngleOfAttackYaw = FMath::Atan2(LocalVelocity.Y, LocalVelocity.X);
 
 	AngleOfAttack = FMath::Acos(FVector::DotProduct(forwardVector.GetSafeNormal(), relativeWind.GetSafeNormal()));
+
+	//// Check if the aircraft is upside down
+	//if (forwardVector.Z < 0) {
+	//	AngleOfAttack = 2 * PI - AngleOfAttack;
+	//}
 }
 
 void UAircraftPhysics::CalculateGForce(float dt)

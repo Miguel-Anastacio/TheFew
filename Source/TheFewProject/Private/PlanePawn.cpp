@@ -7,15 +7,15 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Physics/AircraftPhysics.h"
 #include "Camera/CameraComponent.h"
-
+#include "Weapon/WeaponComponent.h"
 // Sets default values
 APlanePawn::APlanePawn()
 {
-	PlaneRoot = CreateDefaultSubobject<USceneComponent>("Root");
-	RootComponent = PlaneRoot;
+	//PlaneRoot = CreateDefaultSubobject<USceneComponent>("Root");
 
 	PlaneBodyBox = CreateDefaultSubobject<UBoxComponent>("Plane Body Collider");
-	PlaneBodyBox->SetupAttachment(RootComponent);
+	//PlaneBodyBox->SetupAttachment(RootComponent);
+	RootComponent = PlaneBodyBox;
 
 	BackWheel = CreateDefaultSubobject<UCapsuleComponent>("Back Wheel");
 	BackWheel->SetupAttachment(PlaneBodyBox);
@@ -88,6 +88,12 @@ APlanePawn::APlanePawn()
 	
 	
 	PlanePhysicsComponent = CreateDefaultSubobject<UAircraftPhysics>("Plane Physics");
+
+	LeftWeaponComponent = CreateDefaultSubobject<UWeaponComponent>("Left Weapon");
+	LeftWeaponComponent->SetupAttachment(PlaneBodyBox);
+	RightWeaponComponent = CreateDefaultSubobject<UWeaponComponent>("Right Weapon");
+	RightWeaponComponent->SetupAttachment(PlaneBodyBox);
+
 
 	
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
@@ -178,6 +184,12 @@ void APlanePawn::ToggleLandingGear()
 	}
 }
 
+void APlanePawn::TriggerWeapons()
+{
+	LeftWeaponComponent->FireBullet();
+	RightWeaponComponent->FireBullet();
+}
+
 // Called when the game starts or when spawned
 void APlanePawn::BeginPlay()
 {
@@ -225,6 +237,25 @@ void APlanePawn::AnimateControlSurface(float input, USceneComponent* surfacePivo
 
 }
 
+void APlanePawn::UpdateFlying()
+{
+	FHitResult Hit;
+	FVector TraceStart = GetActorLocation();
+	FVector TraceEnd = GetActorLocation() + FVector::DownVector * 100.0f;
+	FCollisionQueryParams QueryParams;
+	QueryParams.AddIgnoredActor(this);
+
+	GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_WorldStatic, QueryParams);
+	DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::Red, false, 0.1f, 0, 1.0f);
+	if (Hit.bBlockingHit && IsValid(Hit.GetActor()))
+	{
+		Flying = false;
+	}
+	else {
+		Flying = true;
+	}
+}
+
 // Called every frame
 void APlanePawn::Tick(float DeltaTime)
 {
@@ -250,21 +281,19 @@ void APlanePawn::Tick(float DeltaTime)
 		//TailCameraBoom->SetRelativeRotation(DefaultCameraRotation);
 		TargetCameraRotation = DefaultCameraRotation.Quaternion();
 	}
-	else
-	{
-		int a = 0;
-	}
 	FQuat currentRot = TailCameraBoom->GetRelativeRotation().Quaternion();
 	float speed = CameraMoveSpeed;
-	//if (CameraInput.X > 0)
-	//	speed *= -1;
+
 	FQuat rot = FMath::Lerp(currentRot, TargetCameraRotation, rotTimer * speed);
 	CameraInput = FVector2D(0, 0);
+
 	if ((currentRot - TargetCameraRotation).Size() > 0.01)
 		TailCameraBoom->SetRelativeRotation(rot);
 	
+	//LeftWeaponComponent->SetActorForwardVector(PlaneBodyBox->GetForwardVector());
+	//RightWeaponComponent->SetActorForwardVector(PlaneBodyBox->GetForwardVector());
 
-
+	UpdateFlying();
 }
 
 // Called to bind functionality to input

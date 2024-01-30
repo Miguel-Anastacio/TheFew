@@ -5,7 +5,8 @@
 #include "EnhancedInputSubsystems.h"
 #include "PlanePawn.h"
 #include "Physics/AircraftPhysics.h"
-
+#include "UI/PlaneHUD.h"
+#include "Weapon/WeaponComponent.h"
 void APlaneController::PreInitializeComponents()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Pre initialize"));
@@ -25,6 +26,7 @@ void APlaneController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(CameraLookAction, ETriggerEvent::Triggered, this, &APlaneController::CameraMovement);
 		EnhancedInputComponent->BindAction(CameraLookAction, ETriggerEvent::Started, this, &APlaneController::ResetTimer);
 		EnhancedInputComponent->BindAction(LandingGearAction, ETriggerEvent::Started, this, &APlaneController::ToggleWheels);
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &APlaneController::Fire);
 	}
 }
 
@@ -38,6 +40,10 @@ void APlaneController::BeginPlay()
 	}
 
 	ControlledPlane = Cast<APlanePawn>(GetPawn());
+
+	PlaneHUD = CreateWidget<UPlaneHUD>(this, PlaneHUDClass);
+	PlaneHUD->AddToViewport();
+	PlaneHUD->SetPlaneReference(ControlledPlane);
 
 }
 
@@ -54,7 +60,12 @@ void APlaneController::Roll(const FInputActionInstance& Instance)
 {
 	SteeringInput = ControlledPlane->GetPlanePhysicsComponent()->GetControlInput();
 	SteeringInput.X = Instance.GetValue().Get<float>();
+
+	if (abs(SteeringInput.X) < MovementDeadzone.X)
+		SteeringInput.X = 0;
 	//FloatValue = FMath::Clamp(FloatValue, 0.0f, 1.0f);
+	if (!ControlledPlane->GetIsFlying())
+		SteeringInput.X *= 0.01;
 	ControlledPlane->GetPlanePhysicsComponent()->UpdateControlInput(SteeringInput);
 }
 
@@ -72,6 +83,10 @@ void APlaneController::Pitch(const FInputActionInstance& Instance)
 {
 	SteeringInput = ControlledPlane->GetPlanePhysicsComponent()->GetControlInput();
 	SteeringInput.Y = Instance.GetValue().Get<float>();
+
+	if (abs(SteeringInput.Y) < MovementDeadzone.Y)
+		SteeringInput.Y = 0;
+
 	//FloatValue = FMath::Clamp(FloatValue, 0.0f, 1.0f);
 	ControlledPlane->GetPlanePhysicsComponent()->UpdateControlInput(SteeringInput);
 
@@ -99,4 +114,10 @@ void APlaneController::ResetTimer()
 void APlaneController::ToggleWheels()
 {
 	ControlledPlane->ToggleLandingGear();
+}
+
+void APlaneController::Fire()
+{
+	UE_LOG(LogTemp, Warning, TEXT("Fire"));
+	ControlledPlane->TriggerWeapons();
 }

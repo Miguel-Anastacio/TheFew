@@ -12,6 +12,7 @@ class UStaticMeshComponent;
 class USpringArmComponent;
 class UCameraComponent;
 class UAircraftPhysics;
+class UWeaponComponent;
 
 UCLASS()
 class APlanePawn : public APawn
@@ -37,13 +38,17 @@ public:
 	};
 
 	void ToggleLandingGear();
-
 	UAircraftPhysics* GetPlanePhysicsComponent() { return PlanePhysicsComponent; };
+	void TriggerWeapons();
+	bool GetIsFlying() { return Flying; };
+	
 
 protected:
 	virtual void BeginPlay() override;
 	void CreateMeshWithPivot(USceneComponent* pivot, UStaticMeshComponent* mesh, FName namePivot, FName nameMesh);
 	void AnimateControlSurface(float input, USceneComponent* surfacePivot, FRotator axis, float dt);
+	void UpdateFlying();
+
 protected:
 	UPROPERTY(EditAnywhere )
 		USceneComponent* PlaneRoot;
@@ -101,6 +106,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Physics")
 		UAircraftPhysics* PlanePhysicsComponent;
 
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+		UWeaponComponent* LeftWeaponComponent;
+	UPROPERTY(EditAnywhere, Category = "Weapon")
+		UWeaponComponent* RightWeaponComponent;
+
 	UPROPERTY(EditAnywhere, Category = "Plane Animation")
 		float PropellerRotationSpeed = 200.0f;
 	UPROPERTY(EditAnywhere, Category = "Plane Animation")
@@ -110,6 +120,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Camera")
 		float CameraMoveSpeed = 50.0f;
+
 	// how much can the camera boom rotate in the Y and Z axis
 	UPROPERTY(EditAnywhere, Category = "Camera")
 		FVector2D MaxLookAngle = FVector2D(90, 180);
@@ -119,6 +130,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Landing Gear")
 	bool LandingGear = false;
 
+	UPROPERTY(VisibleAnywhere)
+	bool Flying = false;
+
 	FVector2D CameraInput = FVector2D(0, 0);
 	FRotator CameraRotDirection = FRotator(0, 0,0);
 	FQuat TargetCameraRotation;
@@ -126,7 +140,6 @@ protected:
 	FRotator DefaultCameraRotation;
 
 	FRotator LandingGearTargetRotation;
-
 	
 
 	friend class APlanePhysicsDebugHUD;
