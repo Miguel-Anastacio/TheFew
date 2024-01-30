@@ -13,6 +13,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class UAircraftPhysics;
 class UWeaponComponent;
+class UVfxComponent;
 
 UCLASS()
 class APlanePawn : public APawn
@@ -36,18 +37,22 @@ public:
 	void ResetCameraLerpTimer() {
 		rotTimer = 0;
 	};
+	void UpdateCamera(float DeltaTime);
 
 	void ToggleLandingGear();
 	UAircraftPhysics* GetPlanePhysicsComponent() { return PlanePhysicsComponent; };
 	void TriggerWeapons();
 	bool GetIsFlying() { return Flying; };
 	
+	void StopWeaponAudio();
 
 protected:
 	virtual void BeginPlay() override;
 	void CreateMeshWithPivot(USceneComponent* pivot, UStaticMeshComponent* mesh, FName namePivot, FName nameMesh);
 	void AnimateControlSurface(float input, USceneComponent* surfacePivot, FRotator axis, float dt);
 	void UpdateFlying();
+
+	
 
 protected:
 	UPROPERTY(EditAnywhere )
@@ -118,12 +123,26 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Plane Animation")
 		float ControlSurfacesAnimationSpeed = 50.0f;
 
+	UPROPERTY(EditAnywhere, Category = "Plane VFX")
+		UVfxComponent* LeftTrail;
+	UPROPERTY(EditAnywhere, Category = "Plane VVFX")
+		UVfxComponent* RightTrail;
+
 	UPROPERTY(EditAnywhere, Category = "Camera")
 		float CameraMoveSpeed = 50.0f;
-
 	// how much can the camera boom rotate in the Y and Z axis
 	UPROPERTY(EditAnywhere, Category = "Camera")
 		FVector2D MaxLookAngle = FVector2D(90, 180);
+	UPROPERTY(EditAnywhere, Category = "Camera")
+		float MaxFOV = 120.0f;
+	UPROPERTY(EditAnywhere, Category = "Camera")
+		float SpeedForMaxFOV = 3000.0f;
+	float DefaultFOV = 90.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Audio")
+		UAudioComponent* PlaneEngineAudioComponent;
+	UPROPERTY(EditAnywhere, Category = "Audio")
+		UAudioComponent* GunFireAudioComponent;
 
 	UPROPERTY(EditAnywhere, Category = "Landing Gear")
 		float DeploySpeed = 1.0f;

@@ -8,6 +8,8 @@
 #include "Physics/AircraftPhysics.h"
 #include "Camera/CameraComponent.h"
 #include "Weapon/WeaponComponent.h"
+#include "VFX/VfxComponent.h"
+#include "Components/AudioComponent.h"
 // Sets default values
 APlanePawn::APlanePawn()
 {
@@ -94,11 +96,16 @@ APlanePawn::APlanePawn()
 	RightWeaponComponent = CreateDefaultSubobject<UWeaponComponent>("Right Weapon");
 	RightWeaponComponent->SetupAttachment(PlaneBodyBox);
 
-
-	
+	LeftTrail = CreateDefaultSubobject<UVfxComponent>("Left Trail");
+	LeftTrail->SetupAttachment(PlaneBodyBox);
+	RightTrail = CreateDefaultSubobject<UVfxComponent>("Right Trail");
+	RightTrail->SetupAttachment(PlaneBodyBox);
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
+
+	PlaneEngineAudioComponent = CreateDefaultSubobject<UAudioComponent>("Engine Audio");
+	GunFireAudioComponent = CreateDefaultSubobject<UAudioComponent>("Gun Audio");
 }
 
 void APlanePawn::SwapCamera()
@@ -118,15 +125,12 @@ void APlanePawn::SwapCamera()
 
 void APlanePawn::MoveCamera(FVector2D input)
 {
-	FVector2D difBetweenInputs = input - CameraInput;
+	/*FVector2D difBetweenInputs = input - CameraInput;
 	if (difBetweenInputs.Size() < 0.2)
 	{
 		CameraInput = input;
 		return;
-	}
-
-	//if (input.X * CameraInput.X < 0 || input.Y * CameraInput.Y < 0)
-	//	rotTimer = 0.0f;
+	}*/
 
 	if (abs(input.X) < 0.1)
 		input.X = 0;
@@ -134,17 +138,17 @@ void APlanePawn::MoveCamera(FVector2D input)
 		input.Y = 0;
 	CameraInput = input;
 	
-	//FVector2D targetAngle = input * FMath::DegreesToRadians(MaxLookAngle);
-	FVector2D targetAngle = input * MaxLookAngle;
-	TargetCameraRotation = FQuat::MakeFromEuler(FVector(0, targetAngle.Y, targetAngle.X + DefaultCameraRotation.Yaw));
+	////FVector2D targetAngle = input * FMath::DegreesToRadians(MaxLookAngle);
+	//FVector2D targetAngle = input * MaxLookAngle;
+	//TargetCameraRotation = FQuat::MakeFromEuler(FVector(0, targetAngle.Y, targetAngle.X + DefaultCameraRotation.Yaw));
 
-	//if (CameraInput.X > 0)
-	//	TargetCameraRotation.X *= -1;
+	////if (CameraInput.X > 0)
+	////	TargetCameraRotation.X *= -1;
 
 
-	FQuat currentRot = TailCameraBoom->GetRelativeRotation().Quaternion();
+	//FQuat currentRot = TailCameraBoom->GetRelativeRotation().Quaternion();
 
-	//FQuat rot = FMath::Lerp(currentRot, targetRot);
+	////FQuat rot = FMath::Lerp(currentRot, targetRot);
 	//TailCameraBoom->SetRelativeRotation(targetRot);
 
 	//CameraRotDirection = targetLookAngle - TailCameraBoom->GetRelativeRotation();
@@ -156,6 +160,78 @@ void APlanePawn::MoveCamera(FVector2D input)
 	//if (abs(inputLookAngle.Y) < abs(currentLookAngle.Y))
 	//	TailCameraBoom->AddLocalRotation(FRotator(inputLookAngle.Y, 0, 0));
 	//TailCameraBoom->AddLocalRotation(FRotator(inputLookAngle.Y, inputLookAngle.X, 0));
+
+}
+
+void APlanePawn::UpdateCamera(float DeltaTime)
+{
+	// update fov
+	float currentSpeed = PlaneBodyBox->GetPhysicsLinearVelocity().Size();
+	currentSpeed = FMath::Clamp(currentSpeed, 0, SpeedForMaxFOV);
+	float fov = FMath::InterpEaseIn(DefaultFOV, MaxFOV, currentSpeed / SpeedForMaxFOV, 5);
+
+	TailCamera->FieldOfView = fov;
+	
+	//// update camera position
+	//rotTimer += DeltaTime;
+	//rotTimer = FMath::Clamp(rotTimer, 0, 1);
+	if (CameraInput.SizeSquared() < 0.01)
+	{
+		//TailCameraBoom->SetRelativeRotation(DefaultCameraRotation);
+		TargetCameraRotation = DefaultCameraRotation.Quaternion();
+		
+		TailCameraBoom->SetRelativeRotation(FMath::Lerp(TailCameraBoom->GetRelativeRotation(), DefaultCameraRotation, DeltaTime));
+		return;
+	}
+	//FQuat currentRot = TailCameraBoom->GetRelativeRotation().Quaternion();
+	//float speed = CameraMoveSpeed;
+
+	//FQuat rot = FMath::Lerp(currentRot, TargetCameraRotation, rotTimer * speed);
+	//CameraInput = FVector2D(0, 0);
+
+	//if ((currentRot - TargetCameraRotation).Size() > 0.01)
+	//	TailCameraBoom->SetRelativeRotation(rot);
+	
+	FRotator rot = TailCameraBoom->GetRelativeRotation();
+	/*if (!FMath::IsNearlyEqual(abs(rot.Pitch + CameraInput.Y * CameraMoveSpeed), abs(MaxLookAngle.X), 0.1))
+	{
+		rot.Pitch += CameraInput.Y * CameraMoveSpeed;
+	}
+	if (abs(rot.Yaw + CameraInput.X * CameraMoveSpeed) - abs(MaxLookAngle.Y *(-CameraInput.X) + DefaultCameraRotation.Yaw) < 0)
+	{
+		rot.Yaw += CameraInput.X * CameraMoveSpeed;
+	}
+	else
+	{
+		return;
+	}*/
+	FVector2D YawLimits = FVector2D(DefaultCameraRotation.Yaw - MaxLookAngle.Y, DefaultCameraRotation.Yaw + MaxLookAngle.Y);
+	if (CameraInput.X < 0 && abs(rot.Yaw + CameraInput.X * CameraMoveSpeed * DeltaTime) > YawLimits.X)
+	{
+		rot.Yaw += CameraInput.X * CameraMoveSpeed * DeltaTime;
+	}
+	else if (CameraInput.X > 0 && abs(rot.Yaw + CameraInput.X * CameraMoveSpeed * DeltaTime) < YawLimits.Y)
+	{
+		rot.Yaw += CameraInput.X * CameraMoveSpeed * DeltaTime;
+	}
+
+	FVector2D PitchLimits = FVector2D(DefaultCameraRotation.Pitch + MaxLookAngle.X, DefaultCameraRotation.Pitch - MaxLookAngle.X);
+	if (CameraInput.Y < 0 && abs(rot.Pitch + CameraInput.Y * CameraMoveSpeed * DeltaTime) < abs(PitchLimits.Y))
+	{
+		rot.Pitch += CameraInput.Y * CameraMoveSpeed * DeltaTime;
+	}
+	else if (CameraInput.Y > 0 && rot.Pitch + CameraInput.Y * CameraMoveSpeed * DeltaTime < PitchLimits.X)
+	{
+		rot.Pitch += CameraInput.Y * CameraMoveSpeed * DeltaTime;
+	}
+
+
+	//rot.Yaw += CameraInput.X * CameraMoveSpeed;
+	TailCameraBoom->SetRelativeRotation(rot);
+	//TailCameraBoom->SetRelativeRotation(rot);
+
+
+	CameraInput = FVector2D(0, 0);
 }
 
 void APlanePawn::ToggleLandingGear()
@@ -186,8 +262,16 @@ void APlanePawn::ToggleLandingGear()
 
 void APlanePawn::TriggerWeapons()
 {
+	if(!GunFireAudioComponent->IsPlaying())
+		GunFireAudioComponent->Play();
 	LeftWeaponComponent->FireBullet();
 	RightWeaponComponent->FireBullet();
+}
+
+void APlanePawn::StopWeaponAudio()
+{
+	if (GunFireAudioComponent->IsPlaying())
+		GunFireAudioComponent->Stop();
 }
 
 // Called when the game starts or when spawned
@@ -198,21 +282,20 @@ void APlanePawn::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("Body Null"));
 	PlanePhysicsComponent->SetRigidbody(PlaneBodyBox);
 	DefaultCameraRotation = TailCameraBoom->GetRelativeRotation();
-
-	//FrontLeftWheelCollider->DestroyComponent();
-	//BackWheelCollider->DestroyComponent();
-	//FrontRightWheelCollider->DestroyComponent();
-
-	//LeftLandingGearMesh->DestroyComponent();
-	//RightLandingGearMesh->DestroyComponent();
-	//LandingGearMesh->DestroyComponent();
-
+	
+	DefaultFOV = TailCamera->FieldOfView;
+	Flying = true;
 	if (!LandingGear)
 	{
 		LeftWheelCollider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		RightWheelCollider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		BackWheel->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
+
+
+	LeftTrail->SetSpeedForMaxTrail(SpeedForMaxFOV);
+	RightTrail->SetSpeedForMaxTrail(SpeedForMaxFOV);
+
 }
 
 void APlanePawn::CreateMeshWithPivot(USceneComponent* pivot, UStaticMeshComponent* mesh, FName name, FName nameMesh)
@@ -249,9 +332,16 @@ void APlanePawn::UpdateFlying()
 	DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::Red, false, 0.1f, 0, 1.0f);
 	if (Hit.bBlockingHit && IsValid(Hit.GetActor()))
 	{
+		if (Flying)
+		{
+			FVector current = PlaneBodyBox->GetPhysicsAngularVelocityInDegrees();
+			PlaneBodyBox->SetPhysicsAngularVelocityInDegrees(FVector(current.X, current.Y, 0));
+		}
+
 		Flying = false;
 	}
-	else {
+	else 
+	{
 		Flying = true;
 	}
 }
@@ -273,27 +363,30 @@ void APlanePawn::Tick(float DeltaTime)
 	if (AileronRightRoot)
 		AnimateControlSurface(PlanePhysicsComponent->GetDebugInput().X, AileronRightRoot, FRotator(0, 0, 1), DeltaTime);
 
-	// update camera position
-	rotTimer += DeltaTime;
-	rotTimer = FMath::Clamp(rotTimer, 0, 1);
-	if (CameraInput.SizeSquared() < 0.01)
-	{
-		//TailCameraBoom->SetRelativeRotation(DefaultCameraRotation);
-		TargetCameraRotation = DefaultCameraRotation.Quaternion();
-	}
-	FQuat currentRot = TailCameraBoom->GetRelativeRotation().Quaternion();
-	float speed = CameraMoveSpeed;
-
-	FQuat rot = FMath::Lerp(currentRot, TargetCameraRotation, rotTimer * speed);
-	CameraInput = FVector2D(0, 0);
-
-	if ((currentRot - TargetCameraRotation).Size() > 0.01)
-		TailCameraBoom->SetRelativeRotation(rot);
+	UpdateCamera(DeltaTime);
 	
 	//LeftWeaponComponent->SetActorForwardVector(PlaneBodyBox->GetForwardVector());
 	//RightWeaponComponent->SetActorForwardVector(PlaneBodyBox->GetForwardVector());
 
 	UpdateFlying();
+
+	if (Flying)
+	{
+		LeftTrail->UpdateNiagaraSystem(GetVelocity());
+		RightTrail->UpdateNiagaraSystem(GetVelocity());
+	}
+
+	if (!PlaneEngineAudioComponent)
+	{
+		return;
+	}
+
+	if (!PlaneEngineAudioComponent->IsPlaying())
+	{
+		PlaneEngineAudioComponent->Play();
+	}
+
+	PlaneEngineAudioComponent->SetVolumeMultiplier(PlanePhysicsComponent->GetThrottle());
 }
 
 // Called to bind functionality to input

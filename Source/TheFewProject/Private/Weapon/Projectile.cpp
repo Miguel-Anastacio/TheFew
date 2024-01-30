@@ -58,7 +58,7 @@ void AProjectile::DrawTracer()
 	FVector vel = CapsuleComponent->GetPhysicsLinearVelocity();
 	vel.Normalize();
 	FVector end = start + vel * TracerLength;
-	DrawDebugLine(GetWorld(), start, end, FColor::Yellow,false, 0.05f);
+	DrawDebugLine(GetWorld(), start, end, FColor::Yellow,false, 0.05f, 0, TracerThickness);
 	//UE_LOG(LogProjectFew, Log, TEXT("Draw Trace"));
 }
 

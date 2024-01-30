@@ -27,6 +27,8 @@ void APlaneController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(CameraLookAction, ETriggerEvent::Started, this, &APlaneController::ResetTimer);
 		EnhancedInputComponent->BindAction(LandingGearAction, ETriggerEvent::Started, this, &APlaneController::ToggleWheels);
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &APlaneController::Fire);
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Canceled, this, &APlaneController::StopFiring);
+		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &APlaneController::StopFiring);
 	}
 }
 
@@ -53,7 +55,7 @@ void APlaneController::Yaw(const FInputActionInstance& Instance)
 	SteeringInput.Z = Instance.GetValue().Get<float>();
 	//FloatValue = FMath::Clamp(FloatValue, 0.0f, 1.0f);
 	ControlledPlane->GetPlanePhysicsComponent()->UpdateControlInput(SteeringInput);
-	UE_LOG(LogTemp, Warning, TEXT("Yaw"));
+	//UE_LOG(LogTemp, Warning, TEXT("Yaw"));
 }
 
 void APlaneController::Roll(const FInputActionInstance& Instance)
@@ -76,7 +78,7 @@ void APlaneController::Throttle(const FInputActionInstance& Instance)
 	//ControlledPlane->IncreaseThrust();
 	ControlledPlane->GetPlanePhysicsComponent()->SetThrottleInput(FloatValue);
 	//ControlledPlane->SetThrust(FloatValue);
-	UE_LOG(LogTemp, Warning, TEXT("Throttle Increasing"));
+	//UE_LOG(LogTemp, Warning, TEXT("Throttle Increasing"));
 }
 
 void APlaneController::Pitch(const FInputActionInstance& Instance)
@@ -102,7 +104,7 @@ void APlaneController::CameraMovement(const FInputActionInstance& Instance)
 {
 	FVector2D input = Instance.GetValue().Get<FVector2D>();
 	//UE_LOG(LogTemp, Warning, TEXT("Look"));
-	UE_LOG(LogTemp, Warning, TEXT("Look Input X=%f, Y=%f "), input.X, input.Y);
+	//UE_LOG(LogTemp, Warning, TEXT("Look Input X=%f, Y=%f "), input.X, input.Y);
 	ControlledPlane->MoveCamera(input);
 }
 
@@ -120,4 +122,9 @@ void APlaneController::Fire()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Fire"));
 	ControlledPlane->TriggerWeapons();
+}
+
+void APlaneController::StopFiring()
+{
+	ControlledPlane->StopWeaponAudio();
 }

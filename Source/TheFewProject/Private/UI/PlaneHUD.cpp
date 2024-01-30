@@ -8,7 +8,7 @@
 #include "Components/Image.h"
 #include "Components/CanvasPanelSlot.h"
 #include "Kismet/GameplayStatics.h"
-#include "Blueprint/WidgetLayoutLibrary.h"
+#include "Components/TextBlock.h"
 void UPlaneHUD::SetPlaneReference(APlanePawn* ref)
 {
 	ControlledPlane = ref;
@@ -27,37 +27,23 @@ void UPlaneHUD::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 
 	APlayerController* PC = GetOwningPlayer();
 	FVector2D pivot;
-	FVector loc = ControlledPlane->GetActorLocation();
+	FVector loc = ControlledPlane->GetActorLocation() + ControlledPlane->GetActorForwardVector() * 2000.0f;
 
 	PC->ProjectWorldLocationToScreen(loc, pivot);
 
-	if (!CrosshairWidget)
-	{
-		CrosshairWidget = CreateWidget<UUserWidget>(GetOwningPlayer(), CrosshairImageClass);
-		if(CrosshairWidget)
-			CrosshairWidget->AddToViewport();
-		UE_LOG(LogTemp, Warning, TEXT("Crosshair"));
-	}
-
-	UGameplayStatics::ProjectWorldToScreen(
-		GetOwningPlayer(),
-		loc + ControlledPlane->GetActorForwardVector() * 2000.0f,
-		pivot,
-		true
-	);
-	//UCanvasPanelSlot* ImageAsPanelSlot = Cast<UCanvasPanelSlot>(CrosshairImage->Slot);
-	////ImageAsPanelSlot->SetDesiredPosition(FVector2D(10000, 500));
-	////ThrottleBar
-	//pivot *= FMath::Pow(UWidgetLayoutLibrary::GetViewportScale(this), -1);
-	////pivot *= FMath::Pow(UWidgetLayoutLibrary::GetViewportScale(this), -1);
-	//FWidgetTransform transform = FWidgetTransform(pivot, FVector2D(1.0f, 1.0), FVector2D(0.0f, 0.0f), 0);
-	//CrosshairImage->SetRenderTransform(transform);
 	if (CrosshairWidget)
 		CrosshairWidget->SetPositionInViewport(pivot);
+
+	if (ControlledPlane)
+	{
+		AltitudeValue->SetText(FText::AsNumber(int(ControlledPlane->GetActorLocation().Z * 0.01)));
+		
+	}
 }
 
-//void UPlaneHUD::NativeOnInitialized()
-//{
-//	CrosshairWidget = CreateWidget<UPlaneHUD>(GetOwningPlayer(), CrosshairImageClass);
-//	CrosshairWidget->AddToViewport();
-//}
+void UPlaneHUD::NativeOnInitialized()
+{
+	CrosshairWidget = CreateWidget<UUserWidget>(GetOwningPlayer(), CrosshairImageClass);
+	if (CrosshairWidget)
+		CrosshairWidget->AddToViewport();
+}

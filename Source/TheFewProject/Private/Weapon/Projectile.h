@@ -50,7 +50,8 @@ protected:
 		float TracerLength = 100.0f;
 	UPROPERTY(EditDefaultsOnly, Category = "Tracer")
 		float TracerRenderTimer;
-
+	UPROPERTY(EditDefaultsOnly, Category = "Tracer")
+		float TracerThickness = 10.0f;
 	UPROPERTY(EditAnywhere, Category = "Collision")
 		TEnumAsByte<ECollisionChannel> TraceChannelProperty = ECC_Pawn;
 

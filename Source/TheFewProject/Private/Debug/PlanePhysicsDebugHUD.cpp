@@ -5,6 +5,7 @@
 #include "PlanePawn.h"
 #include "Components/BoxComponent.h"
 #include "Physics/AircraftPhysics.h"
+#include "GameFramework/SpringArmComponent.h"
 
 void APlanePhysicsDebugHUD::DrawHUD()
 {
@@ -68,9 +69,10 @@ void APlanePhysicsDebugHUD::DrawPlaneData(APlanePawn* player)
 	AddText(TEXT("--- TRANSFORM DATA"), FText());
 
 	AddFloat(TEXT("Altitude"), player->PlaneBodyBox->GetComponentLocation().Z);
-	FRotator rot = player->PlaneBodyBox->GetComponentRotation();
+	//FRotator rot = player->PlaneBodyBox->GetComponentRotation();
+	FRotator rot = player->TailCameraBoom->GetRelativeRotation();
 	FVector temp = FVector(rot.Roll, rot.Pitch, rot.Yaw);
-	AddVector(TEXT("Rotation"), temp);
+	AddVector(TEXT("Camera Rotation"), temp);
 	AddVector(TEXT("Local Velocity"), player->PlanePhysicsComponent->LocalVelocity);
 	AddVector(TEXT("Forward Vector"), player->PlanePhysicsComponent->Rigidbody->GetForwardVector());
 }

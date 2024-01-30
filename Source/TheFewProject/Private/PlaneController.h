@@ -34,6 +34,7 @@ protected:
 	void ResetTimer();
 	void ToggleWheels();
 	void Fire();
+	void StopFiring();
 protected:
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))

@@ -29,6 +29,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Bullet")
 		TSubclassOf<AProjectile> BulletTemplate;
 
+
 	// audio for firing
 	// firing vfx
 

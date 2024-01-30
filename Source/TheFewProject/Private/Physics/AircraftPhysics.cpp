@@ -341,9 +341,11 @@ void UAircraftPhysics::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	UpdateSteering(DeltaTime);
 
 	UpdateDrag();
+
+
 	// ...
-	FVector end = Rigidbody->GetComponentLocation() + Rigidbody->GetForwardVector() * 2000;
-	DrawDebugLine(GetWorld(), Rigidbody->GetComponentLocation(), end, FColor::Green, false, 0.05f, 0, 1.0f);
+	/*FVector end = Rigidbody->GetComponentLocation() + Rigidbody->GetForwardVector() * 2000;
+	DrawDebugLine(GetWorld(), Rigidbody->GetComponentLocation(), end, FColor::Green, false, 0.05f, 0, 1.0f);*/
 	//// apply some gravity 
 	//Rigidbody->SetPhysicsLinearVelocity(Velocity + FVector(0, 0, -9.8f * DeltaTime * DeltaTime));
 //	FVector GravityForce = FVector(0.0f, 0.0f, -GetWorld()->GetGravityZ() * Rigidbody->GetMass());
