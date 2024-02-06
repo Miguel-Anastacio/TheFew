@@ -41,12 +41,22 @@ void APlaneController::BeginPlay()
 		Subsystem->AddMappingContext(DefaultMappingContext, 0);
 	}
 
+	//ControlledPlane = Cast<APlanePawn>(GetPawn());
+
+	//PlaneHUD = CreateWidget<UPlaneHUD>(this, PlaneHUDClass);
+	//PlaneHUD->AddToViewport();
+	//PlaneHUD->SetPlaneReference(ControlledPlane);
+
+}
+
+void APlaneController::OnPossess(APawn* pawn)
+{
+	Super::OnPossess(pawn);
 	ControlledPlane = Cast<APlanePawn>(GetPawn());
 
 	PlaneHUD = CreateWidget<UPlaneHUD>(this, PlaneHUDClass);
 	PlaneHUD->AddToViewport();
 	PlaneHUD->SetPlaneReference(ControlledPlane);
-
 }
 
 void APlaneController::Yaw(const FInputActionInstance& Instance)
@@ -97,7 +107,7 @@ void APlaneController::Pitch(const FInputActionInstance& Instance)
 
 void APlaneController::SwapCamera()
 {
-	//ControlledPlane->SwapCamera();
+	ControlledPlane->SwapCamera();
 }
 
 void APlaneController::CameraMovement(const FInputActionInstance& Instance)

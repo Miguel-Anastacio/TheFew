@@ -14,11 +14,11 @@ void APlanePhysicsDebugHUD::DrawHUD()
 	if (player)
 	{
 		////AddFloat(TEXT("Thrust"), player->PlanePhysicsComponent->CurrentForce.X);
-		AddFloat(TEXT("Targuet Quat X"), player->TargetCameraRotation.X);
-		AddFloat(TEXT("Targuet Quat Y"), player->TargetCameraRotation.Y);
-		AddFloat(TEXT("Targuet Quat Z"), player->TargetCameraRotation.Z);
-		AddFloat(TEXT("Targuet Quat W"), player->TargetCameraRotation.W);
-		AddVector(TEXT("Target Rot "), player->TargetCameraRotation.Euler());
+		//AddFloat(TEXT("Targuet Quat X"), player->TargetCameraRotation.X);
+		//AddFloat(TEXT("Targuet Quat Y"), player->TargetCameraRotation.Y);
+		//AddFloat(TEXT("Targuet Quat Z"), player->TargetCameraRotation.Z);
+		//AddFloat(TEXT("Targuet Quat W"), player->TargetCameraRotation.W);
+		//AddVector(TEXT("Target Rot "), player->TargetCameraRotation.Euler());
 		////AddVector(TEXT("Induced Drag"), player->PlanePhysicsComponent->CurrentInducedDrag);
 		//AddVector(TEXT("G Force "), player->PlanePhysicsComponent->LocalGForce);
 		//AddVector(TEXT("Drag"), player->PlanePhysicsComponent->CurrentDrag);
@@ -51,6 +51,9 @@ void APlanePhysicsDebugHUD::DrawSteering(APlanePawn* pl)
 	AddVector(TEXT("Control Input "), pl->PlanePhysicsComponent->InputDebug);
 	AddFloat(TEXT("Steering Power "), pl->PlanePhysicsComponent->SteeringPower);
 	AddFloat(TEXT("AoA "), FMath::RadiansToDegrees(pl->PlanePhysicsComponent->AngleOfAttack));
+	AddFloat(TEXT("AoA Yaw"), FMath::RadiansToDegrees(pl->PlanePhysicsComponent->AngleOfAttackYaw));
+	AddFloat(TEXT("AoA Yaw"), FMath::RadiansToDegrees(pl->PlanePhysicsComponent->AngleOfAttackYaw));
+	AddVector(TEXT("Angular Drag"), pl->PlanePhysicsComponent->CurrentAngularDrag);
 
 
 }
@@ -62,6 +65,10 @@ void APlanePhysicsDebugHUD::DrawThrust(APlanePawn* player)
 	AddVector(TEXT("Induced Drag"), player->PlanePhysicsComponent->CurrentInducedDrag);
 	AddVector(TEXT("Drag"), player->PlanePhysicsComponent->CurrentDrag);
 	AddVector(TEXT("Lift"), player->PlanePhysicsComponent->CurrentLift);
+	AddVector(TEXT("Local Lift"), player->PlanePhysicsComponent->CurrentLocalLift);
+	AddVector(TEXT("Yaw Lift "), player->PlanePhysicsComponent->CurrnetYawLift);
+	AddVector(TEXT("Drag Coef"), (player->PlanePhysicsComponent->DragCoefficient));
+
 }
 
 void APlanePhysicsDebugHUD::DrawPlaneData(APlanePawn* player)
@@ -74,5 +81,7 @@ void APlanePhysicsDebugHUD::DrawPlaneData(APlanePawn* player)
 	FVector temp = FVector(rot.Roll, rot.Pitch, rot.Yaw);
 	AddVector(TEXT("Camera Rotation"), temp);
 	AddVector(TEXT("Local Velocity"), player->PlanePhysicsComponent->LocalVelocity);
+	AddVector(TEXT("Velocity"), player->PlanePhysicsComponent->Velocity);
+	AddFloat(TEXT("Velocity"), player->PlanePhysicsComponent->Velocity.Size());
 	AddVector(TEXT("Forward Vector"), player->PlanePhysicsComponent->Rigidbody->GetForwardVector());
 }

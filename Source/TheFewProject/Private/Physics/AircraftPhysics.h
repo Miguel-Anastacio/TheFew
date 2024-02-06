@@ -43,6 +43,7 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	void SetRigidbody(UPrimitiveComponent* rb) { Rigidbody = rb; };
+	UPrimitiveComponent* GetRigidbody() { return Rigidbody; };
 
 	void SetThrottleInput(float input) { ThrottleInput = input; };
 	void UpdateControlInput(FVector input) { ControlInput = input; };
@@ -53,6 +54,8 @@ public:
 	float GetThrottle() { return Throttle; };
 	float* GetThrottleRef() { return &Throttle; };
 	float GetMaxThrust() { return MaxThrust; };
+
+	void Setflaps(bool flaps) { Flaps = flaps; };
 
 protected:
 	// Called when the game starts
@@ -72,6 +75,7 @@ protected:
 
 	void UpdateThrust();
 	void UpdateDrag();
+	void UpdateAngularDrag();
 	void UpdateLift();
 
 	void UpdateThrottle(float dt);
@@ -92,6 +96,8 @@ protected:
 		);
 	float MoveTo(float value, float target, float speed, float deltaTime, float min, float max);
 
+
+	void DrawDebugForce(FVector force, FColor color);
 public:	
 
 protected:
@@ -117,6 +123,8 @@ protected:
 		UCurveFloat* DragTop;
 	UPROPERTY(EditAnywhere, Category = "Drag")
 		UCurveFloat* DragBottom;
+	UPROPERTY(EditAnywhere, Category = "Drag")
+		FVector AngularDrag;
 
 	UPROPERTY(EditAnywhere, Category = "Lift")
 		UCurveFloat* AoACurve;
@@ -125,11 +133,15 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Lift")
 		float LiftPower = 150;
 	UPROPERTY(EditAnywhere, Category = "Lift")
+		float FlapsLiftPower = 0.01;
+	UPROPERTY(EditAnywhere, Category = "Lift")
 		float InducedDrag = 150;
 	UPROPERTY(EditAnywhere, Category = "Lift")
 		float RudderPower = 100;
 	UPROPERTY(EditAnywhere, Category = "Lift")
 		UCurveFloat* RudderAoACurve;
+	UPROPERTY(EditAnywhere, Category = "Lift")
+		UCurveFloat* RudderInducedDragCurve;
 
 	// controls turn speed on each axis in degree per second
 	UPROPERTY(EditAnywhere, Category = "Steering")
@@ -147,11 +159,14 @@ protected:
 	UPROPERTY(Transient)
 		UPrimitiveComponent* Rigidbody;
 
+	bool Flaps = true;
+
 	float ThrustPercent = 0;
 	// debug variables
 	FVector CurrentForce;
 	FVector CurrentDrag;
 	FVector CurrentLift;
+	FVector CurrentLocalLift;
 	FVector CurrentInducedDrag;
 
 	FVector Velocity;
@@ -178,6 +193,9 @@ protected:
 	FVector CurrentAngularVelocity;
 	FVector TorqueApplied;
 	FVector InputDebug;
+	FVector CurrentAngularDrag;
+	FVector CurrnetYawLift;
 
+	FVector DragCoefficient;
 	friend class APlanePhysicsDebugHUD;
 };

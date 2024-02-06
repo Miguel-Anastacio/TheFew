@@ -60,7 +60,8 @@ void UVfxComponent::UpdateNiagaraSystem(FVector velocity)
 		//{
 		//	//TrailEffectInstance->Activate();
 		//}
-		TrailEffectInstance->SetNiagaraVariableFloat(FString("Lifetime"), lifetime);
+		if(TrailEffectInstance)
+			TrailEffectInstance->SetNiagaraVariableFloat(FString("Lifetime"), lifetime);
 	}
 	else
 	{

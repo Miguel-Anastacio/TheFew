@@ -18,9 +18,12 @@ UAircraftPhysics::UAircraftPhysics()
 void UAircraftPhysics::BeginPlay()
 {
 	Super::BeginPlay();
+	Flaps = true;
 	UE_LOG(LogProjectFew, Log, TEXT("Hello Custom Log"));
 	// ...
-	
+	//LocalVelocity = FVector(800, 35, -140);
+	//AngleOfAttack
+	//FVector liftForce = CalculateLift(AngleOfAttack, FVector(0, 1, 0), LiftPower, AoACurve, InducedDragCurve);
 }
 
 FBiVector UAircraftPhysics::CalculateAerodynamicsForces(FVector velocity, float angularVelocity, FVector wind, float airDensity, FVector centerOfMass)
@@ -36,8 +39,9 @@ void UAircraftPhysics::CalculateState(float deltaTime)
 	Velocity = Rigidbody->GetPhysicsLinearVelocity();
 
 
-	FTransform localTransform = Rigidbody->GetComponentTransform().Inverse();
-	LocalVelocity = localTransform.TransformVector(Velocity);
+	FTransform localTransform = Rigidbody->GetComponentTransform();
+	LocalVelocity = invRotation.RotateVector(Velocity);
+	LocalVelocity = localTransform.InverseTransformVector(Velocity);
 
 
 	//LocalVelocity = invRotation * Velocity;
@@ -128,6 +132,9 @@ void UAircraftPhysics::UpdateThrust()
 	thrust = worldTransform.TransformVector(thrust);
 	Rigidbody->AddForce(thrust);
 	CurrentForce = thrust;
+
+	FVector end = Rigidbody->GetComponentLocation() + thrust;
+	//DrawDebugLine(GetWorld(), Rigidbody->GetComponentLocation(), end, FColor::White , false, 0.05f, 0, 1.0f);
 	
 }
 
@@ -135,35 +142,67 @@ void UAircraftPhysics::UpdateDrag()
 {
 	FVector lv = LocalVelocity;
 	float lv2 = lv.SizeSquared();
-
+	lv2 /= 2;
+	//CurrentInducedDrag.Y = lv2;
 	// adjust based on scale to interact with curves
-	lv /= Scale;
+	//lv /= Scale;
 	//UE_LOG(LogTemp, Warning, TEXT("LocalVelocityDrag: X=%f, Y=%f, Z=%f"), lv.X, lv.Y, lv.Z);
+	//lv /= Scale;
+	float temp = 1;
 	FVector dragCoefficient = Scale6(
 		lv.GetSafeNormal(),
-		DragForward->GetFloatValue(abs(lv.X)), DragBack->GetFloatValue(abs(lv.X)), 
-		DragRight->GetFloatValue(abs(lv.Y)), DragLeft->GetFloatValue(abs(lv.Y)),
-		DragTop->GetFloatValue(abs(lv.Z)), DragBottom->GetFloatValue(abs(lv.Z))
+		DragForward->GetFloatValue(abs(lv.X)* temp) , DragBack->GetFloatValue(abs(lv.X)*temp),
+		DragRight->GetFloatValue(abs(lv.Y)* temp), DragLeft->GetFloatValue(abs(lv.Y)*temp),
+		DragTop->GetFloatValue(abs(lv.Z)* temp), DragBottom->GetFloatValue(abs(lv.Z)* temp)
 	);
 
 	lv = LocalVelocity;
 	FVector drag = dragCoefficient.Size() * lv2 * -lv.GetSafeNormal();
 
-	FTransform worldTransform = Rigidbody->GetComponentTransform();
-	drag = worldTransform.TransformVector(drag);
+	FQuat quaternion = Rigidbody->GetComponentRotation().Quaternion();
+	drag = quaternion.RotateVector(drag);
+
 	Rigidbody->AddForce(drag);
 	CurrentDrag = drag;
+	FVector end = Rigidbody->GetComponentLocation() + drag;
+	//DrawDebugLine(GetWorld(), Rigidbody->GetComponentLocation(), end, FColor::Red, false, 0.05f, 0, 1.0f);
+	DragCoefficient = dragCoefficient;
+	//DragCoefficient.X = DragForward->GetFloatValue(abs(lv.X));
+	//DragCoefficient.X = abs(lv.X);
 
+}
+
+void UAircraftPhysics::UpdateAngularDrag()
+{
+	FVector av = CurrentAngularVelocity;
+	av /= Scale;
+	//av.Normalize();
+	CurrentAngularDrag = -av.GetSafeNormal() * av.SizeSquared() * AngularDrag;
+
+	FQuat quaternion = Rigidbody->GetComponentRotation().Quaternion();
+	CurrentAngularDrag = quaternion.RotateVector(CurrentAngularDrag);
+
+	Rigidbody->AddTorqueInDegrees(CurrentAngularDrag, NAME_None, true);
 }
 
 void UAircraftPhysics::UpdateLift()
 {
 	if (LocalVelocity.SizeSquared() < 1.0f)
 		return;
+	float flapsliftPower = 0;
+	if (Flaps)
+		flapsliftPower = this->FlapsLiftPower;
+	FVector yawForce = CalculateLift(AngleOfAttackYaw, FVector(0, 0, 1), RudderPower, RudderAoACurve, RudderInducedDragCurve);
+	FVector liftForce = CalculateLift(AngleOfAttack, FVector(0, 1, 0), LiftPower + flapsliftPower, AoACurve, InducedDragCurve);
+	CurrentLift = liftForce;
 
-	FVector liftForce = CalculateLift(AngleOfAttack, FVector(0, 1, 0), LiftPower, AoACurve, InducedDragCurve);
+	CurrnetYawLift = yawForce;
+	DrawDebugForce(CurrentLift, FColor::Yellow);
+	DrawDebugForce(CurrentDrag, FColor::Red);
+	DrawDebugForce(CurrentForce, FColor::White);
 
-//	Rigidbody->AddForce(liftForce);
+	Rigidbody->AddForce(liftForce);
+	Rigidbody->AddForce(yawForce);
 }
 
 void UAircraftPhysics::UpdateThrottle(float dt)
@@ -189,8 +228,9 @@ void UAircraftPhysics::UpdateSteering(float dt)
 	if (ControlInput.Size() < 0.01)
 	{
 		ControlInput = FVector(0, 0, 0);
+		return;
 	}
-	float speed = FMath::Max(0, LocalVelocity.X);
+	float speed = FMath::Max(0, abs(LocalVelocity.X));
 	SteeringPower = SteeringCurve->GetFloatValue(speed);
 
 	GForceScaling = CalculateGLimiter(ControlInput, FMath::DegreesToRadians(TurnSpeed) * SteeringPower);
@@ -224,6 +264,7 @@ void UAircraftPhysics::UpdateSteering(float dt)
 	TargetAngularVelocity = targetAV;
 	CurrentAngularVelocity = currentAV;
 	//TorqueApplied = invRotation.RotateVector(TorqueApplied);
+
 	FQuat quaternion = Rigidbody->GetComponentRotation().Quaternion();
 	TorqueApplied = quaternion.RotateVector(TorqueApplied);
 	Rigidbody->AddTorqueInDegrees(TorqueApplied, NAME_None, true);
@@ -233,35 +274,47 @@ void UAircraftPhysics::UpdateSteering(float dt)
 FVector UAircraftPhysics::CalculateLift(float angleOfAttack, FVector forwardAxis, float liftPower, UCurveFloat* aoACurve, UCurveFloat* inducedDragCurve)
 {
 	// project velocitty to XZ plane
-	if (ThrottleInput > 0)
-		int a = 2;
 	FVector liftVelocity = FVector::VectorPlaneProject(LocalVelocity, forwardAxis);
-
+	//DrawDebugForce(liftVelocity, FColor::Cyan);
 	
-	float v2 = (liftVelocity / Scale).SizeSquared();
-
-	// lift = velocity^2 * coefficient + liftPower
+	float v2 = liftVelocity.SizeSquared();
+	v2 /= 2;
+	//CurrentInducedDrag.X = v2;
+	// lift = velocity^2 * coefficient * liftPower
 	float liftCoefficient = aoACurve->GetFloatValue(FMath::RadiansToDegrees(angleOfAttack));
-	float liftForce = v2 * liftCoefficient * LiftPower;
 
+	float liftForce = v2 * liftCoefficient * liftPower;
+	//CurrentInducedDrag.Z = liftCoefficient;
+	//CurrentInducedDrag.Y = LiftPower;
+
+	//liftVelocity.Normalize();
 	// lift is perpendicular to velocity
 	FVector liftDirection = FVector::CrossProduct(liftVelocity.GetSafeNormal(), forwardAxis);
+	
+	//if (abs(liftDirection.Dot(liftVelocity)) <= 0.01)
+	//	__debugbreak();
 	FVector lift = liftDirection * liftForce;
+	//CurrentInducedDrag = liftDirection.GetSafeNormal();
 
-	CurrentLift.X = liftCoefficient;
-	CurrentLift.Y = LiftPower;
-	CurrentLift.Z = v2;
-	FTransform worldTransform = Rigidbody->GetComponentTransform();
-	lift = worldTransform.TransformVector(lift);
+	//CurrentLift.X = liftCoefficient;
+	//CurrentLift.Y = LiftPower;
+	//CurrentLift.Z = v2;
+	//FTransform worldTransform = Rigidbody->GetComponentTransform();
+	//lift = worldTransform.TransformVector(lift);
+
+	
+	FQuat quaternion = Rigidbody->GetComponentRotation().Quaternion();
+	lift = quaternion.RotateVector(lift);
 	CurrentLift = lift;
 
 	//induced drag varies with square of lift coefficient
 	float dragForce = liftCoefficient * liftCoefficient;
 	FVector dragDirection = -liftVelocity.GetSafeNormal();
 	FVector inducedDrag = dragDirection * v2 * dragForce * InducedDrag * inducedDragCurve->GetFloatValue(FMath::Max(0, LocalVelocity.X));
-
-	CurrentInducedDrag = inducedDrag;
-
+	//FQuat quaternion = Rigidbody->GetComponentRotation().Quaternion();
+	inducedDrag = quaternion.RotateVector(inducedDrag);
+	//CurrentInducedDrag = inducedDrag;
+	//DrawDebugForce(inducedDrag)
 	return lift + inducedDrag;
 }
 
@@ -326,6 +379,12 @@ float UAircraftPhysics::MoveTo(float value, float target, float speed, float del
 	return FMath::Clamp(value + delta, min, max);
 }
 
+void UAircraftPhysics::DrawDebugForce(FVector force, FColor color)
+{
+	FVector end = Rigidbody->GetCenterOfMass() + force;
+	//DrawDebugLine(GetWorld(), Rigidbody->GetCenterOfMass(), end, color, false, 0.05f, 0, 1.0f);
+}
+
 // Called every frame
 void UAircraftPhysics::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
@@ -341,16 +400,20 @@ void UAircraftPhysics::TickComponent(float DeltaTime, ELevelTick TickType, FActo
 	UpdateSteering(DeltaTime);
 
 	UpdateDrag();
+	UpdateAngularDrag();
 
 
 	// ...
-	/*FVector end = Rigidbody->GetComponentLocation() + Rigidbody->GetForwardVector() * 2000;
-	DrawDebugLine(GetWorld(), Rigidbody->GetComponentLocation(), end, FColor::Green, false, 0.05f, 0, 1.0f);*/
+	FVector end = Rigidbody->GetComponentLocation() + Rigidbody->GetPhysicsLinearVelocity();
+	//DrawDebugLine(GetWorld(), Rigidbody->GetComponentLocation(),end , FColor::Green, false, 0.05f, 0, 1.0f);
 	//// apply some gravity 
-	//Rigidbody->SetPhysicsLinearVelocity(Velocity + FVector(0, 0, -9.8f * DeltaTime * DeltaTime));
-//	FVector GravityForce = FVector(0.0f, 0.0f, -GetWorld()->GetGravityZ() * Rigidbody->GetMass());
-//	Rigidbody->AddForce(GravityForce);
+	//Rigidbody->SetPhysicsLinearVelocity(Rigidbody->GetPhysicsLinearVelocity() + FVector(0, 0, -980.0f * DeltaTime));
+	//FVector GravityForce = FVector(0.0f, 0.0f, GetWorld()->GetGravityZ() * Scale);
+	//Rigidbody->AddForce(GravityForce);
 
+	DrawDebugForce(Rigidbody->GetPhysicsLinearVelocity(), FColor::Green);
+	DrawDebugForce(FVector(0, 0, GetWorld()->GetGravityZ()), FColor::Black);
+	CalculateState(DeltaTime);
 
 }
 

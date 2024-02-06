@@ -27,7 +27,7 @@ void UPlaneHUD::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 
 	APlayerController* PC = GetOwningPlayer();
 	FVector2D pivot;
-	FVector loc = ControlledPlane->GetActorLocation() + ControlledPlane->GetActorForwardVector() * 2000.0f;
+	FVector loc = ControlledPlane->GetActorLocation() + ControlledPlane->GetActorForwardVector() * 20000.0f;
 
 	PC->ProjectWorldLocationToScreen(loc, pivot);
 

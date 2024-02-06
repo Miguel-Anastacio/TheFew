@@ -41,6 +41,7 @@ public:
 
 	void ToggleLandingGear();
 	UAircraftPhysics* GetPlanePhysicsComponent() { return PlanePhysicsComponent; };
+	UPrimitiveComponent* GetRigidbody();
 	void TriggerWeapons();
 	bool GetIsFlying() { return Flying; };
 	

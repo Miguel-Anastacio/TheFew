@@ -14,7 +14,7 @@
 APlanePawn::APlanePawn()
 {
 	//PlaneRoot = CreateDefaultSubobject<USceneComponent>("Root");
-
+	
 	PlaneBodyBox = CreateDefaultSubobject<UBoxComponent>("Plane Body Collider");
 	//PlaneBodyBox->SetupAttachment(RootComponent);
 	RootComponent = PlaneBodyBox;
@@ -260,6 +260,11 @@ void APlanePawn::ToggleLandingGear()
 	}
 }
 
+UPrimitiveComponent* APlanePawn::GetRigidbody()
+{
+	return PlanePhysicsComponent->GetRigidbody();
+}
+
 void APlanePawn::TriggerWeapons()
 {
 	if(!GunFireAudioComponent->IsPlaying())
@@ -281,6 +286,7 @@ void APlanePawn::BeginPlay()
 	if (!PlaneBodyBox)
 		UE_LOG(LogTemp, Warning, TEXT("Body Null"));
 	PlanePhysicsComponent->SetRigidbody(PlaneBodyBox);
+
 	DefaultCameraRotation = TailCameraBoom->GetRelativeRotation();
 	
 	DefaultFOV = TailCamera->FieldOfView;
@@ -324,12 +330,12 @@ void APlanePawn::UpdateFlying()
 {
 	FHitResult Hit;
 	FVector TraceStart = GetActorLocation();
-	FVector TraceEnd = GetActorLocation() + FVector::DownVector * 100.0f;
+	FVector TraceEnd = GetActorLocation() + FVector::DownVector * 200.0f;
 	FCollisionQueryParams QueryParams;
 	QueryParams.AddIgnoredActor(this);
 
 	GetWorld()->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_WorldStatic, QueryParams);
-	DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::Red, false, 0.1f, 0, 1.0f);
+	//DrawDebugLine(GetWorld(), TraceStart, TraceEnd, FColor::Red, false, 0.1f, 0, 1.0f);
 	if (Hit.bBlockingHit && IsValid(Hit.GetActor()))
 	{
 		if (Flying)
@@ -339,9 +345,11 @@ void APlanePawn::UpdateFlying()
 		}
 
 		Flying = false;
+		PlanePhysicsComponent->Setflaps(true);
 	}
 	else 
 	{
+		PlanePhysicsComponent->Setflaps(false);
 		Flying = true;
 	}
 }

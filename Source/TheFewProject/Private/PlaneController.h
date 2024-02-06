@@ -24,6 +24,7 @@ protected:
 	void PreInitializeComponents() override;
 	void SetupInputComponent() override;
 	void BeginPlay() override;
+	void OnPossess(APawn* pawn) override;
 	// Input Fucntions
 	void Yaw(const FInputActionInstance& Instance);
 	void Roll(const FInputActionInstance& Instance);
