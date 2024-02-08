@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "Interfaces/ReactToHitInterface.h"
 #include "PlanePawn.generated.h"
 
 class UBoxComponent;
@@ -14,9 +15,9 @@ class UCameraComponent;
 class UAircraftPhysics;
 class UWeaponComponent;
 class UVfxComponent;
-
+//class IReactToHitInterface;
 UCLASS()
-class APlanePawn : public APawn
+class APlanePawn : public APawn, public IReactToHitInterface
 {
 	GENERATED_BODY()
 
@@ -28,6 +29,7 @@ public:
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void PostInitializeComponents() override;
 	//float GetThrust() { return Thrust; };
 	//void SetThrust(float t) { Thrust = t; };
 	//void IncreaseThrust() { Thrust += 1; };
@@ -41,11 +43,18 @@ public:
 
 	void ToggleLandingGear();
 	UAircraftPhysics* GetPlanePhysicsComponent() { return PlanePhysicsComponent; };
+	//UHealthComponent* GetHealthComponent() { return PlanePhysicsComponent; };
 	UPrimitiveComponent* GetRigidbody();
 	void TriggerWeapons();
 	bool GetIsFlying() { return Flying; };
 	
 	void StopWeaponAudio();
+
+	// override interface component functions
+	/**A version of React To Trigger that can be implemented in C++ or Blueprint. */
+	//UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+	//void ReactToHit(float damage); virtual void ReactToHit_Implementation(float damage) override;
+	void ReactToHit(float damage) override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -53,7 +62,8 @@ protected:
 	void AnimateControlSurface(float input, USceneComponent* surfacePivot, FRotator axis, float dt);
 	void UpdateFlying();
 
-	
+	UFUNCTION()
+		void PlaneDeath();
 
 protected:
 	UPROPERTY(EditAnywhere )
@@ -116,6 +126,9 @@ protected:
 		UWeaponComponent* LeftWeaponComponent;
 	UPROPERTY(EditAnywhere, Category = "Weapon")
 		UWeaponComponent* RightWeaponComponent;
+
+	UPROPERTY(EditAnywhere, Category = "Health")
+		TObjectPtr<class UHealthComponent> HealthComponent;
 
 	UPROPERTY(EditAnywhere, Category = "Plane Animation")
 		float PropellerRotationSpeed = 200.0f;

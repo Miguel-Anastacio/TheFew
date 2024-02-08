@@ -156,6 +156,9 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "GForce")
 		float GLimitPitchDown = -4.0f;
 
+	UPROPERTY(EditAnywhere, Category = "Control")
+		bool PlayerControlled = false;
+
 	UPROPERTY(Transient)
 		UPrimitiveComponent* Rigidbody;
 
@@ -182,6 +185,7 @@ protected:
 	// input variables
 	float Throttle = 0;
 	float ThrottleInput = 0;
+	UPROPERTY(VisibleAnywhere, Category = "Input")
 	FVector ControlInput = FVector(0, 0, 0);
 
 	// SteeringData

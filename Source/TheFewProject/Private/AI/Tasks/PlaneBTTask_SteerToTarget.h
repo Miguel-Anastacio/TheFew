@@ -18,6 +18,7 @@ public:
 
 private:
 	virtual EBTNodeResult::Type ExecuteTask(UBehaviorTreeComponent& ownerComp, uint8* NodeMemory) override;
+	virtual void TickTask(UBehaviorTreeComponent& ownerComp, uint8* NodeMemory, float deltaSeconds) override;
 	virtual FString GetStaticDescription() const override;
 	FVector CalculateInput(const FVector& targetPosition, APawn* ownerPawn);
 

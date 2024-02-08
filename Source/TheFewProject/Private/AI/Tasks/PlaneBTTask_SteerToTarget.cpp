@@ -10,10 +10,30 @@
 #include "BehaviorTree/BlackboardComponent.h"
 UPlaneBTTask_SteerToTarget::UPlaneBTTask_SteerToTarget()
 {
+	bNotifyTick = true;
 	NodeName = TEXT("Update Steering Input");
 }
 
 EBTNodeResult::Type UPlaneBTTask_SteerToTarget::ExecuteTask(UBehaviorTreeComponent& ownerComp, uint8* NodeMemory)
+{
+	//AAIController* aiController = Cast<AAIController>(ownerComp.GetAIOwner());
+	//APlanePawnAI* ownerPawn = Cast<APlanePawnAI>(aiController->GetPawn());
+	////APawn* ownerPawn = aiController->GetPawn();
+
+	//FVector targetPos = UGameplayStatics::GetPlayerPawn(GetWorld(), 0)->GetActorLocation();
+	//if (ownerPawn)
+	//{
+	//	FVector input = CalculateInput(targetPos, ownerPawn);
+	//	ownerPawn->GetPlanePhysicsComponent()->UpdateControlInput(input);
+	//	ownerPawn->GetPlanePhysicsComponent()->SetThrottleInput(1);
+	//	aiController->GetBlackboardComponent()->SetValueAsVector(BlackboardKey.SelectedKeyName, input);
+	//}
+	//
+	//FinishLatentTask(ownerComp, EBTNodeResult::Succeeded);
+	return EBTNodeResult::InProgress;
+}
+
+void UPlaneBTTask_SteerToTarget::TickTask(UBehaviorTreeComponent& ownerComp, uint8* NodeMemory, float deltaSeconds)
 {
 	AAIController* aiController = Cast<AAIController>(ownerComp.GetAIOwner());
 	APlanePawnAI* ownerPawn = Cast<APlanePawnAI>(aiController->GetPawn());
@@ -27,9 +47,6 @@ EBTNodeResult::Type UPlaneBTTask_SteerToTarget::ExecuteTask(UBehaviorTreeCompone
 		ownerPawn->GetPlanePhysicsComponent()->SetThrottleInput(1);
 		aiController->GetBlackboardComponent()->SetValueAsVector(BlackboardKey.SelectedKeyName, input);
 	}
-	
-	FinishLatentTask(ownerComp, EBTNodeResult::Succeeded);
-	return EBTNodeResult::Succeeded;
 }
 
 FString UPlaneBTTask_SteerToTarget::GetStaticDescription() const
@@ -53,10 +70,14 @@ FVector UPlaneBTTask_SteerToTarget::CalculateInput(const FVector& targetPosition
 	FVector pitchNecessary = FVector(difference.X, 0, difference.Z).GetSafeNormal();
 	float pitch = FMath::RadiansToDegrees(SignedAngle(FVector::ForwardVector, pitchNecessary, FVector::RightVector));
 
-	if (pitch > PitchUpThreshold)
-		pitch -= 360.f;
+	//if (pitch > PitchUpThreshold)
+	//	pitch -= 360.f;
 
 
+
+	float minPitch = -180;
+	float maxPitch = 180;
+	targetInput.Y = FMath::Lerp(-1.f, 1.0f, (pitch - minPitch) / (maxPitch - minPitch));
 	targetInput.Y = pitch * PitchFactor;
 
 	// determine roll and yaw
@@ -70,7 +91,10 @@ FVector UPlaneBTTask_SteerToTarget::CalculateInput(const FVector& targetPosition
 	else
 	{
 		float roll = FMath::RadiansToDegrees(SignedAngle(FVector::UpVector, rollNecessary, FVector::ForwardVector));
+
+		targetInput.X = FMath::Lerp(-1.f, 1.0f, (roll - minPitch) / (maxPitch - minPitch));
 		targetInput.X = roll * RollFactor;
+
 	}
 	GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, FString::Printf(TEXT("Roll Input AI = %f"), targetInput.X), true);
 	GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Yellow, FString::Printf(TEXT("Pitch Input AI = %f"), targetInput.Y), true);

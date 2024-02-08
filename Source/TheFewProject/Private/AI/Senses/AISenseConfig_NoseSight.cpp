@@ -8,6 +8,7 @@ UAISenseConfig_NoseSight::UAISenseConfig_NoseSight(const FObjectInitializer& Obj
 	DebugColor = FColor::Cyan;
 	MaxAge = 0;
 	bStartsEnabled = true;
+	
 }
 
 TSubclassOf<UAISense> UAISenseConfig_NoseSight::GetSenseImplementation() const

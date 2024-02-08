@@ -108,9 +108,8 @@ void AProjectile::LineTrace()
 		IReactToHitInterface* interface = Cast<IReactToHitInterface>(Hit.GetActor());
 		if (interface)
 		{
-			interface->ReactToHit(10.0f);
+			interface->ReactToHit(20.0f);
 		}
-		Destroy();
 		/*if (pointerToAnyUObject->GetClass()->ImplementsInterface(UReactsToTimeOfDay::StaticClass())) {
 			IReactsToTimeOfDay::Execute_ReactToHighNoon(pointerToAnyUObject);
 		}*/

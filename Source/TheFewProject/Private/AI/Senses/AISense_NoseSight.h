@@ -42,11 +42,12 @@ public:
 		bool bDisplayDebugCylinder;
 
 		FDigestedNoseSightProperties();
-		FDigestedNoseSightProperties(class UAISenseConfig_NoseSight& senseConfig);
+		FDigestedNoseSightProperties(const class UAISenseConfig_NoseSight& senseConfig);
 	};
 	/* Consumed properties from config */
 	TArray<FDigestedNoseSightProperties> DigestedProperties;
 
+	UAISense_NoseSight();
 	void RegisterEvent(const FAINoseSightEvent& event);
 
 protected:
@@ -54,6 +55,16 @@ protected:
 	TArray<FAINoseSightEvent> NoseSightEvents;
 
 	virtual float Update() override;
+
+	/* A listener is someone who has a Perception component with various senses
+	 * This function will be called when a new listener gained this sense
+	 */
+	void OnNewListenerImpl(const FPerceptionListener& NewListener);
+
+	/*
+	 * Called whenever the listener is removed (eg destroyed or game has stopped)
+	 */
+	void OnListenerRemovedImpl(const FPerceptionListener& UpdatedListener);
 
 private:
 	void PerformShapeSweep(const AActor* listenerActor, const FDigestedNoseSightProperties& sweepProperties, TArray<FHitResult>& out_Hits);

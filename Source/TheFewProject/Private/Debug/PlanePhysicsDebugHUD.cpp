@@ -10,6 +10,7 @@
 void APlanePhysicsDebugHUD::DrawHUD()
 {
 	APlanePawn* player = Cast<APlanePawn>(GetOwningPawn());
+	//APlane
 
 	if (player)
 	{
@@ -48,7 +49,7 @@ void APlanePhysicsDebugHUD::DrawSteering(APlanePawn* pl)
 	AddVector(TEXT("G Force "), pl->PlanePhysicsComponent->LocalGForce);
 	AddFloat(TEXT("G Limit Scaling "), pl->PlanePhysicsComponent->GForceScaling);
 	AddVector(TEXT("G Force Limit "), pl->PlanePhysicsComponent->GForceLimitDebug);
-	AddVector(TEXT("Control Input "), pl->PlanePhysicsComponent->InputDebug);
+	AddVector(TEXT("Control Input "), pl->PlanePhysicsComponent->ControlInput);
 	AddFloat(TEXT("Steering Power "), pl->PlanePhysicsComponent->SteeringPower);
 	AddFloat(TEXT("AoA "), FMath::RadiansToDegrees(pl->PlanePhysicsComponent->AngleOfAttack));
 	AddFloat(TEXT("AoA Yaw"), FMath::RadiansToDegrees(pl->PlanePhysicsComponent->AngleOfAttackYaw));
@@ -77,9 +78,9 @@ void APlanePhysicsDebugHUD::DrawPlaneData(APlanePawn* player)
 
 	AddFloat(TEXT("Altitude"), player->PlaneBodyBox->GetComponentLocation().Z);
 	//FRotator rot = player->PlaneBodyBox->GetComponentRotation();
-	FRotator rot = player->TailCameraBoom->GetRelativeRotation();
+	FRotator rot = player->GetActorRotation();
 	FVector temp = FVector(rot.Roll, rot.Pitch, rot.Yaw);
-	AddVector(TEXT("Camera Rotation"), temp);
+	AddVector(TEXT("Player Rotation"), temp);
 	AddVector(TEXT("Local Velocity"), player->PlanePhysicsComponent->LocalVelocity);
 	AddVector(TEXT("Velocity"), player->PlanePhysicsComponent->Velocity);
 	AddFloat(TEXT("Velocity"), player->PlanePhysicsComponent->Velocity.Size());

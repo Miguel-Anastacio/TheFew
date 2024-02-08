@@ -228,7 +228,7 @@ void UAircraftPhysics::UpdateSteering(float dt)
 	if (ControlInput.Size() < 0.01)
 	{
 		ControlInput = FVector(0, 0, 0);
-		return;
+		//return;
 	}
 	float speed = FMath::Max(0, abs(LocalVelocity.X));
 	SteeringPower = SteeringCurve->GetFloatValue(speed);
@@ -260,7 +260,11 @@ void UAircraftPhysics::UpdateSteering(float dt)
 	//CurrentForce.X = gForceScaling;
 	//correction
 	InputDebug = ControlInput;
-	ControlInput = FVector(0, 0, 0);
+	//if(PlayerControlled)
+		ControlInput = FVector(0, 0, 0);
+
+
+
 	TargetAngularVelocity = targetAV;
 	CurrentAngularVelocity = currentAV;
 	//TorqueApplied = invRotation.RotateVector(TorqueApplied);

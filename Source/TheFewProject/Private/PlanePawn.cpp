@@ -10,6 +10,8 @@
 #include "Weapon/WeaponComponent.h"
 #include "VFX/VfxComponent.h"
 #include "Components/AudioComponent.h"
+#include "Components/HealthComponent.h"
+#include "../TheFewProject.h"
 // Sets default values
 APlanePawn::APlanePawn()
 {
@@ -106,8 +108,47 @@ APlanePawn::APlanePawn()
 
 	PlaneEngineAudioComponent = CreateDefaultSubobject<UAudioComponent>("Engine Audio");
 	GunFireAudioComponent = CreateDefaultSubobject<UAudioComponent>("Gun Audio");
+
+	HealthComponent = CreateDefaultSubobject<UHealthComponent>("Health Component");
 }
 
+void APlanePawn::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	if (IsValid(HealthComponent.Get()))
+	{
+		HealthComponent->ActorDeathDelegate.AddDynamic(this, &APlanePawn::PlaneDeath);
+	}
+}
+
+
+void APlanePawn::BeginPlay()
+{
+	Super::BeginPlay();
+	if (!PlaneBodyBox)
+		UE_LOG(LogTemp, Warning, TEXT("Body Null"));
+	PlanePhysicsComponent->SetRigidbody(PlaneBodyBox);
+
+	DefaultCameraRotation = TailCameraBoom->GetRelativeRotation();
+
+	DefaultFOV = TailCamera->FieldOfView;
+	Flying = true;
+	if (!LandingGear)
+	{
+		LeftWheelCollider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		RightWheelCollider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		BackWheel->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+
+
+	LeftTrail->SetSpeedForMaxTrail(SpeedForMaxFOV);
+	RightTrail->SetSpeedForMaxTrail(SpeedForMaxFOV);
+
+}
+//void APlanePawn::ReactToHit_Implementation(float damage)
+//{
+//	HealthComponent->TakeDamage(damage);
+//}
 void APlanePawn::SwapCamera()
 {
 	if (TailCamera->IsActive())
@@ -117,6 +158,7 @@ void APlanePawn::SwapCamera()
 	}
 	else
 	{
+		TailCameraBoom->SetRelativeRotation(DefaultCameraRotation);
 		TailCamera->Activate();
 		PropellerCamera->Deactivate();
 	}
@@ -180,7 +222,7 @@ void APlanePawn::UpdateCamera(float DeltaTime)
 		//TailCameraBoom->SetRelativeRotation(DefaultCameraRotation);
 		TargetCameraRotation = DefaultCameraRotation.Quaternion();
 		
-		TailCameraBoom->SetRelativeRotation(FMath::Lerp(TailCameraBoom->GetRelativeRotation(), DefaultCameraRotation, DeltaTime));
+		//ailCameraBoom->SetRelativeRotation(FMath::Lerp(TailCameraBoom->GetRelativeRotation(), DefaultCameraRotation, DeltaTime));
 		return;
 	}
 	//FQuat currentRot = TailCameraBoom->GetRelativeRotation().Quaternion();
@@ -279,29 +321,9 @@ void APlanePawn::StopWeaponAudio()
 		GunFireAudioComponent->Stop();
 }
 
-// Called when the game starts or when spawned
-void APlanePawn::BeginPlay()
+void APlanePawn::ReactToHit(float damage)
 {
-	Super::BeginPlay();
-	if (!PlaneBodyBox)
-		UE_LOG(LogTemp, Warning, TEXT("Body Null"));
-	PlanePhysicsComponent->SetRigidbody(PlaneBodyBox);
-
-	DefaultCameraRotation = TailCameraBoom->GetRelativeRotation();
-	
-	DefaultFOV = TailCamera->FieldOfView;
-	Flying = true;
-	if (!LandingGear)
-	{
-		LeftWheelCollider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		RightWheelCollider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		BackWheel->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	}
-
-
-	LeftTrail->SetSpeedForMaxTrail(SpeedForMaxFOV);
-	RightTrail->SetSpeedForMaxTrail(SpeedForMaxFOV);
-
+	HealthComponent->TakeDamage(damage);
 }
 
 void APlanePawn::CreateMeshWithPivot(USceneComponent* pivot, UStaticMeshComponent* mesh, FName name, FName nameMesh)
@@ -354,6 +376,11 @@ void APlanePawn::UpdateFlying()
 	}
 }
 
+void APlanePawn::PlaneDeath()
+{
+	UE_LOG(LogProjectFew, Warning, TEXT("Death of Actor %s"), *this->GetName());
+}
+
 // Called every frame
 void APlanePawn::Tick(float DeltaTime)
 {
@@ -403,4 +430,5 @@ void APlanePawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
 }
+
 

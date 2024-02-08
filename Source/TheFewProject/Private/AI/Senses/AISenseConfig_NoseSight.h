@@ -20,7 +20,7 @@ public:
 	// Set common config values
 	UAISenseConfig_NoseSight(const FObjectInitializer& ObjectInitializer);
 	// Implementation Class that defines the behavior of the sense
-	//UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sense", NoClear, config)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sense", NoClear, config)
 		TSubclassOf<UAISense_NoseSight> Implementation;
 	// Size of cylinder in front of plane nose
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Sense")

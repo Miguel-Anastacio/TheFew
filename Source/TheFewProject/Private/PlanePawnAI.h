@@ -13,7 +13,14 @@ UCLASS()
 class APlanePawnAI : public APlanePawn
 {
 	GENERATED_BODY()
-
+public:
+	APlanePawnAI();
+	TObjectPtr<class UBoxComponent> GetDetectionVolume();
+	void Tick(float deltaTime) override;
 protected:
 	void BeginPlay() override;
+
+	UPROPERTY(EditAnywhere, Category = "Obstacle Detection")
+		TObjectPtr<class UBoxComponent> DetectionVolume;
+
 };
