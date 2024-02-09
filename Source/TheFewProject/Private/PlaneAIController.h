@@ -25,7 +25,9 @@ class APlaneAIController : public AAIController
 	GENERATED_BODY()
 public:
 	APlaneAIController();
-
+	FORCEINLINE void SetTargetActor(AActor* target) { TargetActor = target; };
+	void ShowDebugInfo(FVector input);
+	void ShowDebugInfo();
 protected:
 	virtual void Tick(float DeltaTime) override;
 	virtual void OnPossess(APawn* pawn) override;
@@ -38,17 +40,23 @@ protected:
 	FVector RecoverAltitude(APawn* pawn);
 	FVector AvoidGround(APawn* pawnToObstacle);
 	
-	bool IsPlaneFacingTarget(APawn* target);
+	bool IsPlaneFacingTarget(AActor* target);
+	bool DetectObstacles(AActor* pawn);
 
 	float SignedAngle(FVector from, FVector to, FVector axis);
 	float Angle(FVector from, FVector to);
 
+
+protected:
+	UPROPERTY(VisibleAnywhere)
+	TObjectPtr<AActor> TargetActor;
 	UPROPERTY(VisibleAnywhere)
 	TEnumAsByte<AI_STATE> CurrentState = CHASING;
 	FVector PawnToObstacle;
 	FVector TargetInput;
+
 	TObjectPtr<class APlanePawnAI> ControlledPlanePawn;
-	TObjectPtr<class APlanePawn> PlayerPlanePawn;
+	//TObjectPtr<AActor> TargetActor;
 
 	UPROPERTY(EditAnywhere, Category = "Controls")
 		float PitchUpThreshold;
@@ -58,7 +66,24 @@ protected:
 		float RollFactor = 1.0f;
 	UPROPERTY(EditAnywhere, Category = "Controls")
 		float PitchFactor = 1.0f;
+	UPROPERTY(EditAnywhere, Category = "Controls")
+		float MinAltitude = 75.0f;
 
+	UPROPERTY(EditAnywhere, Category = "Controls")
+		float AngleRange = 10;
+
+
+	UPROPERTY(EditAnywhere, Category = "Detection")
+		float LengthOfRays = 2000.f;;
+	UPROPERTY(EditAnywhere, Category = "Detection")
+		float StartPosOffSet = 500.f;
+	UPROPERTY(EditAnywhere, Category = "Detection")
+		float AngleBetweenRays = 30.f;
+	UPROPERTY(EditAnywhere, Category = "Detection")
+		int NumberOfRaysPerAxis = 5.0f;
+
+	float Altitude = 0.f;
+	// NOT IN USE
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "AI")
 		TObjectPtr<UBehaviorTree> BehaviourTree;
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "AI")
@@ -67,18 +92,12 @@ protected:
 		TObjectPtr<UBlackboardComponent> BlackboardComponent;
 	UPROPERTY(EditAnywhere, Category = "Perception")
 		TObjectPtr<class UAIPerceptionComponent> AIPerceptionComponent;
-
 	UPROPERTY(EditAnywhere, Category = "Controls")
-		float MinAltitude = 75.0f;
-
-	UPROPERTY(EditAnywhere, Category = "Controls")
-		float AngleRange = 10;
+		float GroundAvoidanceMinSpeed = 75.0f;
 
 	//UPROPERTY(EditAnywhere, Category = "Controls")
 	//	float MinVelocity = 75.0f;
 
-	UPROPERTY(EditAnywhere, Category = "Controls")
-		float GroundAvoidanceMinSpeed = 75.0f;
 	//UPROPERTY(EditAnywhere, Category = "Controls")
 	//	float GroundAvoidanceMaxSpeed = 75.0f;
 	//UFUNCTION()

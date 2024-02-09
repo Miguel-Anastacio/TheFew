@@ -6,7 +6,8 @@
 #include "Components/ActorComponent.h"
 #include "HealthComponent.generated.h"
 
-DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnActorDeath);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnActorDeathSiganture, AActor*, responsible);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnActorDeathSimpleSignature);
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UHealthComponent : public UActorComponent
@@ -18,11 +19,16 @@ public:
 	UHealthComponent();
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	void TakeDamage(float damage);
+	void TakeDamage(float damage, AActor* causer);
 	FORCEINLINE void SetMaxHealth(float health) { MaxHealth = health; };
+	FORCEINLINE void Reset() { CurrentHealth = MaxHealth; };
 	//FORCEINLINE void AddHealth(float health) { CurrentHealth += health; };
 public:
 	UPROPERTY(BlueprintAssignable)
-	FOnActorDeath ActorDeathDelegate;
+		FOnActorDeathSiganture ActorDeathDelegate;
+
+	UPROPERTY(BlueprintAssignable)
+		FOnActorDeathSimpleSignature ActorSimpleDeathDelegate;
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

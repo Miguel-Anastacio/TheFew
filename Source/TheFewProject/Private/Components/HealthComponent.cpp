@@ -29,7 +29,17 @@ void UHealthComponent::TakeDamage(float damage)
 	CurrentHealth -= damage;
 	if (CurrentHealth <= 0)
 	{
-		ActorDeathDelegate.Broadcast();
+		ActorSimpleDeathDelegate.Broadcast();
+	}
+	UE_LOG(LogProjectFew, Warning, TEXT("Current health of %s : %f"), *GetOwner()->GetName(), CurrentHealth);
+}
+
+void UHealthComponent::TakeDamage(float damage, AActor* causer)
+{
+	CurrentHealth -= damage;
+	if (CurrentHealth <= 0)
+	{
+		ActorDeathDelegate.Broadcast(causer);
 	}
 	UE_LOG(LogProjectFew, Warning, TEXT("Current health of %s : %f"), *GetOwner()->GetName(), CurrentHealth);
 }

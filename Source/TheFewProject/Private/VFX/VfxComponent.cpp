@@ -65,7 +65,7 @@ void UVfxComponent::UpdateNiagaraSystem(FVector velocity)
 	}
 	else
 	{
-		UE_LOG(LogTemp, Warning, TEXT("NUl"));
+		//UE_LOG(LogTemp, Warning, TEXT("NUl"));
 	}
 }
 

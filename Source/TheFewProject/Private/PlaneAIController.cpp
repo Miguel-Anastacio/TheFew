@@ -24,7 +24,7 @@ APlaneAIController::APlaneAIController()
 void APlaneAIController::BeginPlay()
 {
 	Super::BeginPlay();
-	PlayerPlanePawn = Cast<APlanePawn>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+	//TargetActor = Cast<AActor>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 	if (IsValid(BehaviourTree.Get()))
 	{
 		//RunBehaviorTree(BehaviourTree.Get());
@@ -122,11 +122,7 @@ FVector APlaneAIController::SteerToTarget(const FVector& targetPosition, APawn* 
 		targetInput.X = roll * RollFactor;
 
 	}
-	GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, FString::Printf(TEXT("Roll Input AI = %f"), targetInput.X), true);
-	GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Yellow, FString::Printf(TEXT("Pitch Input AI = %f"), targetInput.Y), true);
-	GEngine->AddOnScreenDebugMessage(2, 1.0f, FColor::Yellow, FString::Printf(TEXT("Yaw Input AI = %f"), targetInput.Z), true);
-	GEngine->AddOnScreenDebugMessage(3, 1.0f, FColor::Yellow, FString::Printf(TEXT("Angle = %f"), angle), true);
-
+	
 	targetInput.X = FMath::Clamp(targetInput.X, -1.0f, 1.0f);
 	targetInput.Y = FMath::Clamp(targetInput.Y, -1.0f, 1.0f);
 	targetInput.Z = FMath::Clamp(targetInput.Z, -1.0f, 1.0f);
@@ -172,7 +168,7 @@ FVector APlaneAIController::RecoverAltitude(APawn* pawn)
 }
 
 
-bool APlaneAIController::IsPlaneFacingTarget(APawn* pawn)
+bool APlaneAIController::IsPlaneFacingTarget(AActor* pawn)
 {
 	FVector targetPosition = pawn->GetActorLocation();
 	FVector error = targetPosition - ControlledPlanePawn->GetActorLocation();
@@ -191,6 +187,78 @@ bool APlaneAIController::IsPlaneFacingTarget(APawn* pawn)
 		return true;
 	}
 	return false;
+}
+
+bool APlaneAIController::DetectObstacles(AActor* pawn)
+{
+	// Sweep across z = 0 in local space
+	TArray<FHitResult> allHits;
+	//for (int i = -2; i < 3; i++)
+	//{
+	//	FHitResult hit;
+	//	FVector start = pawn->GetActorLocation() + pawn->GetActorForwardVector() * 100.0f;
+	//	FVector up = pawn->GetActorUpVector();
+	//	FRotator rot = FRotator(0, 0, 30 * i);
+	//	//FQuat rotLocal = listenerActor->GetTransform().InverseTransformRotation(rot.Quaternion());
+	//	FVector dir = rot.RotateVector(pawn->GetActorForwardVector());
+
+	//	dir = UKismetMathLibrary::RotateAngleAxis(pawn->GetActorForwardVector(), 30 * i, up);
+	//	FVector end = start + dir * 1000.0f;
+
+	//	GetWorld()->LineTraceSingleByChannel(hit, start, end, ECollisionChannel::ECC_Visibility);
+	//	DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 0.05f, 0, 1.0f);
+
+	//	if(hit.bBlockingHit)
+	//		allHits.Add(hit);
+	//}
+	//// Sweep across x = 0 in local space
+	//for (int i = -2; i < 3; i++)
+	//{
+	//	FHitResult hit;
+	//	FVector start = pawn->GetActorLocation() + pawn->GetActorForwardVector() * 100.0f;
+	//	FVector right = pawn->GetActorRightVector();
+	//	FVector dir = UKismetMathLibrary::RotateAngleAxis(pawn->GetActorForwardVector(), 30 * i, right);
+	//	FVector end = start + dir * 1000.0f;
+
+	//	GetWorld()->LineTraceSingleByChannel(hit, start, end, ECollisionChannel::ECC_Visibility);
+	//	DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 0.05f, 0, 1.0f);
+
+	//	if (hit.bBlockingHit)
+	//		allHits.Add(hit);
+	//}
+	FVector up = pawn->GetActorUpVector();
+	FVector right = pawn->GetActorRightVector();
+	FVector start = pawn->GetActorLocation() + pawn->GetActorForwardVector() * StartPosOffSet;
+
+	for (int j = 0; j < NumberOfRaysPerAxis; j++)
+	{
+		//FVector temp = UKismetMathLibrary::RotateAngleAxis(pawn->GetActorForwardVector(), 30*j, up);
+		FVector temp = -pawn->GetActorRightVector(); 
+		//temp = UKismetMathLibrary::RotateAngleAxis(-pawn->GetActorRightVector(), AngleBetweenRays , up);
+		temp = UKismetMathLibrary::RotateAngleAxis(-pawn->GetActorRightVector(), AngleBetweenRays * (j+1), up);
+		//temp = UKismetMathLibrary::RotateAngleAxis(temp, -AngleBetweenRays, right);
+
+
+		for (int i = -2; i < 3; i++)
+		{
+			FVector dir;
+			FHitResult hit;
+			dir = UKismetMathLibrary::RotateAngleAxis(temp, AngleBetweenRays * i, right);
+			//dir = UKismetMathLibrary::RotateAngleAxis(dir, 30, up);
+			FVector end = start + dir * LengthOfRays;
+
+			GetWorld()->LineTraceSingleByChannel(hit, start, end, ECollisionChannel::ECC_Visibility);
+			DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 0.02f, 0, 1.0f);
+
+			if (hit.bBlockingHit)
+				allHits.Add(hit);
+		}
+
+
+
+	}
+
+	return true;
 }
 
 float APlaneAIController::SignedAngle(FVector from, FVector to, FVector axis)
@@ -235,12 +303,12 @@ float APlaneAIController::Angle(FVector from, FVector to)
 }
 void APlaneAIController::UpdateBlackboardKeys(const TArray<AActor*>& actors)
 {
-	Blackboard->SetValueAsBool(FName("GroundDetected"), false);
+	/*Blackboard->SetValueAsBool(FName("GroundDetected"), false);
 	for (const auto& act : actors)
 	{
 		if (act->ActorHasTag(FName("Terrain")))
 			Blackboard->SetValueAsBool(FName("GroundDetected"), true);
-	}
+	}*/
 }
 
 //}
@@ -275,40 +343,44 @@ void APlaneAIController::Tick(float dt)
 		Blackboard->SetValueAsBool(FName("LowAltitude"), false);
 	}*/
 
-	FRotator rot = ControlledPlanePawn->GetActorRotation();
-	FVector temp = FVector(rot.Roll, rot.Pitch, rot.Yaw);
-	/*AddVector(TEXT("Player Rotation"), temp);*/
-	GEngine->AddOnScreenDebugMessage(4, 31.0f, FColor::Yellow, FString::Printf(TEXT("Roll AI = %f"), rot.Roll), true);
-	GEngine->AddOnScreenDebugMessage(5, 31.0f, FColor::Yellow, FString::Printf(TEXT("Pitch AI = %f"), rot.Pitch), true);
-	GEngine->AddOnScreenDebugMessage(6, 31.0f, FColor::Yellow, FString::Printf(TEXT("Yaw = %f"), rot.Yaw), true);
-	GEngine->AddOnScreenDebugMessage(10, 31.0f, FColor::Yellow, FString::Printf(TEXT("Throttle = %f"), 
-		ControlledPlanePawn->GetPlanePhysicsComponent()->GetThrottle()), true);
-	GEngine->AddOnScreenDebugMessage(11, 31.0f, FColor::Yellow, FString::Printf(TEXT("Velocity = %f"),
-		ControlledPlanePawn->GetVelocity().Size()), true);	
-	GEngine->AddOnScreenDebugMessage(12, 31.0f, FColor::Yellow, FString::Printf(TEXT("Altitude = %f"),
-		ControlledPlanePawn->GetActorLocation().Z / 100.f), true);
-	//GEngine->AddOnScreenDebugMessage(3, 1.0f, FColor::Yellow, FString::Printf(TEXT("Angle = %f"), angle), true);
-	DrawDebugLine(GetWorld(), ControlledPlanePawn->GetActorLocation(), ControlledPlanePawn->GetActorLocation() + ControlledPlanePawn->GetVelocity(), FColor::Green, false, 0.05f, 0, 1.0f);
 
-	FVector target = PlayerPlanePawn->GetActorLocation();
+	FVector target = FVector(100, 0, 0);
+	if (IsValid(TargetActor))
+	{
+		target = TargetActor->GetActorLocation();
+	}
+
+	DetectObstacles(ControlledPlanePawn);
+
+	if (IsAtLowAltitude())
+	{
+		SwitchState(GAINING_ALTITUDE);
+	}
 	FVector input;
 	//CurrentState = GAINING_ALTITUDE;
 	switch (CurrentState)
 	{
 	case CHASING:
 		input = SteerToTarget(target, ControlledPlanePawn);
-		GEngine->AddOnScreenDebugMessage(7, 1.0f, FColor::Blue,  FString::Printf(TEXT("CHASING")), true);
+		if (ControlledPlanePawn->GetVelocity().Z < -700.f && Altitude < MinAltitude*2)
+		{
+			float roll = ControlledPlanePawn->GetActorRotation().Roll;
+			if (roll > 180.f)
+				roll -= 360.f;
+
+			roll = FMath::Clamp(roll * RollFactor, -1.0f, 1.0f);
+			//return FVector(roll, -1, 0);
+			input.X = roll;
+		}
 		break;
 	case PATROLLING:
 		PatrollingAction();
 		break;
 	case AVOIDING_OBSTACLES:
 		input = AvoidGround(ControlledPlanePawn);
-		GEngine->AddOnScreenDebugMessage(7, 1.0f, FColor::Blue, FString::Printf(TEXT("Avoid Ground")), true);
 		break;
 	case GAINING_ALTITUDE:
 		input = RecoverAltitude(ControlledPlanePawn);
-		GEngine->AddOnScreenDebugMessage(7, 1.0f, FColor::Blue, FString::Printf(TEXT("Recover Altitude")), true);
 		if (!IsAtLowAltitude())
 		{
 			SwitchState(CHASING);
@@ -317,13 +389,14 @@ void APlaneAIController::Tick(float dt)
 	default:
 		break;
 	}
+
+
 	ControlledPlanePawn->GetPlanePhysicsComponent()->UpdateControlInput(input);
 
-	if (IsAtLowAltitude())
-	{
-		SwitchState(GAINING_ALTITUDE);
-	}
-	if (IsPlaneFacingTarget(PlayerPlanePawn))
+	TargetInput = input;
+	//ShowDebugInfo(input);
+
+	if (IsValid(TargetActor) && IsPlaneFacingTarget(TargetActor))
 	{
 		ControlledPlanePawn->TriggerWeapons();
 	}
@@ -335,7 +408,7 @@ bool APlaneAIController::IsAtLowAltitude()
 	FCollisionQueryParams params;
 	params.AddIgnoredActor(ControlledPlanePawn);
 	GetWorld()->LineTraceSingleByChannel(hit, ControlledPlanePawn->GetActorLocation(), ControlledPlanePawn->GetActorLocation() + FVector::DownVector * MinAltitude, ECC_WorldStatic, params);
-	DrawDebugLine(GetWorld(), ControlledPlanePawn->GetActorLocation(), ControlledPlanePawn->GetActorLocation() + FVector::DownVector * MinAltitude, FColor::Red, false, 0.05f, 0, 1.0f);
+	//DrawDebugLine(GetWorld(), ControlledPlanePawn->GetActorLocation(), ControlledPlanePawn->GetActorLocation() + FVector::DownVector * MinAltitude, FColor::Red, false, 0.05f, 0, 1.0f);
 	if (hit.GetActor())
 	{
 		Blackboard->SetValueAsBool(FName("LowAltitude"), true);
@@ -346,24 +419,120 @@ bool APlaneAIController::IsAtLowAltitude()
 		Blackboard->SetValueAsBool(FName("LowAltitude"), false);
 		return false;
 	}
+
+	GetWorld()->LineTraceSingleByChannel(hit, ControlledPlanePawn->GetActorLocation(), ControlledPlanePawn->GetActorLocation() + FVector::DownVector * 200000, ECC_WorldStatic, params);
+	Altitude = abs(ControlledPlanePawn->GetActorLocation().Z - hit.Location.Z);
 }
 
+UE_DISABLE_OPTIMIZATION
 void APlaneAIController::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	/*if (OtherActor->ActorHasTag(FName("Terrain")))
+	if (OtherActor->ActorHasTag(FName("Terrain")))
 	{
 		Blackboard->SetValueAsBool(FName("GroundDetected"), true);
-		ControlledPlanePawn->GetPlanePhysicsComponent()->SetThrottleInput(-1);
+		//ControlledPlanePawn->GetPlanePhysicsComponent()->SetThrottleInput(-1);
+		FVector loc = SweepResult.Location;
 		SwitchState(AVOIDING_OBSTACLES);
-	}*/
+	}
 }
+UE_ENABLE_OPTIMIZATION
 
 void APlaneAIController::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	/*if (OtherActor->ActorHasTag(FName("Terrain")))
+	if (OtherActor->ActorHasTag(FName("Terrain")))
 	{
 		Blackboard->SetValueAsBool(FName("GroundDetected"), false);
-		ControlledPlanePawn->GetPlanePhysicsComponent()->SetThrottleInput(1);
+		//ControlledPlanePawn->GetPlanePhysicsComponent()->SetThrottleInput(1);
 		SwitchState(CHASING);
-	}*/
+	}
+}
+
+void APlaneAIController::ShowDebugInfo(FVector input)
+{
+	GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, FString::Printf(TEXT("Roll Input AI = %f"), input.X), true);
+	GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Yellow, FString::Printf(TEXT("Pitch Input AI = %f"), input.Y), true);
+	GEngine->AddOnScreenDebugMessage(2, 1.0f, FColor::Yellow, FString::Printf(TEXT("Yaw Input AI = %f"), input.Z), true);
+	//GEngine->AddOnScreenDebugMessage(3, 1.0f, FColor::Yellow, FString::Printf(TEXT("Angle = %f"), angle), true);
+
+
+
+	FRotator rot = ControlledPlanePawn->GetActorRotation();
+	FVector temp = FVector(rot.Roll, rot.Pitch, rot.Yaw);
+	/*AddVector(TEXT("Player Rotation"), temp);*/
+	GEngine->AddOnScreenDebugMessage(4, 31.0f, FColor::Yellow, FString::Printf(TEXT("Roll AI = %f"), rot.Roll), true);
+	GEngine->AddOnScreenDebugMessage(5, 31.0f, FColor::Yellow, FString::Printf(TEXT("Pitch AI = %f"), rot.Pitch), true);
+	GEngine->AddOnScreenDebugMessage(6, 31.0f, FColor::Yellow, FString::Printf(TEXT("Yaw = %f"), rot.Yaw), true);
+	/*GEngine->AddOnScreenDebugMessage(10, 31.0f, FColor::Yellow, FString::Printf(TEXT("Throttle = %f"),
+		ControlledPlanePawn->GetPlanePhysicsComponent()->GetThrottle()), true);
+	GEngine->AddOnScreenDebugMessage(11, 31.0f, FColor::Yellow, FString::Printf(TEXT("Velocity = %f"),
+		ControlledPlanePawn->GetVelocity().Size()), true);
+	GEngine->AddOnScreenDebugMessage(12, 31.0f, FColor::Yellow, FString::Printf(TEXT("Altitude = %f"),
+		ControlledPlanePawn->GetActorLocation().Z / 100.f), true);*/
+	//GEngine->AddOnScreenDebugMessage(3, 1.0f, FColor::Yellow, FString::Printf(TEXT("Angle = %f"), angle), true);
+	//DrawDebugLine(GetWorld(), ControlledPlanePawn->GetActorLocation(), ControlledPlanePawn->GetActorLocation() + ControlledPlanePawn->GetVelocity(), FColor::Green, false, 0.05f, 0, 1.0f);
+
+
+	switch (CurrentState)
+	{
+	case CHASING:
+		GEngine->AddOnScreenDebugMessage(7, 1.0f, FColor::Blue, FString::Printf(TEXT("CHASING")), true);
+		break;
+	case PATROLLING:
+		PatrollingAction();
+		break;
+	case AVOIDING_OBSTACLES:
+		GEngine->AddOnScreenDebugMessage(7, 1.0f, FColor::Blue, FString::Printf(TEXT("Avoid Ground")), true);
+		break;
+	case GAINING_ALTITUDE:
+		GEngine->AddOnScreenDebugMessage(7, 1.0f, FColor::Blue, FString::Printf(TEXT("Recover Altitude")), true);
+	default:
+		break;
+	}
+
+
+}
+
+void APlaneAIController::ShowDebugInfo()
+{
+	GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, FString::Printf(TEXT("Roll Input AI = %f"), TargetInput.X), true);
+	GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Yellow, FString::Printf(TEXT("Pitch Input AI = %f"), TargetInput.Y), true);
+	GEngine->AddOnScreenDebugMessage(2, 1.0f, FColor::Yellow, FString::Printf(TEXT("Yaw Input AI = %f"), TargetInput.Z), true);
+	//GEngine->AddOnScreenDebugMessage(3, 1.0f, FColor::Yellow, FString::Printf(TEXT("Angle = %f"), angle), true);
+
+
+
+	FRotator rot = ControlledPlanePawn->GetActorRotation();
+	FVector temp = FVector(rot.Roll, rot.Pitch, rot.Yaw);
+	/*AddVector(TEXT("Player Rotation"), temp);*/
+	GEngine->AddOnScreenDebugMessage(4, 31.0f, FColor::Yellow, FString::Printf(TEXT("Roll AI = %f"), rot.Roll), true);
+	GEngine->AddOnScreenDebugMessage(5, 31.0f, FColor::Yellow, FString::Printf(TEXT("Pitch AI = %f"), rot.Pitch), true);
+	GEngine->AddOnScreenDebugMessage(6, 31.0f, FColor::Yellow, FString::Printf(TEXT("Yaw = %f"), rot.Yaw), true);
+	/*GEngine->AddOnScreenDebugMessage(10, 31.0f, FColor::Yellow, FString::Printf(TEXT("Throttle = %f"),
+		ControlledPlanePawn->GetPlanePhysicsComponent()->GetThrottle()), true);
+	GEngine->AddOnScreenDebugMessage(11, 31.0f, FColor::Yellow, FString::Printf(TEXT("Velocity = %f"),
+		ControlledPlanePawn->GetVelocity().Size()), true);
+	GEngine->AddOnScreenDebugMessage(12, 31.0f, FColor::Yellow, FString::Printf(TEXT("Altitude = %f"),
+		ControlledPlanePawn->GetActorLocation().Z / 100.f), true);*/
+		//GEngine->AddOnScreenDebugMessage(3, 1.0f, FColor::Yellow, FString::Printf(TEXT("Angle = %f"), angle), true);
+	DrawDebugLine(GetWorld(), ControlledPlanePawn->GetActorLocation(), ControlledPlanePawn->GetActorLocation() + ControlledPlanePawn->GetVelocity(), FColor::Green, false, 0.05f, 0, 1.0f);
+
+
+	switch (CurrentState)
+	{
+	case CHASING:
+		GEngine->AddOnScreenDebugMessage(7, 1.0f, FColor::Blue, FString::Printf(TEXT("CHASING")), true);
+		break;
+	case PATROLLING:
+		PatrollingAction();
+		break;
+	case AVOIDING_OBSTACLES:
+		GEngine->AddOnScreenDebugMessage(7, 1.0f, FColor::Blue, FString::Printf(TEXT("Avoid Ground")), true);
+		break;
+	case GAINING_ALTITUDE:
+		GEngine->AddOnScreenDebugMessage(7, 1.0f, FColor::Blue, FString::Printf(TEXT("Recover Altitude")), true);
+	default:
+		break;
+	}
+
+
 }

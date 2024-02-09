@@ -91,7 +91,6 @@ void AProjectile::LineTrace()
 	// and its fields will be filled with detailed info about what was hit
 	if (Hit.bBlockingHit && IsValid(Hit.GetActor()))
 	{
-		UE_LOG(LogTemp, Log, TEXT("Trace hit actor: %s"), *Hit.GetActor()->GetName());
 		/*APlanePawn* pawn = Cast<APlanePawn>(Hit.GetActor());
 		if (pawn)
 		{
@@ -108,7 +107,8 @@ void AProjectile::LineTrace()
 		IReactToHitInterface* interface = Cast<IReactToHitInterface>(Hit.GetActor());
 		if (interface)
 		{
-			interface->ReactToHit(10.0f);
+			UE_LOG(LogTemp, Log, TEXT("Trace hit actor: %s"), *Hit.GetActor()->GetName());
+			interface->ReactToHit(10.0f, GetOwner());
 		}
 		Destroy();
 		/*if (pointerToAnyUObject->GetClass()->ImplementsInterface(UReactsToTimeOfDay::StaticClass())) {

@@ -19,7 +19,12 @@ public:
 	void Tick(float deltaTime) override;
 protected:
 	void BeginPlay() override;
-
+	UFUNCTION()
+		void OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+	// declare overlap end function
+	UFUNCTION()
+		void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+protected:
 	UPROPERTY(EditAnywhere, Category = "Obstacle Detection")
 		TObjectPtr<class UBoxComponent> DetectionVolume;
 

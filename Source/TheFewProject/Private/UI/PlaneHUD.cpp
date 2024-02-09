@@ -11,8 +11,11 @@
 #include "Components/TextBlock.h"
 void UPlaneHUD::SetPlaneReference(APlanePawn* ref)
 {
-	ControlledPlane = ref;
-	ThrottleRef = ControlledPlane->GetPlanePhysicsComponent()->GetThrottleRef();
+	if (ref)
+	{
+		ControlledPlane = ref;
+		ThrottleRef = ControlledPlane->GetPlanePhysicsComponent()->GetThrottleRef();
+	}
 }
 
 void UPlaneHUD::NativeConstruct()
@@ -23,20 +26,21 @@ void UPlaneHUD::NativeConstruct()
 void UPlaneHUD::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
-	ThrottleBar->SetPercent(*ThrottleRef);
-
-	APlayerController* PC = GetOwningPlayer();
-	FVector2D pivot;
-	FVector loc = ControlledPlane->GetActorLocation() + ControlledPlane->GetActorForwardVector() * 20000.0f;
-
-	PC->ProjectWorldLocationToScreen(loc, pivot);
-
-	if (CrosshairWidget)
-		CrosshairWidget->SetPositionInViewport(pivot);
-
 	if (ControlledPlane)
 	{
+		ThrottleBar->SetPercent(*ThrottleRef);
+
+		APlayerController* PC = GetOwningPlayer();
+		FVector2D pivot;
+		FVector loc = ControlledPlane->GetActorLocation() + ControlledPlane->GetActorForwardVector() * 20000.0f;
+
+		PC->ProjectWorldLocationToScreen(loc, pivot);
+
+		if (CrosshairWidget)
+			CrosshairWidget->SetPositionInViewport(pivot);
+
 		AltitudeValue->SetText(FText::AsNumber(int(ControlledPlane->GetActorLocation().Z * 0.01)));
+
 		
 	}
 }

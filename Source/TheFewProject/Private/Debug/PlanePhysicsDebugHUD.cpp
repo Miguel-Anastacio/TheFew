@@ -3,13 +3,27 @@
 
 #include "Debug/PlanePhysicsDebugHUD.h"
 #include "PlanePawn.h"
+#include "PlaneController.h"
 #include "Components/BoxComponent.h"
 #include "Physics/AircraftPhysics.h"
 #include "GameFramework/SpringArmComponent.h"
 
 void APlanePhysicsDebugHUD::DrawHUD()
 {
+
 	APlanePawn* player = Cast<APlanePawn>(GetOwningPawn());
+	
+	APlaneController* controller = Cast<APlaneController>(player->GetController());
+	if (controller)
+	{
+		APlanePawn* ai = controller->GetPlaneSelected();
+		if (ai)
+		{
+			DrawSteering(ai);
+			DrawThrust(ai);
+			DrawPlaneData(ai);
+		}
+	}
 	//APlane
 
 	if (player)
@@ -31,10 +45,10 @@ void APlanePhysicsDebugHUD::DrawHUD()
 		//FRotator rot = player->PlaneBodyBox->GetComponentRotation();
 		//FVector temp = FVector(rot.Roll, rot.Pitch, rot.Yaw);
 		//AddVector(TEXT("Rotation"), temp);
-		DrawSteering(player);
-		DrawThrust(player);
-		DrawPlaneData(player);
 
+		/*DrawSteering(player);
+		DrawThrust(player);
+		DrawPlaneData(player);*/
 		
 	}
 	Y = 150.0f;

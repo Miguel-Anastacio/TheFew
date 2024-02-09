@@ -4,9 +4,21 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "PlanePawn.h"
+#include "PlanePawnAI.h"
 #include "Physics/AircraftPhysics.h"
 #include "UI/PlaneHUD.h"
 #include "Weapon/WeaponComponent.h"
+#include "Managers/AIManager.h"
+#include "Kismet/GameplayStatics.h"
+void APlaneController::InitDebugVariables(AActor* landscape, AAIManager* manager)
+{
+	LandscapeActor = landscape;
+	AIManager = manager;
+}
+APlanePawn* APlaneController::GetPlaneSelected()
+{
+	return CurrentAISelected;
+}
 void APlaneController::PreInitializeComponents()
 {
 	UE_LOG(LogTemp, Warning, TEXT("Pre initialize"));
@@ -29,6 +41,9 @@ void APlaneController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Triggered, this, &APlaneController::Fire);
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Canceled, this, &APlaneController::StopFiring);
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &APlaneController::StopFiring);
+
+		EnhancedInputComponent->BindAction(ChangePlaneSelectedAction, ETriggerEvent::Started, this, &APlaneController::ChangeFocusedPlane);
+		EnhancedInputComponent->BindAction(ChangeToLevelAction, ETriggerEvent::Started, this, &APlaneController::FocusOnLevel);
 	}
 }
 
@@ -130,11 +145,36 @@ void APlaneController::ToggleWheels()
 
 void APlaneController::Fire()
 {
-	UE_LOG(LogTemp, Warning, TEXT("Fire"));
+	//UE_LOG(LogTemp, Warning, TEXT("Fire"));
 	ControlledPlane->TriggerWeapons();
 }
 
 void APlaneController::StopFiring()
 {
 	ControlledPlane->StopWeaponAudio();
+}
+
+void APlaneController::ChangeFocusedPlane(const FInputActionInstance& Instance)
+{
+	float input = Instance.GetValue().Get<float>();
+	if (IsValid(AIManager))
+	{
+		CurrentAISelected = AIManager->ChangePlaneSelected(input);
+		this->SetViewTarget(CurrentAISelected);
+	}
+
+}
+
+void APlaneController::FocusOnLevel()
+{
+	if (FocusingOnLevel)
+	{
+		FocusingOnLevel = false;	
+		this->SetViewTarget(CurrentAISelected);
+	}
+	else
+	{
+		FocusingOnLevel = true;
+		this->SetViewTarget(LandscapeActor);
+	}
 }

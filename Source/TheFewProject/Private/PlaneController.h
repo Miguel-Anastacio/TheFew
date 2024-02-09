@@ -19,6 +19,10 @@ UCLASS()
 class APlaneController : public APlayerController
 {
 	GENERATED_BODY()
+
+public:
+	void InitDebugVariables(AActor* landscape, class AAIManager* manager);
+	APlanePawn* GetPlaneSelected();
 	
 protected:
 	void PreInitializeComponents() override;
@@ -57,7 +61,6 @@ protected:
 		UInputAction* LandingGearAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		UInputAction* FireAction;
-	APlanePawn* ControlledPlane;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		FVector2D MovementDeadzone = FVector2D(0.1, 0.1);
@@ -66,7 +69,35 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "UI")
 		TSubclassOf<UPlaneHUD> PlaneHUDClass;
 
+	APlanePawn* ControlledPlane;
+
 	UPlaneHUD* PlaneHUD;
 
 	FVector SteeringInput;
+
+
+
+
+	/*
+	*		DEBUG AI STUFF 
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		UInputAction* ChangePlaneSelectedAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		UInputAction* ChangeToLevelAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		TObjectPtr<AActor> LandscapeActor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		TObjectPtr<class AAIManager> AIManager;
+
+	TObjectPtr<class APlanePawnAI> CurrentAISelected;
+
+	void ChangeFocusedPlane(const FInputActionInstance& Instance);
+	void FocusOnLevel();
+
+	bool FocusingOnLevel = false;
+
+
 };

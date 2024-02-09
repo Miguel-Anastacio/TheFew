@@ -14,27 +14,11 @@ APlanePawnAI::APlanePawnAI()
 	DetectionVolume = CreateDefaultSubobject<UBoxComponent>("Detection Volume");
 	DetectionVolume->SetupAttachment(PlaneBodyBox);
 }
-TObjectPtr<class UBoxComponent> APlanePawnAI::GetDetectionVolume()
-{
-	return DetectionVolume;
-}
-void APlanePawnAI::Tick(float deltaTime)
-{
-	Super::Tick(deltaTime);
-	FVector dirVel = PlaneBodyBox->GetPhysicsLinearVelocity();
-	FRotator faceRot = dirVel.Rotation();
-	
-	FVector input = PlanePhysicsComponent->GetControlInput();
-	FVector boxDirection = UKismetMathLibrary::RotateAngleAxis(GetActorForwardVector(), 60 * input.Y, FVector::RightVector);
-
-	faceRot = UKismetMathLibrary::FindLookAtRotation(DetectionVolume->GetComponentLocation(), DetectionVolume->GetComponentLocation() + boxDirection * 100.f);
-	FQuat::Slerp(DetectionVolume->GetRelativeRotation().Quaternion(), faceRot.Quaternion(), deltaTime);
-	//DetectionVolume->SetRelativeRotation(faceRot);
-	// Display Plane Data
-}
 void APlanePawnAI::BeginPlay()
 {
 	Super::BeginPlay();
+	PlaneBodyBox->OnComponentHit.AddDynamic(this, &APlanePawnAI::OnCompHit);
+	PlaneBodyBox->OnComponentEndOverlap.AddDynamic(this, &APlanePawnAI::OnOverlapEnd);
 
 	//UPROPERTY(EditAnywhere, Category = "Tail Camera")
 	//	USpringArmComponent* TailCameraBoom;
@@ -55,6 +39,48 @@ void APlanePawnAI::BeginPlay()
 	//PropellerCamera->DestroyComponent();
 	//PropellerCameraBoom->DestroyComponent();
 
+	LeftTrail->Deactivate();
+	RightTrail->Deactivate();
 	//LeftTrail->DestroyComponent();
 	//RightTrail->DestroyComponent();
+}
+void APlanePawnAI::Tick(float deltaTime)
+{
+	Super::Tick(deltaTime);
+	//FVector dirVel = PlaneBodyBox->GetPhysicsLinearVelocity();
+	//FRotator faceRot = dirVel.Rotation();
+	//
+	//FVector input = PlanePhysicsComponent->GetControlInput();
+	//FVector boxDirection = UKismetMathLibrary::RotateAngleAxis(GetActorForwardVector(), 60 * input.Y, FVector::RightVector);
+
+	//faceRot = UKismetMathLibrary::FindLookAtRotation(DetectionVolume->GetComponentLocation(), DetectionVolume->GetComponentLocation() + boxDirection * 100.f);
+	//faceRot = FQuat::Slerp(DetectionVolume->GetRelativeRotation().Quaternion(), faceRot.Quaternion(), deltaTime).Rotator();
+	//DetectionVolume->SetRelativeRotation(faceRot);
+	// Display Plane Data
+}
+
+TObjectPtr<class UBoxComponent> APlanePawnAI::GetDetectionVolume()
+{
+	return DetectionVolume;
+}
+void APlanePawnAI::OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (OtherActor->ActorHasTag("Terrain"))
+	{
+		FVector current = GetActorLocation();
+		current.Z = 10000.f;
+		SetActorLocation(current);
+		//Destroy();
+	}
+}
+
+void APlanePawnAI::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor->ActorHasTag("Bounds"))
+	{
+		FVector current = GetActorLocation();
+		current.Z = 10000.f;
+		SetActorLocation(current);
+		//Destroy();
+	}
 }

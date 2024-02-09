@@ -58,7 +58,7 @@ void UWeaponComponent::FireBullet()
 	FVector dirHorizontal = FVector::VectorPlaneProject(dir, perpendicular);
 	//dir = plane->GetActorForwardVector() * DistanceFromNose;
 	//dir.Normalize();
-	UE_LOG(LogProjectFew, Warning, TEXT("Fire direction: X=%f, Y=%f, Z=%f"), dirHorizontal.X, dirHorizontal.Y, dirHorizontal.Z);
+	//UE_LOG(LogProjectFew, Warning, TEXT("Fire direction: X=%f, Y=%f, Z=%f"), dirHorizontal.X, dirHorizontal.Y, dirHorizontal.Z);
 
 
 	FVector end = dir * bullet->GetBulletSpeed() + GetComponentLocation();

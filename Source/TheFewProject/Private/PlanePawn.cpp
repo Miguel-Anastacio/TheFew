@@ -117,7 +117,7 @@ void APlanePawn::PostInitializeComponents()
 	Super::PostInitializeComponents();
 	if (IsValid(HealthComponent.Get()))
 	{
-		HealthComponent->ActorDeathDelegate.AddDynamic(this, &APlanePawn::PlaneDeath);
+		HealthComponent->ActorSimpleDeathDelegate.AddDynamic(this, &APlanePawn::PlaneDeath);
 	}
 }
 
