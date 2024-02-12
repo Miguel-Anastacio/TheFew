@@ -28,9 +28,9 @@ protected:
 	}
 
 	// Add a float to the HUD for rendering.
-	void AddFloat(const TCHAR* title, float value)
+	void AddFloat(const TCHAR* title, float value, const FLinearColor& valueColor = FLinearColor::White)
 	{
-		RenderStatistic(title, FText::AsNumber(value));
+		RenderStatistic(title, FText::AsNumber(value), valueColor);
 	}
 
 	// Add an int32 to the HUD for rendering.

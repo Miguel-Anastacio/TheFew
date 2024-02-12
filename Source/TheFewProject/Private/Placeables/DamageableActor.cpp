@@ -56,5 +56,6 @@ void ADamageableActor::OnActorDeath(AActor* causer)
 	// manager assigns the causer a new target
 	HealthComponent->Reset();
 	Manager->UpdateTarget(causer);
+	Manager->IncreaseTargetsDestroyed();
 }
 

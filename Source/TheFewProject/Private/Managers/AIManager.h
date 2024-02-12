@@ -19,6 +19,10 @@ public:
 	void SpawnEnemy(const FVector2D& minBounds, const FVector2D& maxBounds, float zHeight);
 	void UpdateTarget(AActor* actor);
 	TObjectPtr<class APlanePawnAI> ChangePlaneSelected(float input);
+
+
+	void IncreaseCrashes() { Crashes++; };
+	void IncreaseTargetsDestroyed() { TargetsDestroyed++; };
 	
 protected:
 	// Called when the game starts or when spawned
@@ -51,7 +55,10 @@ protected:
 
 	FVector2D SpawnAreaBoundsMax;
 	FVector2D SpawnAreaBoundsMin;
-
+	UPROPERTY(VisibleAnywhere, Category = "Data")
+	int Crashes = 0;
+	UPROPERTY(VisibleAnywhere, Category = "Data")
+	int TargetsDestroyed = 0;
 
 	//UPROPERTY
 

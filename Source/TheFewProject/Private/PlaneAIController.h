@@ -33,19 +33,24 @@ protected:
 	virtual void OnPossess(APawn* pawn) override;
 	virtual void BeginPlay() override;
 
+	
 	void SwitchState(AI_STATE new_state);
 	bool DetectObstacles(FVector& out_PawnToObstacle);
 	void PatrollingAction();
 	FVector SteerToTarget(const FVector& targetPosition, APawn* ownerPawn);
 	FVector RecoverAltitude(APawn* pawn);
-	FVector AvoidGround(APawn* pawnToObstacle);
+	FVector AvoidGround(APawn* pawnToObstacle, float rollDirection);
 	
 	bool IsPlaneFacingTarget(AActor* target);
-	bool DetectObstacles(AActor* pawn);
+	// returns the roll direction to avoid the obstacle
+	float DetectObstacles(AActor* pawn);
+
+	float UpdateThrottle(AActor* pawn);
 
 	float SignedAngle(FVector from, FVector to, FVector axis);
 	float Angle(FVector from, FVector to);
 
+	void PerformSweep(const FVector& forward, const FVector& right, const FVector& start, float& out_leftHits, float& out_rightHits);
 
 protected:
 	UPROPERTY(VisibleAnywhere)
@@ -54,6 +59,7 @@ protected:
 	TEnumAsByte<AI_STATE> CurrentState = CHASING;
 	FVector PawnToObstacle;
 	FVector TargetInput;
+	
 
 	TObjectPtr<class APlanePawnAI> ControlledPlanePawn;
 	//TObjectPtr<AActor> TargetActor;
@@ -65,13 +71,18 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Controls")
 		float RollFactor = 1.0f;
 	UPROPERTY(EditAnywhere, Category = "Controls")
+		float RollFactorEmergency = 1.0f;
+	UPROPERTY(EditAnywhere, Category = "Controls")
 		float PitchFactor = 1.0f;
 	UPROPERTY(EditAnywhere, Category = "Controls")
 		float MinAltitude = 75.0f;
-
 	UPROPERTY(EditAnywhere, Category = "Controls")
 		float AngleRange = 10;
 
+	UPROPERTY(EditAnywhere, Category = "Throttle")
+		float MinSpeed = 700.f;
+	UPROPERTY(EditAnywhere, Category = "Throttle")
+		float DistanceTriggerBrakes = 700.f;
 
 	UPROPERTY(EditAnywhere, Category = "Detection")
 		float LengthOfRays = 2000.f;;
@@ -79,6 +90,8 @@ protected:
 		float StartPosOffSet = 500.f;
 	UPROPERTY(EditAnywhere, Category = "Detection")
 		float AngleBetweenRays = 30.f;
+	UPROPERTY(EditAnywhere, Category = "Detection")
+		float AngleCovered = 30.f;
 	UPROPERTY(EditAnywhere, Category = "Detection")
 		int NumberOfRaysPerAxis = 5.0f;
 

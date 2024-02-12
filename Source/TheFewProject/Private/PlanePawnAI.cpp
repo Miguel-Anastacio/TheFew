@@ -8,6 +8,7 @@
 #include "VFX/VfxComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Physics/AircraftPhysics.h"
+#include "Managers/AIManager.h"
 
 APlanePawnAI::APlanePawnAI()
 {
@@ -20,6 +21,7 @@ void APlanePawnAI::BeginPlay()
 	PlaneBodyBox->OnComponentHit.AddDynamic(this, &APlanePawnAI::OnCompHit);
 	PlaneBodyBox->OnComponentEndOverlap.AddDynamic(this, &APlanePawnAI::OnOverlapEnd);
 
+	//PlaneBodyBox->SetPhysicsLinearVelocity(FVector(600.0f, 0, 0));
 	//UPROPERTY(EditAnywhere, Category = "Tail Camera")
 	//	USpringArmComponent* TailCameraBoom;
 	//UPROPERTY(EditAnywhere, Category = "Tail Camera")
@@ -70,6 +72,11 @@ void APlanePawnAI::OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, U
 		FVector current = GetActorLocation();
 		current.Z = 10000.f;
 		SetActorLocation(current);
+		if (GetOwner())
+		{
+			AAIManager* mgr = Cast<AAIManager>(GetOwner());
+			mgr->IncreaseCrashes();
+		}
 		//Destroy();
 	}
 }

@@ -1,4 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+﻿// Fill out your copyright notice in the Description page of Project Settings.
 #include "PlaneAIController.h"
 #include "PlanePawnAI.h"
 #include "Perception/AIPerceptionComponent.h"
@@ -30,8 +30,8 @@ void APlaneAIController::BeginPlay()
 		//RunBehaviorTree(BehaviourTree.Get());
 		//BehaviorTreeComponent->StartTree(*BehaviourTree.Get());
 	}
-
-
+	if(ControlledPlanePawn)
+		DetectObstacles(ControlledPlanePawn);
 }
 
 void APlaneAIController::OnPossess(APawn* pawn)
@@ -136,13 +136,13 @@ FVector APlaneAIController::SteerToTarget(const FVector& targetPosition, APawn* 
 	return targetInput;
 }
 
-FVector APlaneAIController::AvoidGround(APawn* pawn)
+FVector APlaneAIController::AvoidGround(APawn* pawn, float rollDirection)
 {
 	float roll = pawn->GetActorRotation().Roll;
 	if (roll > 180.f)
 		roll -= 360.f;
 
-	roll = FMath::Clamp(roll * RollFactor, -1.0f, 1.0f);
+	roll = FMath::Clamp(roll * RollFactorEmergency * rollDirection, -1.0f, 1.0f);
 	return FVector(roll, -1, 0);
 }
 
@@ -162,7 +162,7 @@ FVector APlaneAIController::RecoverAltitude(APawn* pawn)
 	if (currentPitch > targetPitch)
 		pitch = 0;
 
-	roll = FMath::Clamp(roll * RollFactor, -1.0f, 1.0f);
+	roll = FMath::Clamp(roll * RollFactorEmergency, -1.0f, 1.0f);
 	pitch = FMath::Clamp(-pitch * PitchFactor, -1.0f, 1.0f);
 	return FVector(roll, pitch, 0);
 }
@@ -188,77 +188,109 @@ bool APlaneAIController::IsPlaneFacingTarget(AActor* pawn)
 	}
 	return false;
 }
-
-bool APlaneAIController::DetectObstacles(AActor* pawn)
+UE_DISABLE_OPTIMIZATION
+float APlaneAIController::UpdateThrottle(AActor* pawn)
 {
-	// Sweep across z = 0 in local space
-	TArray<FHitResult> allHits;
-	//for (int i = -2; i < 3; i++)
-	//{
-	//	FHitResult hit;
-	//	FVector start = pawn->GetActorLocation() + pawn->GetActorForwardVector() * 100.0f;
-	//	FVector up = pawn->GetActorUpVector();
-	//	FRotator rot = FRotator(0, 0, 30 * i);
-	//	//FQuat rotLocal = listenerActor->GetTransform().InverseTransformRotation(rot.Quaternion());
-	//	FVector dir = rot.RotateVector(pawn->GetActorForwardVector());
+	FHitResult hit;
 
-	//	dir = UKismetMathLibrary::RotateAngleAxis(pawn->GetActorForwardVector(), 30 * i, up);
-	//	FVector end = start + dir * 1000.0f;
-
-	//	GetWorld()->LineTraceSingleByChannel(hit, start, end, ECollisionChannel::ECC_Visibility);
-	//	DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 0.05f, 0, 1.0f);
-
-	//	if(hit.bBlockingHit)
-	//		allHits.Add(hit);
-	//}
-	//// Sweep across x = 0 in local space
-	//for (int i = -2; i < 3; i++)
-	//{
-	//	FHitResult hit;
-	//	FVector start = pawn->GetActorLocation() + pawn->GetActorForwardVector() * 100.0f;
-	//	FVector right = pawn->GetActorRightVector();
-	//	FVector dir = UKismetMathLibrary::RotateAngleAxis(pawn->GetActorForwardVector(), 30 * i, right);
-	//	FVector end = start + dir * 1000.0f;
-
-	//	GetWorld()->LineTraceSingleByChannel(hit, start, end, ECollisionChannel::ECC_Visibility);
-	//	DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 0.05f, 0, 1.0f);
-
-	//	if (hit.bBlockingHit)
-	//		allHits.Add(hit);
-	//}
-	FVector up = pawn->GetActorUpVector();
-	FVector right = pawn->GetActorRightVector();
-	FVector start = pawn->GetActorLocation() + pawn->GetActorForwardVector() * StartPosOffSet;
-
-	for (int j = 0; j < NumberOfRaysPerAxis; j++)
+	GetWorld()->LineTraceSingleByChannel(hit, pawn->GetActorLocation(), pawn->GetActorLocation() + pawn->GetActorForwardVector() * DistanceTriggerBrakes,
+		ECollisionChannel::ECC_Visibility);
+	DrawDebugLine(GetWorld(), pawn->GetActorLocation(), pawn->GetActorLocation() + pawn->GetActorForwardVector() * DistanceTriggerBrakes, FColor::Red, false, 0.05f, 0, 1.0f);
+	if (hit.bBlockingHit)
 	{
-		//FVector temp = UKismetMathLibrary::RotateAngleAxis(pawn->GetActorForwardVector(), 30*j, up);
-		FVector temp = -pawn->GetActorRightVector(); 
-		//temp = UKismetMathLibrary::RotateAngleAxis(-pawn->GetActorRightVector(), AngleBetweenRays , up);
-		temp = UKismetMathLibrary::RotateAngleAxis(-pawn->GetActorRightVector(), AngleBetweenRays * (j+1), up);
-		//temp = UKismetMathLibrary::RotateAngleAxis(temp, -AngleBetweenRays, right);
-
-
-		for (int i = -2; i < 3; i++)
-		{
-			FVector dir;
-			FHitResult hit;
-			dir = UKismetMathLibrary::RotateAngleAxis(temp, AngleBetweenRays * i, right);
-			//dir = UKismetMathLibrary::RotateAngleAxis(dir, 30, up);
-			FVector end = start + dir * LengthOfRays;
-
-			GetWorld()->LineTraceSingleByChannel(hit, start, end, ECollisionChannel::ECC_Visibility);
-			DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 0.02f, 0, 1.0f);
-
-			if (hit.bBlockingHit)
-				allHits.Add(hit);
-		}
-
-
-
+		DrawDebugSphere(GetWorld(), hit.Location, 100.f, 10, FColor::Yellow, false, 0.5f);
+		// only brake if velocity is not too low
+		if(pawn->GetVelocity().SizeSquared() > MinSpeed * MinSpeed)
+			return -1.f;
+		
 	}
 
-	return true;
+	return 1.0f;
+}
+UE_ENABLE_OPTIMIZATION
+
+float APlaneAIController::DetectObstacles(AActor* pawn)
+{
+	// Sweep across z = 0 in local space
+	FVector up = pawn->GetActorUpVector();
+	FVector right = pawn->GetActorRightVector();
+	FVector forward = pawn->GetActorForwardVector();
+	FVector start = pawn->GetActorLocation() + pawn->GetActorForwardVector() * StartPosOffSet;
+	
+	// cast rays
+	float sumRightHits = 0;
+	float sumLeftHits = 0;
+	// rays in plane z = 0, same plane as the nose
+	PerformSweep(forward, right, start, sumLeftHits, sumRightHits);
+
+	forward = UKismetMathLibrary::RotateAngleAxis(forward, AngleBetweenRays, right);
+	up = UKismetMathLibrary::RotateAngleAxis(up, AngleBetweenRays, right);
+
+	// rays with negative z component
+	PerformSweep(forward, right, start, sumLeftHits, sumRightHits);
+
+	forward = UKismetMathLibrary::RotateAngleAxis(forward, -AngleBetweenRays*2, right);
+	up = UKismetMathLibrary::RotateAngleAxis(up, -AngleBetweenRays*2, right);
+
+	// rays with positive z component
+	PerformSweep(forward, right, start, sumLeftHits, sumRightHits);
+
+	if (sumLeftHits == 0 && sumRightHits == 0)
+	{
+		// nothing detected return 0;
+		SwitchState(CHASING);
+		return 0.0f;
+	}
+	
+	if (sumLeftHits > sumRightHits)
+	{
+		return -1.0f;
+	}
+	else
+	{
+		return 1.0f;
+	}
+
+}
+
+void APlaneAIController::PerformSweep(const FVector& forward, const FVector& right, const FVector& start, float& out_leftHits, float& out_rightHits)
+{
+	float angleIncrement = AngleCovered / NumberOfRaysPerAxis;
+	for (int i = 0; i <= NumberOfRaysPerAxis; i++)
+	{
+		/*  Given a vector A and the angle θ between A and the vector B, the vector B can be calculated as:
+			B = ||B|| cos(θ) u + ||B|| sin(θ) v
+		//  using unit vectors and u = transform.forward, v = transform.right
+		*/
+		angleIncrement = (AngleCovered / NumberOfRaysPerAxis) * i + (90 - AngleCovered / 2);
+		float angleInRadians = FMath::DegreesToRadians(angleIncrement);
+		FVector dir = right * FMath::Cos(angleInRadians) + forward * FMath::Sin(angleInRadians);
+		//dir = UKismetMathLibrary::RotateAngleAxis(dir,AngleBetweenRays, right);
+		FVector end = start + dir * LengthOfRays;
+
+		//DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 0.05f, 0, 1.0f);
+		FHitResult hit;
+		GetWorld()->LineTraceSingleByChannel(hit, start, end, ECollisionChannel::ECC_Visibility);
+
+		if (hit.GetActor() && hit.GetActor()->ActorHasTag("Terrain"))
+		{
+			//AActor* hey = hit.GetActor();
+			// map the values to -1 to 1 using the dot product of right vector
+			float dotRight = FVector::DotProduct(dir, right);
+
+			// clamp the values
+			dotRight /= abs(dotRight);
+			float dotUP = FVector::DotProduct(dir, forward);
+
+			float rot = dotRight * dotUP;
+			DrawDebugSphere(GetWorld(), hit.Location, 50.f, 2, FColor::Blue, false, 0.5f);
+			// update the sum according to the side of the ray
+			if (angleIncrement < 90)
+				out_rightHits += rot;
+			else if (angleIncrement > 90)
+				out_leftHits += rot;
+		}
+	}
 }
 
 float APlaneAIController::SignedAngle(FVector from, FVector to, FVector axis)
@@ -343,20 +375,23 @@ void APlaneAIController::Tick(float dt)
 		Blackboard->SetValueAsBool(FName("LowAltitude"), false);
 	}*/
 
-
 	FVector target = FVector(100, 0, 0);
 	if (IsValid(TargetActor))
 	{
 		target = TargetActor->GetActorLocation();
 	}
 
-	DetectObstacles(ControlledPlanePawn);
-
-	if (IsAtLowAltitude())
+	float rollDirection = DetectObstacles(ControlledPlanePawn);
+	if (abs(rollDirection) > 0.1f)
+	{
+		SwitchState(AVOIDING_OBSTACLES);
+	}
+	else if (IsAtLowAltitude())
 	{
 		SwitchState(GAINING_ALTITUDE);
 	}
 	FVector input;
+
 	//CurrentState = GAINING_ALTITUDE;
 	switch (CurrentState)
 	{
@@ -368,7 +403,7 @@ void APlaneAIController::Tick(float dt)
 			if (roll > 180.f)
 				roll -= 360.f;
 
-			roll = FMath::Clamp(roll * RollFactor, -1.0f, 1.0f);
+			roll = FMath::Clamp(roll * RollFactorEmergency, -1.0f, 1.0f);
 			//return FVector(roll, -1, 0);
 			input.X = roll;
 		}
@@ -377,7 +412,7 @@ void APlaneAIController::Tick(float dt)
 		PatrollingAction();
 		break;
 	case AVOIDING_OBSTACLES:
-		input = AvoidGround(ControlledPlanePawn);
+		input = AvoidGround(ControlledPlanePawn, rollDirection);
 		break;
 	case GAINING_ALTITUDE:
 		input = RecoverAltitude(ControlledPlanePawn);
@@ -390,7 +425,7 @@ void APlaneAIController::Tick(float dt)
 		break;
 	}
 
-
+	ControlledPlanePawn->GetPlanePhysicsComponent()->SetThrottleInput(UpdateThrottle(ControlledPlanePawn));
 	ControlledPlanePawn->GetPlanePhysicsComponent()->UpdateControlInput(input);
 
 	TargetInput = input;
@@ -453,6 +488,7 @@ void APlaneAIController::ShowDebugInfo(FVector input)
 	GEngine->AddOnScreenDebugMessage(1, 1.0f, FColor::Yellow, FString::Printf(TEXT("Pitch Input AI = %f"), input.Y), true);
 	GEngine->AddOnScreenDebugMessage(2, 1.0f, FColor::Yellow, FString::Printf(TEXT("Yaw Input AI = %f"), input.Z), true);
 	//GEngine->AddOnScreenDebugMessage(3, 1.0f, FColor::Yellow, FString::Printf(TEXT("Angle = %f"), angle), true);
+
 
 
 

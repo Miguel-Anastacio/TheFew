@@ -23,40 +23,49 @@ void APlanePhysicsDebugHUD::DrawHUD()
 			DrawThrust(ai);
 			DrawPlaneData(ai);
 		}
+		else if (player)
+		{
+
+			DrawSteering(player);
+			DrawThrust(player);
+			DrawPlaneData(player);
+		}
 	}
 	//APlane
 
-	if (player)
-	{
-		////AddFloat(TEXT("Thrust"), player->PlanePhysicsComponent->CurrentForce.X);
-		//AddFloat(TEXT("Targuet Quat X"), player->TargetCameraRotation.X);
-		//AddFloat(TEXT("Targuet Quat Y"), player->TargetCameraRotation.Y);
-		//AddFloat(TEXT("Targuet Quat Z"), player->TargetCameraRotation.Z);
-		//AddFloat(TEXT("Targuet Quat W"), player->TargetCameraRotation.W);
-		//AddVector(TEXT("Target Rot "), player->TargetCameraRotation.Euler());
-		////AddVector(TEXT("Induced Drag"), player->PlanePhysicsComponent->CurrentInducedDrag);
-		//AddVector(TEXT("G Force "), player->PlanePhysicsComponent->LocalGForce);
-		//AddVector(TEXT("Drag"), player->PlanePhysicsComponent->CurrentDrag);
-		//AddVector(TEXT("Lift"), player->PlanePhysicsComponent->CurrentLift);
-		//AddVector(TEXT("LocalVelocity"), player->PlanePhysicsComponent->LocalVelocity);
-		//AddFloat(TEXT("Angle of Attack"), FMath::RadiansToDegrees(player->PlanePhysicsComponent->AngleOfAttack));
-		//AddFloat(TEXT("Throttle"), player->PlanePhysicsComponent->Throttle);
-		//AddFloat(TEXT("Altitude"), player->PlaneBodyBox->GetComponentLocation().Z);
-		//FRotator rot = player->PlaneBodyBox->GetComponentRotation();
-		//FVector temp = FVector(rot.Roll, rot.Pitch, rot.Yaw);
-		//AddVector(TEXT("Rotation"), temp);
+	//if (player)
+	//{
+	//	////AddFloat(TEXT("Thrust"), player->PlanePhysicsComponent->CurrentForce.X);
+	//	//AddFloat(TEXT("Targuet Quat X"), player->TargetCameraRotation.X);
+	//	//AddFloat(TEXT("Targuet Quat Y"), player->TargetCameraRotation.Y);
+	//	//AddFloat(TEXT("Targuet Quat Z"), player->TargetCameraRotation.Z);
+	//	//AddFloat(TEXT("Targuet Quat W"), player->TargetCameraRotation.W);
+	//	//AddVector(TEXT("Target Rot "), player->TargetCameraRotation.Euler());
+	//	////AddVector(TEXT("Induced Drag"), player->PlanePhysicsComponent->CurrentInducedDrag);
+	//	//AddVector(TEXT("G Force "), player->PlanePhysicsComponent->LocalGForce);
+	//	//AddVector(TEXT("Drag"), player->PlanePhysicsComponent->CurrentDrag);
+	//	//AddVector(TEXT("Lift"), player->PlanePhysicsComponent->CurrentLift);
+	//	//AddVector(TEXT("LocalVelocity"), player->PlanePhysicsComponent->LocalVelocity);
+	//	//AddFloat(TEXT("Angle of Attack"), FMath::RadiansToDegrees(player->PlanePhysicsComponent->AngleOfAttack));
+	//	//AddFloat(TEXT("Throttle"), player->PlanePhysicsComponent->Throttle);
+	//	//AddFloat(TEXT("Altitude"), player->PlaneBodyBox->GetComponentLocation().Z);
+	//	//FRotator rot = player->PlaneBodyBox->GetComponentRotation();
+	//	//FVector temp = FVector(rot.Roll, rot.Pitch, rot.Yaw);
+	//	//AddVector(TEXT("Rotation"), temp);
 
-		/*DrawSteering(player);
-		DrawThrust(player);
-		DrawPlaneData(player);*/
-		
-	}
+	//	DrawSteering(player);
+	//	DrawThrust(player);
+	//	DrawPlaneData(player);
+	//	
+	//}
 	Y = 150.0f;
 }
 
 void APlanePhysicsDebugHUD::DrawSteering(APlanePawn* pl)
 {
 	AddText(TEXT("--- STEERING DATA"), FText());
+	AddFloat(TEXT("Throttle "), pl->PlanePhysicsComponent->Throttle, FLinearColor::Red);
+
 	AddVector(TEXT("Current Angular Velocity"), pl->PlanePhysicsComponent->CurrentAngularVelocity);
 	AddVector(TEXT("Target Angular Velocity"), pl->PlanePhysicsComponent->TargetAngularVelocity);
 	AddVector(TEXT("Steering Torque"), pl->PlanePhysicsComponent->TorqueApplied);
@@ -67,7 +76,7 @@ void APlanePhysicsDebugHUD::DrawSteering(APlanePawn* pl)
 	AddFloat(TEXT("Steering Power "), pl->PlanePhysicsComponent->SteeringPower);
 	AddFloat(TEXT("AoA "), FMath::RadiansToDegrees(pl->PlanePhysicsComponent->AngleOfAttack));
 	AddFloat(TEXT("AoA Yaw"), FMath::RadiansToDegrees(pl->PlanePhysicsComponent->AngleOfAttackYaw));
-	AddFloat(TEXT("AoA Yaw"), FMath::RadiansToDegrees(pl->PlanePhysicsComponent->AngleOfAttackYaw));
+	//AddFloat(TEXT("AoA Yaw"), FMath::RadiansToDegrees(pl->PlanePhysicsComponent->AngleOfAttackYaw));
 	AddVector(TEXT("Angular Drag"), pl->PlanePhysicsComponent->CurrentAngularDrag);
 
 

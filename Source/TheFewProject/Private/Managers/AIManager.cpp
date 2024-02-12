@@ -52,19 +52,20 @@ void AAIManager::BeginPlay()
 void AAIManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	//if (PlaneSelectedIndex > -1)
-	//{
-	//	// DEBUG ONLY CODE
-	//	APlaneAIController* controller = Cast<APlaneAIController>(Enemies[PlaneSelectedIndex]->Controller);
-	//	if(controller)
-	//		controller->ShowDebugInfo();
-	//}
+	if (PlaneSelectedIndex > -1)
+	{
+		// DEBUG ONLY CODE
+		APlaneAIController* controller = Cast<APlaneAIController>(Enemies[PlaneSelectedIndex]->Controller);
+		if(controller)
+			controller->ShowDebugInfo();
+	}
 }
 
 void AAIManager::OnAIDestroyed(AActor* actor)
 {
 	SpawnEnemy(SpawnAreaBoundsMin, SpawnAreaBoundsMax, SpawnHeight);
 	ChangePlaneSelected(1);
+
 }
 
 TObjectPtr<class APlanePawnAI> AAIManager::ChangePlaneSelected(float input)
@@ -96,10 +97,27 @@ void AAIManager::SpawnEnemy(const FVector2D& minBounds, const FVector2D& maxBoun
 		loc.X = FMath::RandRange(minBounds.X, maxBounds.X);
 		loc.Y = FMath::RandRange(minBounds.Y, maxBounds.Y);
 		loc.Z = zHeight;
+		FHitResult hit;
+		GetWorld()->LineTraceSingleByChannel(hit, loc, loc + FVector::DownVector * 1000000, ECC_Visibility);
+		int maxTries = 10;
+		int counter = 0;
+		while (!hit.bBlockingHit && counter < maxTries)
+		{
+			loc.X = FMath::RandRange(minBounds.X, maxBounds.X);
+			loc.Y = FMath::RandRange(minBounds.Y, maxBounds.Y);
+			GetWorld()->LineTraceSingleByChannel(hit, loc, loc + FVector::DownVector * 100000, ECC_Visibility);
+			counter++;
+		}
+
+		if (counter > maxTries)
+		{
+			return;
+		}
+
 		TObjectPtr<APlanePawnAI> enemy = GetWorld()->SpawnActor<APlanePawnAI>(EnemyClass, loc, FRotator(0, 0, 0), params);
 		if (IsValid(enemy))
 		{
-			enemy->SetOwner(this->GetOwner());
+			enemy->SetOwner(this);
 			enemy->OnDestroyed.AddDynamic(this, &AAIManager::OnAIDestroyed);
 			UpdateTarget(enemy);
 			Enemies.Add(enemy);
