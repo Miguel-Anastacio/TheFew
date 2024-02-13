@@ -6,6 +6,7 @@
 #include "Components/CapsuleComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Interfaces/ReactToHitInterface.h"
+#include "NiagaraFunctionLibrary.h"
 //#include "Particles/ParticleSystemComponent.h"
 // Sets default values
 AProjectile::AProjectile()
@@ -110,6 +111,8 @@ void AProjectile::LineTrace()
 			UE_LOG(LogTemp, Log, TEXT("Trace hit actor: %s"), *Hit.GetActor()->GetName());
 			interface->ReactToHit(10.0f, GetOwner());
 		}
+		
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ExplosionEffect, Hit.Location);
 		Destroy();
 		/*if (pointerToAnyUObject->GetClass()->ImplementsInterface(UReactsToTimeOfDay::StaticClass())) {
 			IReactsToTimeOfDay::Execute_ReactToHighNoon(pointerToAnyUObject);

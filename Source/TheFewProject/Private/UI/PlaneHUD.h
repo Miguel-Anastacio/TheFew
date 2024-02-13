@@ -23,8 +23,13 @@ protected:
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual void NativeOnInitialized() override;
 
+	UFUNCTION()
+	void UpdateHealthBar(float currentPercent);
+
 	UPROPERTY(meta = (BindWidget))
 		class UProgressBar* ThrottleBar;
+	UPROPERTY(meta = (BindWidget))
+		class UProgressBar* HealthBar;
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<UUserWidget> CrosshairImageClass;
 	UPROPERTY(meta = (BindWidget))
@@ -35,4 +40,7 @@ protected:
 	APlanePawn* ControlledPlane;
 	float* ThrottleRef = NULL;
 	UUserWidget* CrosshairWidget = NULL;
+
+	// health bar
+	
 };

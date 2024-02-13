@@ -41,6 +41,12 @@ protected:
 	UPROPERTY(EditDefaultsOnly)
 		UCapsuleComponent* CapsuleComponent;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Particles")
+		TObjectPtr<class UNiagaraSystem> ExplosionEffect;
+
+
+	TObjectPtr<class UNiagaraComponent> TrailEffectInstance;
+
 
 	UPROPERTY(EditDefaultsOnly)
 		float BulletSpeed;

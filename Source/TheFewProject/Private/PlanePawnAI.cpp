@@ -5,10 +5,12 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "Components/BoxComponent.h"
+#include "Components/HealthComponent.h"
 #include "VFX/VfxComponent.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Physics/AircraftPhysics.h"
 #include "Managers/AIManager.h"
+#include "NiagaraFunctionLibrary.h"
 
 APlanePawnAI::APlanePawnAI()
 {
@@ -18,8 +20,10 @@ APlanePawnAI::APlanePawnAI()
 void APlanePawnAI::BeginPlay()
 {
 	Super::BeginPlay();
-	PlaneBodyBox->OnComponentHit.AddDynamic(this, &APlanePawnAI::OnCompHit);
+	//PlaneBodyBox->OnComponentHit.AddDynamic(this, &APlanePawnAI::OnCompHit);
 	PlaneBodyBox->OnComponentEndOverlap.AddDynamic(this, &APlanePawnAI::OnOverlapEnd);
+
+	
 
 	//PlaneBodyBox->SetPhysicsLinearVelocity(FVector(600.0f, 0, 0));
 	//UPROPERTY(EditAnywhere, Category = "Tail Camera")
@@ -90,4 +94,12 @@ void APlanePawnAI::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Oth
 		SetActorLocation(current);
 		//Destroy();
 	}
+}
+
+void APlanePawnAI::PlaneDeath(AActor* instigator)
+{
+	//PlaneBodyBox->AddForce(FVector(0, 0, -100000.0f));
+	//PlanePhysicsComponent->DestroyComponent();
+	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), BigExplosionEffect, GetActorLocation());
+	Destroy();
 }

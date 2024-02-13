@@ -27,6 +27,9 @@ protected:
 		TObjectPtr<class UHealthComponent> HealthComponent;
 	UPROPERTY(EditAnywhere, Category = "Mesh")
 		TObjectPtr<class UStaticMeshComponent> MeshComponent;
+	UPROPERTY(EditAnywhere, Category = "UI")
+		TObjectPtr<class UWidgetComponent> WidgetComponent;
+
 
 	void ReactToHit(float damage) override;
 	void ReactToHit(float damage, AActor* responsible) override;

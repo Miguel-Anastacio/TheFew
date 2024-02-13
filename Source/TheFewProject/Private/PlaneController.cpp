@@ -67,7 +67,7 @@ void APlaneController::BeginPlay()
 void APlaneController::OnPossess(APawn* pawn)
 {
 	Super::OnPossess(pawn);
-	ControlledPlane = Cast<APlanePawn>(GetPawn());
+	ControlledPlane = Cast<APlanePawn>(pawn);
 
 	PlaneHUD = CreateWidget<UPlaneHUD>(this, PlaneHUDClass);
 	PlaneHUD->AddToViewport();

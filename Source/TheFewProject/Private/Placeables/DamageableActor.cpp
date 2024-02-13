@@ -4,6 +4,7 @@
 #include "Placeables/DamageableActor.h"
 #include "DamageableActor.h"
 #include "Components/HealthComponent.h"
+#include "Components/WidgetComponent.h"
 #include "Managers/AIManager.h"
 #include "PlaneAIController.h"
 // Sets default values
@@ -14,8 +15,9 @@ ADamageableActor::ADamageableActor()
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>("Health");
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>("Mesh");
+	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>("Indicator");
 	MeshComponent->SetupAttachment(RootComponent);
-
+	WidgetComponent->SetupAttachment(MeshComponent);
 }
 
 // Called when the game starts or when spawned

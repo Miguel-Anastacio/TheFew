@@ -19,9 +19,9 @@ public:
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
-	void UpdateNiagaraSystem(FVector velocity);
+	void UpdateNiagaraSystem(const FVector& velocity);
 	void SetSpeedForMaxTrail(float speed) { SpeedForMaxTrail = speed; };
-	void SetVelocityRef(FVector* ref) { VelocityRef = ref; };
+	//void SetVelocityRef(FVector* ref) { VelocityRef = ref; };
 
 protected:
 	// Called when the game starts
@@ -31,11 +31,16 @@ protected:
 
 	
 	UNiagaraComponent* TrailEffectInstance;
-	FVector* VelocityRef;
-
+	float PreviousSpeed= 0;
+	UPROPERTY(EditAnywhere, Category = "Controls")
 	float SpeedForMaxTrail = 3000.0f;
 
+	UPROPERTY(EditAnywhere, Category = "Controls")
+	float AccelerationMaxTrail = 100.0f;
 
-
+	UPROPERTY(EditAnywhere, Category = "Controls")
+		float MinAcceleration = 100.0f;
 		
+	UPROPERTY(EditAnywhere, Category = "Controls")
+		float MaxLifetime = 0.8f;
 };

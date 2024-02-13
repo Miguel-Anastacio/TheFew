@@ -8,6 +8,8 @@
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnActorDeathSiganture, AActor*, responsible);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnActorDeathSimpleSignature);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnActorDamageSignature, float, currentHealth);
+//DECLARE_DYNAMIC_MULTICAST_DELEGATE();
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class UHealthComponent : public UActorComponent
@@ -23,12 +25,16 @@ public:
 	FORCEINLINE void SetMaxHealth(float health) { MaxHealth = health; };
 	FORCEINLINE void Reset() { CurrentHealth = MaxHealth; };
 	//FORCEINLINE void AddHealth(float health) { CurrentHealth += health; };
+
 public:
 	UPROPERTY(BlueprintAssignable)
 		FOnActorDeathSiganture ActorDeathDelegate;
 
 	UPROPERTY(BlueprintAssignable)
 		FOnActorDeathSimpleSignature ActorSimpleDeathDelegate;
+
+	UPROPERTY(BlueprintAssignable)
+		FOnActorDamageSignature ActorDamageDelegate;
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

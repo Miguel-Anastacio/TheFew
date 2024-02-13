@@ -15,6 +15,7 @@ class UCameraComponent;
 class UAircraftPhysics;
 class UWeaponComponent;
 class UVfxComponent;
+class UHealthComponent;
 //class IReactToHitInterface;
 UCLASS()
 class APlanePawn : public APawn, public IReactToHitInterface
@@ -43,7 +44,7 @@ public:
 
 	void ToggleLandingGear();
 	UAircraftPhysics* GetPlanePhysicsComponent() { return PlanePhysicsComponent; };
-	//UHealthComponent* GetHealthComponent() { return PlanePhysicsComponent; };
+	UHealthComponent* GetHealthComponent() { return HealthComponent; };
 	UPrimitiveComponent* GetRigidbody();
 	void TriggerWeapons();
 	bool GetIsFlying() { return Flying; };
@@ -55,6 +56,7 @@ public:
 	//UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
 	//void ReactToHit(float damage); virtual void ReactToHit_Implementation(float damage) override;
 	void ReactToHit(float damage) override;
+	void ReactToHit(float damage, AActor* instigator) override;
 
 protected:
 	virtual void BeginPlay() override;
@@ -63,7 +65,12 @@ protected:
 	void UpdateFlying();
 
 	UFUNCTION()
-		void PlaneDeath();
+		virtual void PlaneDeathSimple();
+	UFUNCTION()
+		virtual void PlaneDeath(AActor* causer) {};
+
+	UFUNCTION()
+		virtual void OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 protected:
 	UPROPERTY(EditAnywhere )
@@ -129,6 +136,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Health")
 		TObjectPtr<class UHealthComponent> HealthComponent;
+
+	UPROPERTY(EditAnywhere, Category = "UI")
+		TObjectPtr<class UWidgetComponent> WidgetComponent;
 
 	UPROPERTY(EditAnywhere, Category = "Plane Animation")
 		float PropellerRotationSpeed = 200.0f;

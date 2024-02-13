@@ -9,12 +9,19 @@
 #include "Components/CanvasPanelSlot.h"
 #include "Kismet/GameplayStatics.h"
 #include "Components/TextBlock.h"
+#include "Components/HealthComponent.h"
 void UPlaneHUD::SetPlaneReference(APlanePawn* ref)
 {
 	if (ref)
 	{
 		ControlledPlane = ref;
 		ThrottleRef = ControlledPlane->GetPlanePhysicsComponent()->GetThrottleRef();
+
+		UHealthComponent* comp = ControlledPlane->GetHealthComponent();
+		comp->ActorDamageDelegate.AddDynamic(this, &UPlaneHUD::UpdateHealthBar);
+
+		HealthBar->SetPercent(1);
+
 	}
 }
 
@@ -50,4 +57,9 @@ void UPlaneHUD::NativeOnInitialized()
 	CrosshairWidget = CreateWidget<UUserWidget>(GetOwningPlayer(), CrosshairImageClass);
 	if (CrosshairWidget)
 		CrosshairWidget->AddToViewport();
+}
+
+void UPlaneHUD::UpdateHealthBar(float currentPercent)
+{
+	HealthBar->SetPercent(currentPercent);
 }

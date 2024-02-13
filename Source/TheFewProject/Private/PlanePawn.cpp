@@ -11,6 +11,7 @@
 #include "VFX/VfxComponent.h"
 #include "Components/AudioComponent.h"
 #include "Components/HealthComponent.h"
+#include "Components/WidgetComponent.h"
 #include "../TheFewProject.h"
 // Sets default values
 APlanePawn::APlanePawn()
@@ -110,6 +111,9 @@ APlanePawn::APlanePawn()
 	GunFireAudioComponent = CreateDefaultSubobject<UAudioComponent>("Gun Audio");
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>("Health Component");
+
+	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>("Widget");
+	WidgetComponent->SetupAttachment(RootComponent);
 }
 
 void APlanePawn::PostInitializeComponents()
@@ -117,8 +121,10 @@ void APlanePawn::PostInitializeComponents()
 	Super::PostInitializeComponents();
 	if (IsValid(HealthComponent.Get()))
 	{
-		HealthComponent->ActorSimpleDeathDelegate.AddDynamic(this, &APlanePawn::PlaneDeath);
+		HealthComponent->ActorSimpleDeathDelegate.AddDynamic(this, &APlanePawn::PlaneDeathSimple);
+		HealthComponent->ActorDeathDelegate.AddDynamic(this, &APlanePawn::PlaneDeath);
 	}
+
 }
 
 
@@ -144,6 +150,10 @@ void APlanePawn::BeginPlay()
 	LeftTrail->SetSpeedForMaxTrail(SpeedForMaxFOV);
 	RightTrail->SetSpeedForMaxTrail(SpeedForMaxFOV);
 
+	if (IsValid(PlaneBodyBox))
+	{
+		PlaneBodyBox->OnComponentHit.AddDynamic(this, &APlanePawn::OnCompHit);
+	}
 }
 //void APlanePawn::ReactToHit_Implementation(float damage)
 //{
@@ -222,7 +232,7 @@ void APlanePawn::UpdateCamera(float DeltaTime)
 		//TailCameraBoom->SetRelativeRotation(DefaultCameraRotation);
 		TargetCameraRotation = DefaultCameraRotation.Quaternion();
 		
-		//ailCameraBoom->SetRelativeRotation(FMath::Lerp(TailCameraBoom->GetRelativeRotation(), DefaultCameraRotation, DeltaTime));
+		TailCameraBoom->SetRelativeRotation(FMath::Lerp(TailCameraBoom->GetRelativeRotation(), DefaultCameraRotation, DeltaTime));
 		return;
 	}
 	//FQuat currentRot = TailCameraBoom->GetRelativeRotation().Quaternion();
@@ -326,6 +336,11 @@ void APlanePawn::ReactToHit(float damage)
 	HealthComponent->TakeDamage(damage);
 }
 
+void APlanePawn::ReactToHit(float damage, AActor* instigator)
+{
+	HealthComponent->TakeDamage(damage, instigator);
+}
+
 void APlanePawn::CreateMeshWithPivot(USceneComponent* pivot, UStaticMeshComponent* mesh, FName name, FName nameMesh)
 {
 	pivot = CreateDefaultSubobject<USceneComponent>(name);
@@ -376,9 +391,17 @@ void APlanePawn::UpdateFlying()
 	}
 }
 
-void APlanePawn::PlaneDeath()
+void APlanePawn::PlaneDeathSimple()
 {
 	UE_LOG(LogProjectFew, Warning, TEXT("Death of Actor %s"), *this->GetName());
+}
+
+void APlanePawn::OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	if (OtherActor->ActorHasTag("Terrain"))
+	{
+		HealthComponent->TakeDamage(10.0f, OtherActor);
+	}
 }
 
 // Called every frame

@@ -4,6 +4,7 @@
 #include "NiagaraComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Engine/EngineTypes.h"
+#include "../../TheFewProject.h"
 // Sets default values for this component's properties
 UVfxComponent::UVfxComponent()
 {
@@ -42,14 +43,14 @@ void UVfxComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorCo
 	// ...
 }
 
-void UVfxComponent::UpdateNiagaraSystem(FVector velocity)
+void UVfxComponent::UpdateNiagaraSystem(const FVector& velocity)
 {
 	if (TrailEffectInstance)
 	{
-		float SpeedMin = 1000;
 		float currentSpeed = velocity.Size();
-		currentSpeed = FMath::Clamp(currentSpeed, SpeedMin, SpeedForMaxTrail);
-		float lifetime = FMath::InterpEaseIn(0.f, 0.6f, (currentSpeed - SpeedMin)/ (SpeedForMaxTrail - SpeedMin), 4);
+		float acceleration = currentSpeed - PreviousSpeed;
+		acceleration = FMath::Clamp(acceleration, MinAcceleration, AccelerationMaxTrail);
+		float lifetime = FMath::InterpEaseOut(0.f, MaxLifetime, (acceleration - MinAcceleration)/ (AccelerationMaxTrail - MinAcceleration), 4);
 		//lifetime = 1.0f;
 		if (lifetime < 0.1)
 		{
@@ -60,8 +61,11 @@ void UVfxComponent::UpdateNiagaraSystem(FVector velocity)
 		//{
 		//	//TrailEffectInstance->Activate();
 		//}
-		if(TrailEffectInstance)
-			TrailEffectInstance->SetNiagaraVariableFloat(FString("Lifetime"), lifetime);
+
+		//UE_LOG(LogProjectFew, Warning, TEXT("Acceleration %f"), acceleration);
+		TrailEffectInstance->SetNiagaraVariableFloat(FString("Lifetime"), lifetime);
+
+		PreviousSpeed = currentSpeed;
 	}
 	else
 	{

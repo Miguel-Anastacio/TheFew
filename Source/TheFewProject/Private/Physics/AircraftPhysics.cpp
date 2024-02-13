@@ -134,6 +134,7 @@ void UAircraftPhysics::UpdateThrust()
 	CurrentForce = thrust;
 
 	FVector end = Rigidbody->GetComponentLocation() + thrust;
+
 	//DrawDebugLine(GetWorld(), Rigidbody->GetComponentLocation(), end, FColor::White , false, 0.05f, 0, 1.0f);
 	
 }
@@ -219,7 +220,7 @@ void UAircraftPhysics::UpdateThrottle(float dt)
 	//if (ThrottleInput < 0)B
 	//UE_LOG(LogTemp, Warning, TEXT("Throttle Input: %f"), ThrottleInput);
 	//UE_LOG(LogTemp, Warning, TEXT("Throttle: %f"), Throttle);
-	//ThrottleInput = 0;
+	ThrottleInput = 0;
 }
 
 void UAircraftPhysics::UpdateSteering(float dt)

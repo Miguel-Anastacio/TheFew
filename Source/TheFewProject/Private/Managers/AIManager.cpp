@@ -63,8 +63,8 @@ void AAIManager::Tick(float DeltaTime)
 
 void AAIManager::OnAIDestroyed(AActor* actor)
 {
-	SpawnEnemy(SpawnAreaBoundsMin, SpawnAreaBoundsMax, SpawnHeight);
-	ChangePlaneSelected(1);
+	//SpawnEnemy(SpawnAreaBoundsMin, SpawnAreaBoundsMax, SpawnHeight);
+	//ChangePlaneSelected(1);
 
 }
 

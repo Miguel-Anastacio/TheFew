@@ -27,6 +27,8 @@ void UHealthComponent::BeginPlay()
 void UHealthComponent::TakeDamage(float damage)
 {
 	CurrentHealth -= damage;
+	//GetOwner()->OnTakeAnyDamage.Broadcast();
+	ActorDamageDelegate.Broadcast(CurrentHealth/MaxHealth);
 	if (CurrentHealth <= 0)
 	{
 		ActorSimpleDeathDelegate.Broadcast();
@@ -37,6 +39,7 @@ void UHealthComponent::TakeDamage(float damage)
 void UHealthComponent::TakeDamage(float damage, AActor* causer)
 {
 	CurrentHealth -= damage;
+	ActorDamageDelegate.Broadcast(CurrentHealth/MaxHealth);
 	if (CurrentHealth <= 0)
 	{
 		ActorDeathDelegate.Broadcast(causer);
