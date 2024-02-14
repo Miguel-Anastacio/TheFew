@@ -11,7 +11,6 @@
 #include "VFX/VfxComponent.h"
 #include "Components/AudioComponent.h"
 #include "Components/HealthComponent.h"
-#include "Components/WidgetComponent.h"
 #include "../TheFewProject.h"
 // Sets default values
 APlanePawn::APlanePawn()
@@ -112,8 +111,6 @@ APlanePawn::APlanePawn()
 
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>("Health Component");
 
-	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>("Widget");
-	WidgetComponent->SetupAttachment(RootComponent);
 }
 
 void APlanePawn::PostInitializeComponents()
@@ -154,6 +151,8 @@ void APlanePawn::BeginPlay()
 	{
 		PlaneBodyBox->OnComponentHit.AddDynamic(this, &APlanePawn::OnCompHit);
 	}
+
+	PlaneBodyBox->SetPhysicsLinearVelocity(FVector(700.0f, 0, 600.f));
 }
 //void APlanePawn::ReactToHit_Implementation(float damage)
 //{

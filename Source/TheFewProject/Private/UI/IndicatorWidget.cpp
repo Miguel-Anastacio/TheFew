@@ -2,4 +2,8 @@
 
 
 #include "UI/IndicatorWidget.h"
-
+//#include "Components/Image.h"
+//void UIndicatorWidget::SetIconTint(const FLinearColor& color)
+//{
+//	Icon->SetBrushTintColor(FSlateColor(color));
+//}

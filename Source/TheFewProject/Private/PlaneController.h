@@ -23,6 +23,7 @@ class APlaneController : public APlayerController
 public:
 	void InitDebugVariables(AActor* landscape, class AAIManager* manager);
 	APlanePawn* GetPlaneSelected();
+	//void SetPlaneSelected(APlanePawn* plane) { CurrentAISelected = plane; };
 	
 protected:
 	void PreInitializeComponents() override;

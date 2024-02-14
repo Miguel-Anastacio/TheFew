@@ -13,7 +13,12 @@ UCLASS()
 class UIndicatorWidget : public UUserWidget
 {
 	GENERATED_BODY()
+public:
+	//void SetIconTint(const FLinearColor& color);
 protected:
 	UPROPERTY(meta = (BindWidget))
 	class UImage* Icon;
+	//UPROPERTY(meta = (BindWidget))
+	//class UImage* Background;
+
 };

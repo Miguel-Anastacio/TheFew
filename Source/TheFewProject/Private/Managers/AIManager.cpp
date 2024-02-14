@@ -27,11 +27,10 @@ void AAIManager::PostInitializeComponents()
 void AAIManager::BeginPlay()
 {
 	Super::BeginPlay();
+	APlaneController* controllerPlayer = Cast<APlaneController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
+	controllerPlayer->InitDebugVariables(LevelLandscape, this);
 
-	APlaneController* controller = Cast<APlaneController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
-	controller->InitDebugVariables(SpawnArea, this);
-
-	if (SpawnArea)
+	/*if (SpawnArea)
 	{
 		FVector origin, extent;
 		SpawnArea->GetActorBounds(false, origin, extent);
@@ -41,67 +40,202 @@ void AAIManager::BeginPlay()
 		SpawnAreaBoundsMin.X = origin.X - extent.X;
 		SpawnAreaBoundsMin.Y = origin.Y - extent.Y;
 
+	}*/
+
+	/*for (int i = 0; i < NumberOfEnemies; i++)
+	{
+		SpawnAIActor(SpawnAreaBoundsMin, SpawnAreaBoundsMax, SpawnHeight);
+	}*/
+
+	SpawnTeam(TeamA);
+	SpawnTeam(TeamB, FRotator(0, 180, 0));
+
+	// Each team member targets another one in the other team
+	if (TeamA.AIActors.Num() <= TeamB.AIActors.Num())
+	{
+		for (int i = 0; i < TeamA.AIActors.Num(); i++)
+		{
+			APlaneAIController* controller = TeamA.AIActors[i]->GetController<APlaneAIController>();
+			if (controller)
+			{
+				/*int index = FMath::RandRange(0, Targets.Num() - 1);*/
+				controller->SetTargetActor(TeamB.AIActors[i]);
+			}
+
+			controller = TeamB.AIActors[i]->GetController<APlaneAIController>();
+			if (controller)
+			{
+				/*int index = FMath::RandRange(0, Targets.Num() - 1);*/
+				controller->SetTargetActor(TeamA.AIActors[TeamA.AIActors.Num()-1 - i]);
+			}
+		}
 	}
 
-	for (int i = 0; i < NumberOfEnemies; i++)
-	{
-		SpawnEnemy(SpawnAreaBoundsMin, SpawnAreaBoundsMax, SpawnHeight);
-	}
+	CurrentTeamID = TeamA.ID;
+}
+void AAIManager::EndPlay(const EEndPlayReason::Type EndPlayReason)
+{
+	Super::EndPlay(EndPlayReason);
+	GetWorld()->GetTimerManager().ClearTimer(TeamA.SpawnTimerHandler);
+	GetWorld()->GetTimerManager().ClearTimer(TeamB.SpawnTimerHandler);
+
 }
 // Called every frame
 void AAIManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (PlaneSelectedIndex > -1)
+	if (PlaneSelectedIndex > -1 && CurrentTeamID == TeamA.ID && PlaneSelectedIndex < TeamA.AIActors.Num() - 1)
 	{
 		// DEBUG ONLY CODE
-		APlaneAIController* controller = Cast<APlaneAIController>(Enemies[PlaneSelectedIndex]->Controller);
+		APlaneAIController* controller = Cast<APlaneAIController>(TeamA.AIActors[PlaneSelectedIndex]->Controller);
 		if(controller)
 			controller->ShowDebugInfo();
 	}
+	else if(PlaneSelectedIndex > -1 && CurrentTeamID == TeamB.ID && PlaneSelectedIndex < TeamB.AIActors.Num()-1)
+	{
+		// DEBUG ONLY CODE
+		APlaneAIController* controller = Cast<APlaneAIController>(TeamB.AIActors[PlaneSelectedIndex]->Controller);
+		if (controller)
+			controller->ShowDebugInfo();
+	}
+
+	TeamA.TimeSinceLastSpawn += DeltaTime;
+	TeamB.TimeSinceLastSpawn += DeltaTime;
 }
 
 void AAIManager::OnAIDestroyed(AActor* actor)
 {
-	//SpawnEnemy(SpawnAreaBoundsMin, SpawnAreaBoundsMax, SpawnHeight);
-	//ChangePlaneSelected(1);
+	APlanePawnAI* actorAI = Cast<APlanePawnAI>(actor);
+	if (actorAI)
+	{
+		if (actorAI->GetTeamID() == TeamA.ID)
+		{
+			Respawn(TeamA, TeamB.AIActors);
+		}
+		else if (actorAI->GetTeamID() == TeamB.ID)
+		{
+			Respawn(TeamB, TeamA.AIActors, FRotator(0, 180, 0));
+		}
+	}
+}
 
+void AAIManager::SpawnTeam(FTeam& team, const FRotator& rot)
+{
+	team.InitSpawnAreaBounds();
+	for (int i = 0; i < team.NumberOfAIActors; i++)
+	{
+		//SpawnAIActor(team.SpawnAreaBoundsMin, team.SpawnAreaBoundsMax, team.SpawnHeight);
+		SpawnAIActor(team, rot);
+	}
 }
 
 TObjectPtr<class APlanePawnAI> AAIManager::ChangePlaneSelected(float input)
 {
-	for (int i = 0; i < Enemies.Num(); i++)
+	if (CurrentTeamID == TeamA.ID)
 	{
-		if (!IsValid(Enemies[i]))
+		for (int i = 0; i < TeamA.AIActors.Num(); i++)
 		{
-			Enemies.RemoveAt(i);
+			if (!IsValid(TeamA.AIActors[i]))
+			{
+				TeamA.AIActors.RemoveAt(i);
+			}
 		}
+
+		PlaneSelectedIndex += input;
+		if (PlaneSelectedIndex >= TeamA.AIActors.Num())
+		{
+			PlaneSelectedIndex = 0;
+			CurrentTeamID = TeamB.ID;
+		}
+		else if (PlaneSelectedIndex < 0)
+		{
+			PlaneSelectedIndex = TeamA.AIActors.Num() - 1;
+			CurrentTeamID = TeamB.ID;
+		}
+
+		return TeamA.AIActors[PlaneSelectedIndex];
+
 	}
+	else
+	{
 
-	PlaneSelectedIndex += input;
-	if (PlaneSelectedIndex >= Enemies.Num())
-		PlaneSelectedIndex = 0;
-	else if (PlaneSelectedIndex < 0)
-		PlaneSelectedIndex = Enemies.Num() - 1;
+		for (int i = 0; i < TeamB.AIActors.Num(); i++)
+		{
+			if (!IsValid(TeamB.AIActors[i]))
+			{
+				TeamB.AIActors.RemoveAt(i);
+			}
+		}
 
-	return Enemies[PlaneSelectedIndex];
+		PlaneSelectedIndex += input;
+		if (PlaneSelectedIndex >= TeamB.AIActors.Num())
+		{
+			PlaneSelectedIndex = 0;
+			CurrentTeamID = TeamA.ID;
+		}
+		else if (PlaneSelectedIndex < 0)
+		{
+			PlaneSelectedIndex = TeamB.AIActors.Num() - 1;
+			CurrentTeamID = TeamA.ID;
+		}
+
+		return TeamB.AIActors[PlaneSelectedIndex];
+	}
+	//return NULL;
 }
 
 
-void AAIManager::SpawnEnemy(const FVector2D& minBounds, const FVector2D& maxBounds, float zHeight)
+//void AAIManager::SpawnAIActor(const FVector2D& minBounds, const FVector2D& maxBounds, float zHeight, )
+//{
+//	if (IsValid(AIClass))
+//	{
+//		FActorSpawnParameters params;
+//		FVector loc;
+//		loc.X = FMath::RandRange(minBounds.X, maxBounds.X);
+//		loc.Y = FMath::RandRange(minBounds.Y, maxBounds.Y);
+//		loc.Z = zHeight;
+//		FHitResult hit;
+//		GetWorld()->LineTraceSingleByChannel(hit, loc, loc + FVector::DownVector * 1000000, ECC_Visibility);
+//		int maxTries = 10;
+//		int counter = 0;
+//		while (!hit.bBlockingHit && counter < maxTries)
+//		{
+//			loc.X = FMath::RandRange(minBounds.X, maxBounds.X);
+//			loc.Y = FMath::RandRange(minBounds.Y, maxBounds.Y);
+//			GetWorld()->LineTraceSingleByChannel(hit, loc, loc + FVector::DownVector * 100000, ECC_Visibility);
+//			counter++;
+//		}
+//
+//		if (counter > maxTries)
+//		{
+//			return;
+//		}
+//
+//		TObjectPtr<APlanePawnAI> enemy = GetWorld()->SpawnActor<APlanePawnAI>(AIClass, loc, FRotator(0, 0, 0), params);
+//		if (IsValid(enemy))
+//		{
+//			enemy->SetOwner(this);
+//			enemy->OnDestroyed.AddDynamic(this, &AAIManager::OnAIDestroyed);
+//			UpdateTarget(enemy);
+//			AIActors.Add(enemy);
+//		}
+//	}
+//}
+
+void AAIManager::SpawnAIActor(FTeam& team, const FRotator& rot)
 {
-	if (IsValid(EnemyClass))
+	if (IsValid(team.AIClass))
 	{
 		FActorSpawnParameters params;
 		FVector loc;
-		loc.X = FMath::RandRange(minBounds.X, maxBounds.X);
-		loc.Y = FMath::RandRange(minBounds.Y, maxBounds.Y);
-		loc.Z = zHeight;
+		loc.X = FMath::RandRange(team.SpawnAreaBoundsMin.X, team.SpawnAreaBoundsMax.X);
+		loc.Y = FMath::RandRange(team.SpawnAreaBoundsMin.Y, team.SpawnAreaBoundsMax.Y);
+		loc.Z = team.SpawnHeight;
 		FHitResult hit;
 		GetWorld()->LineTraceSingleByChannel(hit, loc, loc + FVector::DownVector * 1000000, ECC_Visibility);
 		int maxTries = 10;
 		int counter = 0;
-		while (!hit.bBlockingHit && counter < maxTries)
+		/*while (!hit.bBlockingHit && counter < maxTries)
 		{
 			loc.X = FMath::RandRange(minBounds.X, maxBounds.X);
 			loc.Y = FMath::RandRange(minBounds.Y, maxBounds.Y);
@@ -112,30 +246,63 @@ void AAIManager::SpawnEnemy(const FVector2D& minBounds, const FVector2D& maxBoun
 		if (counter > maxTries)
 		{
 			return;
-		}
+		}*/
 
-		TObjectPtr<APlanePawnAI> enemy = GetWorld()->SpawnActor<APlanePawnAI>(EnemyClass, loc, FRotator(0, 0, 0), params);
+		TObjectPtr<APlanePawnAI> enemy = GetWorld()->SpawnActor<APlanePawnAI>(team.AIClass, loc, rot, params);
 		if (IsValid(enemy))
 		{
 			enemy->SetOwner(this);
 			enemy->OnDestroyed.AddDynamic(this, &AAIManager::OnAIDestroyed);
-			UpdateTarget(enemy);
-			Enemies.Add(enemy);
+			enemy->SetWidgetColor(team.AIWidgetColor);
+			enemy->SetTeamID(team.ID);
+			//UpdateTarget(enemy);
+			team.AIActors.Add(enemy);
+			team.TimeSinceLastSpawn = 0.0f;
 		}
 	}
 }
 
 void AAIManager::UpdateTarget(AActor* actor)
 {
-	APlanePawnAI* enemy = Cast<APlanePawnAI>(actor);
-	if (enemy)
+
+	//APlanePawnAI* enemy = Cast<APlanePawnAI>(actor);
+	//if (enemy)
+	//{
+	//	APlaneAIController* controller = enemy->GetController<APlaneAIController>();
+	//	if (controller)
+	//	{
+	//		int index = FMath::RandRange(0, Targets.Num() - 1);
+	//		controller->SetTargetActor(Targets[index]);
+	//	}
+	//}
+}
+
+void AAIManager::SpawnAIActorGameInProgress(FTeam& team, const TArray<APlanePawnAI*>& enemyTeamActors, const FRotator& rot)
+{
+	SpawnAIActor(team, rot);
+	APlaneAIController* controller = team.AIActors.Last()->GetController<APlaneAIController>();
+	if (controller)
 	{
-		APlaneAIController* controller = enemy->GetController<APlaneAIController>();
-		if (controller)
-		{
-			int index = FMath::RandRange(0, Targets.Num() - 1);
-			controller->SetTargetActor(Targets[index]);
-		}
+		int index = FMath::RandRange(0, enemyTeamActors.Num() - 1);
+
+		controller->SetTargetActor(enemyTeamActors[index]);
+	}
+}
+
+void AAIManager::Respawn(FTeam& team, const TArray<TObjectPtr<class APlanePawnAI>>& enemyTeamActors, const FRotator& rot)
+{
+	if (team.TimeSinceLastSpawn > team.SpawnCooldown)
+	{
+		SpawnAIActorGameInProgress(team, enemyTeamActors);
+	}
+	else
+	{
+		// start a timer to spawn an actor
+		FTimerDelegate Delegate; // Delegate to bind function with parameters
+		Delegate.BindUFunction(this, "SpawnAIActorGameInProgress", team, enemyTeamActors, rot);
+		float delay = team.SpawnCooldown - team.TimeSinceLastSpawn;
+		GetWorld()->GetTimerManager().SetTimer(team.SpawnTimerHandler, Delegate, delay, false);
+
 	}
 }
 

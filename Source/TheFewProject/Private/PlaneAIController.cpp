@@ -170,7 +170,7 @@ FVector APlaneAIController::RecoverAltitude(APawn* pawn)
 
 bool APlaneAIController::IsPlaneFacingTarget(AActor* pawn)
 {
-	FVector targetPosition = pawn->GetActorLocation();
+	FVector targetPosition = pawn->GetActorLocation() + pawn->GetVelocity();
 	FVector error = targetPosition - ControlledPlanePawn->GetActorLocation();
 	float range = error.Size();
 	FVector targetDir = error.GetSafeNormal();
@@ -378,7 +378,7 @@ void APlaneAIController::Tick(float dt)
 	FVector target = FVector(100, 0, 0);
 	if (IsValid(TargetActor))
 	{
-		target = TargetActor->GetActorLocation();
+		target = TargetActor->GetActorLocation() + TargetActor->GetVelocity();
 	}
 
 	float rollDirection = DetectObstacles(ControlledPlanePawn);
@@ -490,8 +490,6 @@ void APlaneAIController::ShowDebugInfo(FVector input)
 	//GEngine->AddOnScreenDebugMessage(3, 1.0f, FColor::Yellow, FString::Printf(TEXT("Angle = %f"), angle), true);
 
 
-
-
 	FRotator rot = ControlledPlanePawn->GetActorRotation();
 	FVector temp = FVector(rot.Roll, rot.Pitch, rot.Yaw);
 	/*AddVector(TEXT("Player Rotation"), temp);*/
@@ -569,6 +567,13 @@ void APlaneAIController::ShowDebugInfo()
 	default:
 		break;
 	}
+
+	if (TargetActor)
+	{
+		FString name = TargetActor->GetName();
+		GEngine->AddOnScreenDebugMessage(25, 1.0f, FColor::Red, name, true);
+	}
+	//	UE_LOG(LogTemp, Log, TEXT("Target actor: %s"), *TargetActor()->GetName());
 
 
 }

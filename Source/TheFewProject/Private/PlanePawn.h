@@ -58,6 +58,9 @@ public:
 	void ReactToHit(float damage) override;
 	void ReactToHit(float damage, AActor* instigator) override;
 
+	FORCEINLINE void SetTeamID(int ID) { TeamID = ID; };
+	FORCEINLINE int GetTeamID() { return TeamID; };
+
 protected:
 	virtual void BeginPlay() override;
 	void CreateMeshWithPivot(USceneComponent* pivot, UStaticMeshComponent* mesh, FName namePivot, FName nameMesh);
@@ -137,9 +140,6 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Health")
 		TObjectPtr<class UHealthComponent> HealthComponent;
 
-	UPROPERTY(EditAnywhere, Category = "UI")
-		TObjectPtr<class UWidgetComponent> WidgetComponent;
-
 	UPROPERTY(EditAnywhere, Category = "Plane Animation")
 		float PropellerRotationSpeed = 200.0f;
 	UPROPERTY(EditAnywhere, Category = "Plane Animation")
@@ -184,6 +184,6 @@ protected:
 
 	FRotator LandingGearTargetRotation;
 	
-
+	int TeamID = -1;
 	friend class APlanePhysicsDebugHUD;
 };

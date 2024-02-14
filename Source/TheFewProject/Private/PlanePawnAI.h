@@ -18,6 +18,8 @@ public:
 	TObjectPtr<class UBoxComponent> GetDetectionVolume();
 	void Tick(float deltaTime) override;
 
+	void SetWidgetColor(const FLinearColor& color);
+
 protected:
 	void BeginPlay() override;
 
@@ -25,15 +27,14 @@ protected:
 	// declare overlap end function
 	UFUNCTION()
 		void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
-
 	void PlaneDeath(AActor* instigator) override;
-
-
 
 protected:
 	UPROPERTY(EditAnywhere, Category = "Obstacle Detection")
 		TObjectPtr<class UBoxComponent> DetectionVolume;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Particles")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX")
 		TObjectPtr<class UNiagaraSystem> BigExplosionEffect;
+	UPROPERTY(EditAnywhere, Category = "UI")
+		TObjectPtr<class UWidgetComponent> WidgetComponent;
 
 };

@@ -11,11 +11,15 @@
 #include "Physics/AircraftPhysics.h"
 #include "Managers/AIManager.h"
 #include "NiagaraFunctionLibrary.h"
-
+#include "Components/WidgetComponent.h"
+#include "UI/IndicatorWidget.h"
 APlanePawnAI::APlanePawnAI()
 {
 	DetectionVolume = CreateDefaultSubobject<UBoxComponent>("Detection Volume");
 	DetectionVolume->SetupAttachment(PlaneBodyBox);
+
+	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>("Widget");
+	WidgetComponent->SetupAttachment(RootComponent);
 }
 void APlanePawnAI::BeginPlay()
 {
@@ -73,15 +77,15 @@ void APlanePawnAI::OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, U
 {
 	if (OtherActor->ActorHasTag("Terrain"))
 	{
-		FVector current = GetActorLocation();
+		/*FVector current = GetActorLocation();
 		current.Z = 10000.f;
 		SetActorLocation(current);
 		if (GetOwner())
 		{
 			AAIManager* mgr = Cast<AAIManager>(GetOwner());
 			mgr->IncreaseCrashes();
-		}
-		//Destroy();
+		}*/
+		PlaneDeath(OtherActor);
 	}
 }
 
@@ -102,4 +106,13 @@ void APlanePawnAI::PlaneDeath(AActor* instigator)
 	//PlanePhysicsComponent->DestroyComponent();
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), BigExplosionEffect, GetActorLocation());
 	Destroy();
+}
+
+void APlanePawnAI::SetWidgetColor(const FLinearColor& color)
+{
+	UUserWidget* widget = WidgetComponent->GetWidget();
+	if (IsValid(widget))
+	{
+		widget->SetColorAndOpacity(color);
+	}
 }
