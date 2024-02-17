@@ -17,7 +17,7 @@ class UPlaneHUD : public UUserWidget
 public:
 
 	void SetPlaneReference(APlanePawn* ref);
-
+	void ToggleScoreboard(bool status);
 protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
@@ -35,12 +35,13 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 		class UTextBlock* AltitudeValue;
 
-	// compass widget
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class UScoreboardWidget> ScoreboardClass;
 
 	APlanePawn* ControlledPlane;
 	float* ThrottleRef = NULL;
 	UUserWidget* CrosshairWidget = NULL;
-
+	TObjectPtr<class UScoreboardWidget> ScoreboardWidget;
 	// health bar
 	
 };

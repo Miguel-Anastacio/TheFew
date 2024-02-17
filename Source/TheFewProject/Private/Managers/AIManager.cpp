@@ -7,11 +7,24 @@
 #include "PlaneAIController.h"
 #include "PlaneController.h"
 #include "Kismet/GameplayStatics.h"
+#include "Game/ArenaGameState.h"
 // Sets default values
 AAIManager::AAIManager()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+}
+
+void AAIManager::IncreaseTeamScore(int teamID)
+{
+	/*if (teamID == TeamA.ID)
+	{
+		TeamA.Score++;
+	}
+	else if (teamID == TeamB.ID)
+	{
+		TeamB.Score++;
+	}*/
 }
 
 void AAIManager::PostInitializeComponents()
@@ -70,8 +83,14 @@ void AAIManager::BeginPlay()
 			}
 		}
 	}
-
 	CurrentTeamID = TeamA.ID;
+
+	AArenaGameState* gameState = Cast<AArenaGameState>(GetWorld()->GetGameState());
+	if (!IsValid(gameState))
+		return;
+
+	gameState->InitTeamData(TeamA, TeamB);
+
 }
 void AAIManager::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
@@ -106,17 +125,59 @@ void AAIManager::Tick(float DeltaTime)
 void AAIManager::OnAIDestroyed(AActor* actor)
 {
 	APlanePawnAI* actorAI = Cast<APlanePawnAI>(actor);
-	if (actorAI)
+	if (!IsValid(actorAI))
+		return;
+
+
+	AArenaGameState* gameState = Cast<AArenaGameState>(GetWorld()->GetGameState());
+	if (!IsValid(gameState))
+		return;
+
+	int teamID = gameState->GetPlayerTeamID(actorAI->GetGameName());
+	// find planes that had this actor as target 
+	// and assign them a new target
+
+	if (teamID == TeamA.ID)
 	{
-		if (actorAI->GetTeamID() == TeamA.ID)
+		// find planes that had this actor as target 
+		// and assign them a new target
+		// To DO : Create a function for this
+		for (auto& temp : TeamB.AIActors)
 		{
-			Respawn(TeamA, TeamB.AIActors);
+			APlaneAIController* controller = temp->GetController<APlaneAIController>();
+			if (controller)
+			{
+				/*int index = FMath::RandRange(0, Targets.Num() - 1);*/
+				if (actor == controller->GetTargetActor())
+				{
+					int index = FMath::RandRange(0, TeamB.AIActors.Num() - 1);
+					controller->SetTargetActor(TeamB.AIActors[index]);
+				}
+			}
 		}
-		else if (actorAI->GetTeamID() == TeamB.ID)
-		{
-			Respawn(TeamB, TeamA.AIActors, FRotator(0, 180, 0));
-		}
+		Respawn(TeamA, TeamB.AIActors, actorAI->GetGameName());
 	}
+	else if (teamID == TeamB.ID)
+	{
+		// find planes that had this actor as target 
+		// and assign them a new target
+		// To DO : Create a function for this
+		for (auto& temp : TeamA.AIActors)
+		{
+			APlaneAIController* controller = temp->GetController<APlaneAIController>();
+			if (controller)
+			{
+				/*int index = FMath::RandRange(0, Targets.Num() - 1);*/
+				if (actor == controller->GetTargetActor())
+				{
+					int index = FMath::RandRange(0, TeamA.AIActors.Num() - 1);
+					controller->SetTargetActor(TeamA.AIActors[index]);
+				}
+			}
+		}
+		Respawn(TeamB, TeamA.AIActors, actorAI->GetGameName(), FRotator(0, 180, 0));
+	}
+	
 }
 
 void AAIManager::SpawnTeam(FTeam& team, const FRotator& rot)
@@ -125,7 +186,31 @@ void AAIManager::SpawnTeam(FTeam& team, const FRotator& rot)
 	for (int i = 0; i < team.NumberOfAIActors; i++)
 	{
 		//SpawnAIActor(team.SpawnAreaBoundsMin, team.SpawnAreaBoundsMax, team.SpawnHeight);
-		SpawnAIActor(team, rot);
+		SpawnAIActor(team, FString(), rot);
+	}
+}
+
+void AAIManager::InitTeamTargets(FTeam& team1, FTeam& team2)
+{
+	// Each team member targets another one in the other team
+	if (team1.AIActors.Num() <= team2.AIActors.Num())
+	{
+		for (int i = 0; i < team1.AIActors.Num(); i++)
+		{
+			APlaneAIController* controller = team1.AIActors[i]->GetController<APlaneAIController>();
+			if (controller)
+			{
+				/*int index = FMath::RandRange(0, Targets.Num() - 1);*/
+				controller->SetTargetActor(team2.AIActors[i]);
+			}
+
+			controller = team2.AIActors[i]->GetController<APlaneAIController>();
+			if (controller)
+			{
+				//int index = FMath::RandRange(0, Targets.Num() - 1);
+				controller->SetTargetActor(team1.AIActors[team1.AIActors.Num() - 1 - i]);
+			}
+		}
 	}
 }
 
@@ -222,7 +307,7 @@ TObjectPtr<class APlanePawnAI> AAIManager::ChangePlaneSelected(float input)
 //	}
 //}
 
-void AAIManager::SpawnAIActor(FTeam& team, const FRotator& rot)
+void AAIManager::SpawnAIActor(FTeam& team, const FString& playerName, const FRotator& rot)
 {
 	if (IsValid(team.AIClass))
 	{
@@ -254,7 +339,15 @@ void AAIManager::SpawnAIActor(FTeam& team, const FRotator& rot)
 			enemy->SetOwner(this);
 			enemy->OnDestroyed.AddDynamic(this, &AAIManager::OnAIDestroyed);
 			enemy->SetWidgetColor(team.AIWidgetColor);
-			enemy->SetTeamID(team.ID);
+
+			FString name = playerName;
+			if (playerName == FString())
+			{
+				name = team.AIGameName;
+				name.AppendInt(team.AIActors.Num());
+
+			}
+			enemy->SetGameName(name);
 			//UpdateTarget(enemy);
 			team.AIActors.Add(enemy);
 			team.TimeSinceLastSpawn = 0.0f;
@@ -277,9 +370,9 @@ void AAIManager::UpdateTarget(AActor* actor)
 	//}
 }
 
-void AAIManager::SpawnAIActorGameInProgress(FTeam& team, const TArray<APlanePawnAI*>& enemyTeamActors, const FRotator& rot)
+void AAIManager::SpawnAIActorGameInProgress(FTeam& team, const TArray<APlanePawnAI*>& enemyTeamActors, const FString& playerName, const FRotator& rot)
 {
-	SpawnAIActor(team, rot);
+	SpawnAIActor(team, playerName, rot);
 	APlaneAIController* controller = team.AIActors.Last()->GetController<APlaneAIController>();
 	if (controller)
 	{
@@ -289,17 +382,17 @@ void AAIManager::SpawnAIActorGameInProgress(FTeam& team, const TArray<APlanePawn
 	}
 }
 
-void AAIManager::Respawn(FTeam& team, const TArray<TObjectPtr<class APlanePawnAI>>& enemyTeamActors, const FRotator& rot)
+void AAIManager::Respawn(FTeam& team, const TArray<TObjectPtr<class APlanePawnAI>>& enemyTeamActors, const FString& playerName, const FRotator& rot)
 {
 	if (team.TimeSinceLastSpawn > team.SpawnCooldown)
 	{
-		SpawnAIActorGameInProgress(team, enemyTeamActors);
+		SpawnAIActorGameInProgress(team, enemyTeamActors, playerName);
 	}
 	else
 	{
 		// start a timer to spawn an actor
 		FTimerDelegate Delegate; // Delegate to bind function with parameters
-		Delegate.BindUFunction(this, "SpawnAIActorGameInProgress", team, enemyTeamActors, rot);
+		Delegate.BindUFunction(this, "SpawnAIActorGameInProgress", team, enemyTeamActors, playerName, rot);
 		float delay = team.SpawnCooldown - team.TimeSinceLastSpawn;
 		GetWorld()->GetTimerManager().SetTimer(team.SpawnTimerHandler, Delegate, delay, false);
 

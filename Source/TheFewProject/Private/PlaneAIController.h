@@ -26,6 +26,7 @@ class APlaneAIController : public AAIController
 public:
 	APlaneAIController();
 	FORCEINLINE void SetTargetActor(AActor* target) { TargetActor = target; };
+	FORCEINLINE AActor* GetTargetActor() { return TargetActor; };
 	void ShowDebugInfo(FVector input);
 	void ShowDebugInfo();
 protected:

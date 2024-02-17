@@ -42,8 +42,12 @@ void APlaneController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Canceled, this, &APlaneController::StopFiring);
 		EnhancedInputComponent->BindAction(FireAction, ETriggerEvent::Completed, this, &APlaneController::StopFiring);
 
+		// Debug Actions
 		EnhancedInputComponent->BindAction(ChangePlaneSelectedAction, ETriggerEvent::Started, this, &APlaneController::ChangeFocusedPlane);
 		EnhancedInputComponent->BindAction(ChangeToLevelAction, ETriggerEvent::Started, this, &APlaneController::FocusOnLevel);
+
+		// UI Actions
+		EnhancedInputComponent->BindAction(ToggleScoreboardAction, ETriggerEvent::Started, this, &APlaneController::ToggleScoreboard);
 	}
 }
 
@@ -152,6 +156,15 @@ void APlaneController::Fire()
 void APlaneController::StopFiring()
 {
 	ControlledPlane->StopWeaponAudio();
+}
+
+void APlaneController::ToggleScoreboard()
+{
+	if (PlaneHUD)
+	{
+		ScoreboardStatus = !ScoreboardStatus;
+		PlaneHUD->ToggleScoreboard(ScoreboardStatus);
+	}
 }
 
 void APlaneController::ChangeFocusedPlane(const FInputActionInstance& Instance)

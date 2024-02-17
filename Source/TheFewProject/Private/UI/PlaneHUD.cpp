@@ -10,6 +10,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Components/TextBlock.h"
 #include "Components/HealthComponent.h"
+#include "UI/ScoreboardWidget.h"
+#include "Game/ArenaGameState.h"
 void UPlaneHUD::SetPlaneReference(APlanePawn* ref)
 {
 	if (ref)
@@ -22,6 +24,41 @@ void UPlaneHUD::SetPlaneReference(APlanePawn* ref)
 
 		HealthBar->SetPercent(1);
 
+	}
+}
+
+void UPlaneHUD::ToggleScoreboard(bool status)
+{
+	if (status)
+	{
+		this->SetVisibility(ESlateVisibility::Collapsed);
+
+		if (!IsValid(ScoreboardWidget))
+		{
+			ScoreboardWidget = CreateWidget<UScoreboardWidget>(GetOwningPlayer(), ScoreboardClass);
+			if (ScoreboardWidget)
+			{
+				ScoreboardWidget->AddToViewport();
+				AArenaGameState* gameState = Cast<AArenaGameState>(GetWorld()->GetGameState());
+				if (gameState)
+				{
+					gameState->SetScoreboardWidgetRef(ScoreboardWidget);
+					ScoreboardWidget->InitTeamA(gameState->GetTeamAData());
+					ScoreboardWidget->InitTeamB(gameState->GetTeamBData());
+				}
+			}
+		}
+		else
+		{
+			ScoreboardWidget->SetVisibility(ESlateVisibility::Visible);
+		}
+	}
+	else
+	{
+		if(ScoreboardWidget)
+			ScoreboardWidget->SetVisibility(ESlateVisibility::Collapsed);
+
+		this->SetVisibility(ESlateVisibility::Visible);
 	}
 }
 

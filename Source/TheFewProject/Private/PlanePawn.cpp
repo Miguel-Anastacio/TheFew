@@ -125,6 +125,11 @@ void APlanePawn::PostInitializeComponents()
 }
 
 
+//void APlanePawn::SetGameData(const FPlayerGameData& data)
+//{
+//	GameData = data;
+//}
+
 void APlanePawn::BeginPlay()
 {
 	Super::BeginPlay();
@@ -198,7 +203,6 @@ void APlanePawn::MoveCamera(FVector2D input)
 
 
 	//FQuat currentRot = TailCameraBoom->GetRelativeRotation().Quaternion();
-
 	////FQuat rot = FMath::Lerp(currentRot, targetRot);
 	//TailCameraBoom->SetRelativeRotation(targetRot);
 
@@ -236,14 +240,11 @@ void APlanePawn::UpdateCamera(float DeltaTime)
 	}
 	//FQuat currentRot = TailCameraBoom->GetRelativeRotation().Quaternion();
 	//float speed = CameraMoveSpeed;
-
 	//FQuat rot = FMath::Lerp(currentRot, TargetCameraRotation, rotTimer * speed);
 	//CameraInput = FVector2D(0, 0);
-
 	//if ((currentRot - TargetCameraRotation).Size() > 0.01)
 	//	TailCameraBoom->SetRelativeRotation(rot);
 	
-	FRotator rot = TailCameraBoom->GetRelativeRotation();
 	/*if (!FMath::IsNearlyEqual(abs(rot.Pitch + CameraInput.Y * CameraMoveSpeed), abs(MaxLookAngle.X), 0.1))
 	{
 		rot.Pitch += CameraInput.Y * CameraMoveSpeed;
@@ -256,6 +257,7 @@ void APlanePawn::UpdateCamera(float DeltaTime)
 	{
 		return;
 	}*/
+	FRotator rot = TailCameraBoom->GetRelativeRotation();
 	FVector2D YawLimits = FVector2D(DefaultCameraRotation.Yaw - MaxLookAngle.Y, DefaultCameraRotation.Yaw + MaxLookAngle.Y);
 	if (CameraInput.X < 0 && abs(rot.Yaw + CameraInput.X * CameraMoveSpeed * DeltaTime) > YawLimits.X)
 	{

@@ -109,7 +109,7 @@ void AProjectile::LineTrace()
 		if (interface)
 		{
 			UE_LOG(LogTemp, Log, TEXT("Trace hit actor: %s"), *Hit.GetActor()->GetName());
-			interface->ReactToHit(10.0f, GetOwner());
+			interface->ReactToHit(200.0f, GetOwner());
 		}
 		
 		UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), ExplosionEffect, Hit.Location);

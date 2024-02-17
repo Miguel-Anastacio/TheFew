@@ -13,6 +13,7 @@
 #include "NiagaraFunctionLibrary.h"
 #include "Components/WidgetComponent.h"
 #include "UI/IndicatorWidget.h"
+#include "Game/ArenaGameState.h"
 APlanePawnAI::APlanePawnAI()
 {
 	DetectionVolume = CreateDefaultSubobject<UBoxComponent>("Detection Volume");
@@ -102,10 +103,24 @@ void APlanePawnAI::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Oth
 
 void APlanePawnAI::PlaneDeath(AActor* instigator)
 {
-	//PlaneBodyBox->AddForce(FVector(0, 0, -100000.0f));
-	//PlanePhysicsComponent->DestroyComponent();
+
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), BigExplosionEffect, GetActorLocation());
 	Destroy();
+	//PlaneBodyBox->AddForce(FVector(0, 0, -100000.0f));
+	//PlanePhysicsComponent->DestroyComponent();
+	APlanePawn* other = Cast<APlanePawn>(instigator);
+	if (!IsValid(other))
+	{
+		return;
+	}
+	AArenaGameState* gameState = Cast<AArenaGameState>(GetWorld()->GetGameState());
+	if (!IsValid(gameState))
+	{
+		return;
+	}
+
+	gameState->UpdateScoreboard(other->GetGameName(), this->GameName);
+
 }
 
 void APlanePawnAI::SetWidgetColor(const FLinearColor& color)

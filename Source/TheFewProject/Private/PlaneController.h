@@ -41,6 +41,8 @@ protected:
 	void ToggleWheels();
 	void Fire();
 	void StopFiring();
+
+	void ToggleScoreboard();
 protected:
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -62,6 +64,9 @@ protected:
 		UInputAction* LandingGearAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		UInputAction* FireAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		UInputAction* ToggleScoreboardAction;
+
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		FVector2D MovementDeadzone = FVector2D(0.1, 0.1);
@@ -76,7 +81,7 @@ protected:
 
 	FVector SteeringInput;
 
-
+	bool ScoreboardStatus = false;
 
 
 	/*

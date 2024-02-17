@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "Managers/AIManager.h"
 #include "Interfaces/ReactToHitInterface.h"
 #include "PlanePawn.generated.h"
 
@@ -48,7 +49,7 @@ public:
 	UPrimitiveComponent* GetRigidbody();
 	void TriggerWeapons();
 	bool GetIsFlying() { return Flying; };
-	
+
 	void StopWeaponAudio();
 
 	// override interface component functions
@@ -58,8 +59,16 @@ public:
 	void ReactToHit(float damage) override;
 	void ReactToHit(float damage, AActor* instigator) override;
 
-	FORCEINLINE void SetTeamID(int ID) { TeamID = ID; };
-	FORCEINLINE int GetTeamID() { return TeamID; };
+	//FORCEINLINE void SetTeamID(int ID) { GameData.TeamID = ID; };
+	//FORCEINLINE int GetTeamID() { return GameData.TeamID; };
+
+	//FORCEINLINE void IncreaseKills() { GameData.Kills++; };
+
+	FORCEINLINE void SetGameName(FString name){GameName = name;};
+	FORCEINLINE FString GetGameName() { return GameName; };
+
+	//void SetGameData(const FPlayerGameData& data);
+	//FORCEINLINE FPlayerGameData GetGameData() { return GameData; };
 
 protected:
 	virtual void BeginPlay() override;
@@ -184,6 +193,15 @@ protected:
 
 	FRotator LandingGearTargetRotation;
 	
-	int TeamID = -1;
+	// 
+	//int TeamID = -1;
+	//int Kills = 0;
+	//int Deaths = 0;
+	//int Score = 0;
+	//UPROPERTY(VisibleAnywhere)
+	//FPlayerGameData GameData;
+	UPROPERTY(VisibleAnywhere)
+	FString GameName;
+
 	friend class APlanePhysicsDebugHUD;
 };
