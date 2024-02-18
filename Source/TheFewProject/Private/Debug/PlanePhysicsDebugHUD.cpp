@@ -3,34 +3,54 @@
 
 #include "Debug/PlanePhysicsDebugHUD.h"
 #include "PlanePawn.h"
+#include "PlanePawnAI.h"
 #include "PlaneController.h"
+#include "PlaneAIController.h"
 #include "Components/BoxComponent.h"
 #include "Physics/AircraftPhysics.h"
 #include "GameFramework/SpringArmComponent.h"
-
+#include "Game/GameDataUtils.h"
+#include "Managers/AIManager.h"
 void APlanePhysicsDebugHUD::DrawHUD()
 {
-
 	APlanePawn* player = Cast<APlanePawn>(GetOwningPawn());
-	
+	if (!IsValid(player))
+		return;
+
 	APlaneController* controller = Cast<APlaneController>(player->GetController());
+
 	if (controller)
 	{
-		APlanePawn* ai = controller->GetPlaneSelected();
-		if (ai)
+		AAIManager* mgr = controller->GetAIManager();
+		if (mgr)
 		{
-			DrawSteering(ai);
-			DrawThrust(ai);
-			DrawPlaneData(ai);
-		}
-		else if (player)
-		{
-
-			DrawSteering(player);
-			DrawThrust(player);
-			DrawPlaneData(player);
+			DrawDebugTeamInfo(mgr->TeamA);
+			X += 400;
+			Y = 150.0f;
+			DrawDebugTeamInfo(mgr->TeamB);
 		}
 	}
+
+	//if (controller)
+	//{
+	//	APlanePawn* ai = controller->GetPlaneSelected();
+	//	if (ai)
+	//	{
+	//		AddText(TEXT("Name"), FText::FromString(ai->GetGameName()));
+	//		//APlanePawn* target = controller->GetPlaneSelected();
+	//		//AddText(TEXT("Name"), FText::FromString(controller->GetGameName()));
+	//		DrawSteering(ai);
+	//		DrawThrust(ai);
+	//		DrawPlaneData(ai);
+	//	}
+	//	else if (player)
+	//	{
+
+	//		DrawSteering(player);
+	//		DrawThrust(player);
+	//		DrawPlaneData(player);
+	//	}
+	//}
 	//APlane
 
 	//if (player)
@@ -58,6 +78,7 @@ void APlanePhysicsDebugHUD::DrawHUD()
 	//	DrawPlaneData(player);
 	//	
 	//}
+	X = 250.f;
 	Y = 150.0f;
 }
 
@@ -108,4 +129,22 @@ void APlanePhysicsDebugHUD::DrawPlaneData(APlanePawn* player)
 	AddVector(TEXT("Velocity"), player->PlanePhysicsComponent->Velocity);
 	AddFloat(TEXT("Velocity"), player->PlanePhysicsComponent->Velocity.Size());
 	AddVector(TEXT("Forward Vector"), player->PlanePhysicsComponent->Rigidbody->GetForwardVector());
+}
+
+void APlanePhysicsDebugHUD::DrawDebugTeamInfo(FTeam& team)
+{
+	AddText(TEXT("Name Team"), FText::FromString(team.TeamName));
+	AddText(TEXT("Player"), FText::FromString("Target"));
+	for (auto& actor : team.AIActors)
+	{
+		AddText(TEXT(""), FText::FromString(actor->GetGameName()));
+		APlaneAIController* controller = Cast<APlaneAIController>(actor->GetController());
+		if (controller)
+		{
+			Y -= LineHeight;
+			X += 80;
+			AddText(TEXT(""), FText::FromString(controller->GetTargetActorName()));
+			X -= 80;
+		}
+	}
 }

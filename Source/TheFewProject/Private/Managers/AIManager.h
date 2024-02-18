@@ -68,4 +68,5 @@ protected:
 	int CurrentTeamID = 0;
 	//UPROPERTY
 
+	friend class APlanePhysicsDebugHUD;
 };

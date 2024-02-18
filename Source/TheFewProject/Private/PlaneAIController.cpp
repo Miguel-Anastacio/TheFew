@@ -179,7 +179,7 @@ bool APlaneAIController::IsPlaneFacingTarget(AActor* pawn)
 	float angle = Angle(ControlledPlanePawn->GetActorForwardVector(), targetDir);
 	//DrawDebugLine(GetWorld(), ControlledPlanePawn->GetActorLocation(), ControlledPlanePawn->GetActorLocation() + pawn->GetActorRotation().RotateVector(FVector::ForwardVector) * MinAltitude, FColor::Blue, false, 0.05f, 0, 1.0f);
 	//DrawDebugLine(GetWorld(), ControlledPlanePawn->GetActorLocation(), ControlledPlanePawn->GetActorLocation() + ControlledPlanePawn->GetActorForwardVector() * MinAltitude, FColor::Green, false, 0.05f, 0, 1.0f);
-	if (abs(angle) < AngleRange)
+	if (abs(angle) < AngleRange && range < DistanceFiring)
 	{
 		//ControlledPlanePawn->TriggerWeapons();
 		//fire cannon
@@ -203,8 +203,8 @@ float APlaneAIController::UpdateThrottle(AActor* pawn)
 		if(pawn->GetVelocity().SizeSquared() > MinSpeed * MinSpeed)
 			return -1.f;
 		
+		return 0.0f;
 	}
-
 	return 1.0f;
 }
 UE_ENABLE_OPTIMIZATION
@@ -482,6 +482,17 @@ void APlaneAIController::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp,
 	}
 }
 
+FString APlaneAIController::GetTargetActorName()
+{
+	if (TargetActor)
+	{
+		APlanePawn* pawn = Cast<APlanePawn>(TargetActor);
+		return pawn->GetGameName();
+	}
+
+	return FString();
+}
+
 void APlaneAIController::ShowDebugInfo(FVector input)
 {
 	GEngine->AddOnScreenDebugMessage(0, 1.0f, FColor::Yellow, FString::Printf(TEXT("Roll Input AI = %f"), input.X), true);
@@ -542,7 +553,7 @@ void APlaneAIController::ShowDebugInfo()
 	GEngine->AddOnScreenDebugMessage(5, 31.0f, FColor::Yellow, FString::Printf(TEXT("Pitch AI = %f"), rot.Pitch), true);
 	GEngine->AddOnScreenDebugMessage(6, 31.0f, FColor::Yellow, FString::Printf(TEXT("Yaw = %f"), rot.Yaw), true);
 	/*GEngine->AddOnScreenDebugMessage(10, 31.0f, FColor::Yellow, FString::Printf(TEXT("Throttle = %f"),
-		ControlledPlanePawn->GetPlanePhysicsComponent()->GetThrottle()), true);
+		ControlledPlanePawn->GetPlanePhysicsomponent()->GetThrottle()), true);
 	GEngine->AddOnScreenDebugMessage(11, 31.0f, FColor::Yellow, FString::Printf(TEXT("Velocity = %f"),
 		ControlledPlanePawn->GetVelocity().Size()), true);
 	GEngine->AddOnScreenDebugMessage(12, 31.0f, FColor::Yellow, FString::Printf(TEXT("Altitude = %f"),
@@ -570,8 +581,16 @@ void APlaneAIController::ShowDebugInfo()
 
 	if (TargetActor)
 	{
-		FString name = TargetActor->GetName();
-		GEngine->AddOnScreenDebugMessage(25, 1.0f, FColor::Red, name, true);
+		APlanePawn* tempAI = Cast<APlanePawn>(TargetActor);
+		if (tempAI)
+		{
+			FString name = tempAI->GetGameName();
+			GEngine->AddOnScreenDebugMessage(25, 1.0f, FColor::Red, name, true);
+
+			
+			GEngine->AddOnScreenDebugMessage(30, 1.0f, FColor::Red, ControlledPlanePawn->GetGameName(), true);
+
+		}
 	}
 	//	UE_LOG(LogTemp, Log, TEXT("Target actor: %s"), *TargetActor()->GetName());
 

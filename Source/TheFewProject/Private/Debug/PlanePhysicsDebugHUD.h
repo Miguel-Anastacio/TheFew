@@ -21,4 +21,6 @@ protected:
 	void DrawSteering(APlanePawn* pl);
 	void DrawThrust(APlanePawn* pl);
 	void DrawPlaneData(APlanePawn* pl);
+
+	void DrawDebugTeamInfo(struct FTeam& team);
 };

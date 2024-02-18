@@ -27,6 +27,7 @@ public:
 	APlaneAIController();
 	FORCEINLINE void SetTargetActor(AActor* target) { TargetActor = target; };
 	FORCEINLINE AActor* GetTargetActor() { return TargetActor; };
+	FString GetTargetActorName();
 	void ShowDebugInfo(FVector input);
 	void ShowDebugInfo();
 protected:
@@ -79,7 +80,8 @@ protected:
 		float MinAltitude = 75.0f;
 	UPROPERTY(EditAnywhere, Category = "Controls")
 		float AngleRange = 10;
-
+	UPROPERTY(EditAnywhere, Category = "Guns")
+		float DistanceFiring = 1200.f;
 	UPROPERTY(EditAnywhere, Category = "Throttle")
 		float MinSpeed = 700.f;
 	UPROPERTY(EditAnywhere, Category = "Throttle")
@@ -129,4 +131,7 @@ protected:
 	// declare overlap end function
 	UFUNCTION()
 		void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
+
+	friend class APlanePhysicsDebugHUD;
 };

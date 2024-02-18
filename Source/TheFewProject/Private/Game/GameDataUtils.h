@@ -96,6 +96,12 @@ struct FTeam
 			SpawnAreaBoundsMin.Y = origin.Y - extent.Y;
 		}
 	}
+
+
+	void DrawDebugTeamInfo()
+	{
+
+	}
 };
 
 

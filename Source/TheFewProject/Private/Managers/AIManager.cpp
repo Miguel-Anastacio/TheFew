@@ -103,20 +103,20 @@ void AAIManager::EndPlay(const EEndPlayReason::Type EndPlayReason)
 void AAIManager::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	if (PlaneSelectedIndex > -1 && CurrentTeamID == TeamA.ID && PlaneSelectedIndex < TeamA.AIActors.Num() - 1)
-	{
-		// DEBUG ONLY CODE
-		APlaneAIController* controller = Cast<APlaneAIController>(TeamA.AIActors[PlaneSelectedIndex]->Controller);
-		if(controller)
-			controller->ShowDebugInfo();
-	}
-	else if(PlaneSelectedIndex > -1 && CurrentTeamID == TeamB.ID && PlaneSelectedIndex < TeamB.AIActors.Num()-1)
-	{
-		// DEBUG ONLY CODE
-		APlaneAIController* controller = Cast<APlaneAIController>(TeamB.AIActors[PlaneSelectedIndex]->Controller);
-		if (controller)
-			controller->ShowDebugInfo();
-	}
+	//if (PlaneSelectedIndex > -1 && CurrentTeamID == TeamA.ID && PlaneSelectedIndex < TeamA.AIActors.Num() - 1)
+	//{
+	//	// DEBUG ONLY CODE
+	//	APlaneAIController* controller = Cast<APlaneAIController>(TeamA.AIActors[PlaneSelectedIndex]->Controller);
+	//	if(controller)
+	//		controller->ShowDebugInfo();
+	//}
+	//else if(PlaneSelectedIndex > -1 && CurrentTeamID == TeamB.ID && PlaneSelectedIndex < TeamB.AIActors.Num()-1)
+	//{
+	//	// DEBUG ONLY CODE
+	//	APlaneAIController* controller = Cast<APlaneAIController>(TeamB.AIActors[PlaneSelectedIndex]->Controller);
+	//	if (controller)
+	//		controller->ShowDebugInfo();
+	//}
 
 	TeamA.TimeSinceLastSpawn += DeltaTime;
 	TeamB.TimeSinceLastSpawn += DeltaTime;
@@ -150,8 +150,8 @@ void AAIManager::OnAIDestroyed(AActor* actor)
 				/*int index = FMath::RandRange(0, Targets.Num() - 1);*/
 				if (actor == controller->GetTargetActor())
 				{
-					int index = FMath::RandRange(0, TeamB.AIActors.Num() - 1);
-					controller->SetTargetActor(TeamB.AIActors[index]);
+					int index = FMath::RandRange(0, TeamA.AIActors.Num() - 1);
+					controller->SetTargetActor(TeamA.AIActors[index]);
 				}
 			}
 		}
@@ -170,8 +170,8 @@ void AAIManager::OnAIDestroyed(AActor* actor)
 				/*int index = FMath::RandRange(0, Targets.Num() - 1);*/
 				if (actor == controller->GetTargetActor())
 				{
-					int index = FMath::RandRange(0, TeamA.AIActors.Num() - 1);
-					controller->SetTargetActor(TeamA.AIActors[index]);
+					int index = FMath::RandRange(0, TeamB.AIActors.Num() - 1);
+					controller->SetTargetActor(TeamB.AIActors[index]);
 				}
 			}
 		}
@@ -334,6 +334,7 @@ void AAIManager::SpawnAIActor(FTeam& team, const FString& playerName, const FRot
 		}*/
 
 		TObjectPtr<APlanePawnAI> enemy = GetWorld()->SpawnActor<APlanePawnAI>(team.AIClass, loc, rot, params);
+
 		if (IsValid(enemy))
 		{
 			enemy->SetOwner(this);
@@ -384,6 +385,14 @@ void AAIManager::SpawnAIActorGameInProgress(FTeam& team, const TArray<APlanePawn
 
 void AAIManager::Respawn(FTeam& team, const TArray<TObjectPtr<class APlanePawnAI>>& enemyTeamActors, const FString& playerName, const FRotator& rot)
 {
+	for (int i = 0; i < team.AIActors.Num(); i++)
+	{
+		if (playerName == team.AIActors[i]->GetGameName())
+		{
+			team.AIActors.RemoveAt(i);
+		}
+	}
+
 	if (team.TimeSinceLastSpawn > team.SpawnCooldown)
 	{
 		SpawnAIActorGameInProgress(team, enemyTeamActors, playerName);

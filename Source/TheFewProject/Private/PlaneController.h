@@ -24,7 +24,9 @@ public:
 	void InitDebugVariables(AActor* landscape, class AAIManager* manager);
 	APlanePawn* GetPlaneSelected();
 	//void SetPlaneSelected(APlanePawn* plane) { CurrentAISelected = plane; };
-	
+	AAIManager* GetAIManager() {
+		return AIManager;
+	};
 protected:
 	void PreInitializeComponents() override;
 	void SetupInputComponent() override;

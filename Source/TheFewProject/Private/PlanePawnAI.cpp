@@ -22,6 +22,8 @@ APlanePawnAI::APlanePawnAI()
 	WidgetComponent = CreateDefaultSubobject<UWidgetComponent>("Widget");
 	WidgetComponent->SetupAttachment(RootComponent);
 }
+
+
 void APlanePawnAI::BeginPlay()
 {
 	Super::BeginPlay();
@@ -94,9 +96,11 @@ void APlanePawnAI::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Oth
 {
 	if (OtherActor->ActorHasTag("Bounds"))
 	{
-		FVector current = GetActorLocation();
-		current.Z = 10000.f;
-		SetActorLocation(current);
+		//FVector current = GetActorLocation();
+		//current.Z = 10000.f;
+		//SetActorLocation(current);
+
+		PlaneDeath(OtherActor);
 		//Destroy();
 	}
 }

@@ -27,6 +27,10 @@ protected:
 		RenderStatistic(title, value);
 	}
 
+	/*void AddText(const TCHAR* title, const FText& value, )
+	{
+		RenderStatistic(title, value);
+	}*/
 	// Add a float to the HUD for rendering.
 	void AddFloat(const TCHAR* title, float value, const FLinearColor& valueColor = FLinearColor::White)
 	{
@@ -80,6 +84,10 @@ protected:
 	float HorizontalOffset = 150.0f;
 
 	float Y = 100.0f;
+	// The current X coordinate.
+	float X = 150.0f;
+	// The line height to separate each HUD entry.
+	float LineHeight = 16.0f;
 private:
 
 	// Convert a TCHAR pointer to FText.
@@ -110,12 +118,8 @@ private:
 	UPROPERTY(Transient)
 		UFont* MainFont = nullptr;
 
-	// The current X coordinate.
-	float X = 150.0f;
 
 	// The current Y coordinate.
 
-	// The line height to separate each HUD entry.
-	float LineHeight = 16.0f;
 
 };

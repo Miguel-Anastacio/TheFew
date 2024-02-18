@@ -182,12 +182,14 @@ void APlaneController::FocusOnLevel()
 {
 	if (FocusingOnLevel)
 	{
-		FocusingOnLevel = false;	
-		this->SetViewTarget(CurrentAISelected);
+		FocusingOnLevel = false;
+		if(IsValid(CurrentAISelected))
+			this->SetViewTarget(CurrentAISelected);
 	}
 	else
 	{
 		FocusingOnLevel = true;
-		this->SetViewTarget(LandscapeActor);
+		if(IsValid(LandscapeActor))
+			this->SetViewTarget(LandscapeActor);
 	}
 }
