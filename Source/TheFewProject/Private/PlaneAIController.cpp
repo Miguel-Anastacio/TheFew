@@ -11,6 +11,8 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/BoxComponent.h"
 
+
+
 APlaneAIController::APlaneAIController()
 {
 	AIPerceptionComponent = CreateDefaultSubobject<UAIPerceptionComponent>("AI Perception");
@@ -54,9 +56,9 @@ void APlaneAIController::OnPossess(APawn* pawn)
 		AIPerceptionComponent->OnPerceptionUpdated.AddDynamic(this, &APlaneAIController::UpdateBlackboardKeys);
 	}
 
-	UBoxComponent* volume = ControlledPlanePawn->GetDetectionVolume().Get();
-	volume->OnComponentBeginOverlap.AddDynamic(this, &APlaneAIController::OnOverlapBegin);
-	volume->OnComponentEndOverlap.AddDynamic(this, &APlaneAIController::OnOverlapEnd);
+	//UBoxComponent* volume = ControlledPlanePawn->GetDetectionVolume().Get();
+	//volume->OnComponentBeginOverlap.AddDynamic(this, &APlaneAIController::OnOverlapBegin);
+	//volume->OnComponentEndOverlap.AddDynamic(this, &APlaneAIController::OnOverlapEnd);
 }
 
 void APlaneAIController::SwitchState(AI_STATE state)
@@ -77,12 +79,6 @@ void APlaneAIController::SwitchState(AI_STATE state)
 		break;
 	}
 	CurrentState = state;
-}
-
-bool APlaneAIController::DetectObstacles(FVector& out_PawnToObstacle)
-{
-
-	return false;
 }
 
 FVector APlaneAIController::SteerToTarget(const FVector& targetPosition, APawn* ownerPawn)
@@ -192,11 +188,13 @@ UE_DISABLE_OPTIMIZATION
 float APlaneAIController::UpdateThrottle(AActor* pawn)
 {
 	FHitResult hit;
+	FCollisionQueryParams params;
+	params.AddIgnoredActor(pawn);
 
 	GetWorld()->LineTraceSingleByChannel(hit, pawn->GetActorLocation(), pawn->GetActorLocation() + pawn->GetActorForwardVector() * DistanceTriggerBrakes,
-		ECollisionChannel::ECC_Visibility);
+		ECollisionChannel::ECC_Visibility, params);
 	DrawDebugLine(GetWorld(), pawn->GetActorLocation(), pawn->GetActorLocation() + pawn->GetActorForwardVector() * DistanceTriggerBrakes, FColor::Red, false, 0.05f, 0, 1.0f);
-	if (hit.bBlockingHit)
+	if (hit.GetActor() && hit.GetActor()->ActorHasTag("Terrain"))
 	{
 		DrawDebugSphere(GetWorld(), hit.Location, 100.f, 10, FColor::Yellow, false, 0.5f);
 		// only brake if velocity is not too low
@@ -221,6 +219,8 @@ float APlaneAIController::DetectObstacles(AActor* pawn)
 	float sumRightHits = 0;
 	float sumLeftHits = 0;
 	// rays in plane z = 0, same plane as the nose
+
+	
 	PerformSweep(forward, right, start, sumLeftHits, sumRightHits);
 
 	forward = UKismetMathLibrary::RotateAngleAxis(forward, AngleBetweenRays, right);
@@ -252,7 +252,7 @@ float APlaneAIController::DetectObstacles(AActor* pawn)
 	}
 
 }
-
+UE_DISABLE_OPTIMIZATION
 void APlaneAIController::PerformSweep(const FVector& forward, const FVector& right, const FVector& start, float& out_leftHits, float& out_rightHits)
 {
 	float angleIncrement = AngleCovered / NumberOfRaysPerAxis;
@@ -270,27 +270,73 @@ void APlaneAIController::PerformSweep(const FVector& forward, const FVector& rig
 
 		//DrawDebugLine(GetWorld(), start, end, FColor::Red, false, 0.05f, 0, 1.0f);
 		FHitResult hit;
-		GetWorld()->LineTraceSingleByChannel(hit, start, end, ECollisionChannel::ECC_Visibility);
+		FCollisionQueryParams params;
+		params.AddIgnoredActor(ControlledPlanePawn);
+		GetWorld()->LineTraceSingleByChannel(hit, start, end, ECollisionChannel::ECC_Visibility, params);
+		AActor* actorHit = hit.GetActor();
+		if (!IsValid(actorHit))
+			continue;
 
-		if (hit.GetActor() && hit.GetActor()->ActorHasTag("Terrain"))
+		// handle Ground Response
+		if (actorHit->ActorHasTag("Terrain"))
 		{
 			//AActor* hey = hit.GetActor();
 			// map the values to -1 to 1 using the dot product of right vector
-			float dotRight = FVector::DotProduct(dir, right);
+			//float dotRight = FVector::DotProduct(dir, right);
 
-			// clamp the values
-			dotRight /= abs(dotRight);
-			float dotUP = FVector::DotProduct(dir, forward);
+			//// clamp the values
+			//dotRight /= abs(dotRight);
+			//float dotUP = FVector::DotProduct(dir, forward);
 
-			float rot = dotRight * dotUP;
-			DrawDebugSphere(GetWorld(), hit.Location, 50.f, 2, FColor::Blue, false, 0.5f);
-			// update the sum according to the side of the ray
-			if (angleIncrement < 90)
-				out_rightHits += rot;
-			else if (angleIncrement > 90)
-				out_leftHits += rot;
+			//float rot = dotRight * dotUP;
+			//DrawDebugSphere(GetWorld(), hit.Location, 50.f, 2, FColor::Blue, false, 0.5f);
+			//// update the sum according to the side of the ray
+			//if (angleIncrement < 90)
+			//	out_rightHits += rot;
+			//else if (angleIncrement > 90)
+			//	out_leftHits += rot;
+
+			GroundResponse(dir, right, forward, angleIncrement, out_leftHits, out_rightHits);
+
+		}
+		else if (actorHit->ActorHasTag("Bounds"))
+		{
+			// Switch to state return to level
+			SwitchState(PATROLLING);
+		}
+		else
+		{
+			APlanePawnAI* planeDetected = Cast<APlanePawnAI>(actorHit);
+			if (IsValid(planeDetected))
+			{
+				// check if plane is of opposite team
+				if (TargetActor != planeDetected && planeDetected->TeamID != ControlledPlanePawn->TeamID && TimerChangeTargets > MinimumTimeFollowingTarget)
+				{
+					TargetActor = planeDetected;
+					TimerChangeTargets = 0.0f; 
+				}
+			}
 		}
 	}
+}
+UE_ENABLE_OPTIMIZATION
+
+void APlaneAIController::GroundResponse(const FVector& dir, const FVector& right, const FVector& forward, const float angle, float& out_leftHits, float& out_rightHits)
+{
+	//AActor* hey = hit.GetActor();
+		// map the values to -1 to 1 using the dot product of right vector
+	float dotRight = FVector::DotProduct(dir, right);
+	// clamp the values
+	dotRight /= abs(dotRight);
+	float dotUP = FVector::DotProduct(dir, forward);
+
+	float rot = dotRight * dotUP;
+	//DrawDebugSphere(GetWorld(), hit.Location, 50.f, 2, FColor::Blue, false, 0.5f);
+	// update the sum according to the side of the ray
+	if (angle < 90)
+		out_rightHits += rot;
+	else if (angle > 90)
+		out_leftHits += rot;
 }
 
 float APlaneAIController::SignedAngle(FVector from, FVector to, FVector axis)
@@ -306,14 +352,6 @@ float APlaneAIController::SignedAngle(FVector from, FVector to, FVector axis)
 	float cross_z = from.X * to.Y - from.Y * to.X;
 	float sign = FMath::Sign(axis.X * cross_x + axis.Y * cross_y + axis.Z * cross_z);
 	return unsignedAngle * sign;
-
-
-	//if (cross.Y > 0)
-	//	return FMath::Acos(from.Dot(to));
-	//else
-	//	return -FMath::Acos(from.Dot(to));
-
-
 }
 
 float APlaneAIController::Angle(FVector from, FVector to)
@@ -321,17 +359,8 @@ float APlaneAIController::Angle(FVector from, FVector to)
 	from.Normalize();
 	to.Normalize();
 
-
 	float unsignedAngle = FMath::Acos(from.Dot(to));
 	return FMath::RadiansToDegrees(unsignedAngle);
-
-
-	//if (cross.Y > 0)
-	//	return FMath::Acos(from.Dot(to));
-	//else
-	//	return -FMath::Acos(from.Dot(to));
-
-
 }
 void APlaneAIController::UpdateBlackboardKeys(const TArray<AActor*>& actors)
 {
@@ -361,6 +390,7 @@ void APlaneAIController::PatrollingAction()
 
 void APlaneAIController::Tick(float dt)
 {
+	TimerChangeTargets += dt;
 	/*FHitResult hit;
 	FCollisionQueryParams params;
 	params.AddIgnoredActor(ControlledPlanePawn);
@@ -409,7 +439,19 @@ void APlaneAIController::Tick(float dt)
 		}
 		break;
 	case PATROLLING:
-		PatrollingAction();
+		target = PatrolDestination->GetActorLocation();
+		input = SteerToTarget(target, ControlledPlanePawn);
+		if (ControlledPlanePawn->GetVelocity().Z < -700.f && Altitude < MinAltitude * 2)
+		{
+			float roll = ControlledPlanePawn->GetActorRotation().Roll;
+			if (roll > 180.f)
+				roll -= 360.f;
+
+			roll = FMath::Clamp(roll * RollFactorEmergency, -1.0f, 1.0f);
+			//return FVector(roll, -1, 0);
+			input.X = roll;
+		}
+		//PatrollingAction();
 		break;
 	case AVOIDING_OBSTACLES:
 		input = AvoidGround(ControlledPlanePawn, rollDirection);
@@ -459,6 +501,7 @@ bool APlaneAIController::IsAtLowAltitude()
 	Altitude = abs(ControlledPlanePawn->GetActorLocation().Z - hit.Location.Z);
 }
 
+// ON OVERLAP IS NOT IN  USE !!
 UE_DISABLE_OPTIMIZATION
 void APlaneAIController::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {

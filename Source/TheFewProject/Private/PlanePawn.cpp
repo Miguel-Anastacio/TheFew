@@ -339,6 +339,8 @@ void APlanePawn::ReactToHit(float damage)
 
 void APlanePawn::ReactToHit(float damage, AActor* instigator)
 {
+
+
 	HealthComponent->TakeDamage(damage, instigator);
 }
 

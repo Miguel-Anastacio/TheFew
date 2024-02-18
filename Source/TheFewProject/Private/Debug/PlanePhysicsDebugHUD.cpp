@@ -19,59 +19,49 @@ void APlanePhysicsDebugHUD::DrawHUD()
 
 	APlaneController* controller = Cast<APlaneController>(player->GetController());
 
-	if (controller)
-	{
-		AAIManager* mgr = controller->GetAIManager();
-		if (mgr)
-		{
-			DrawDebugTeamInfo(mgr->TeamA);
-			X += 400;
-			Y = 150.0f;
-			DrawDebugTeamInfo(mgr->TeamB);
-		}
-	}
-
 	//if (controller)
 	//{
-	//	APlanePawn* ai = controller->GetPlaneSelected();
-	//	if (ai)
+	//	AAIManager* mgr = controller->GetAIManager();
+	//	if (mgr)
 	//	{
-	//		AddText(TEXT("Name"), FText::FromString(ai->GetGameName()));
-	//		//APlanePawn* target = controller->GetPlaneSelected();
-	//		//AddText(TEXT("Name"), FText::FromString(controller->GetGameName()));
-	//		DrawSteering(ai);
-	//		DrawThrust(ai);
-	//		DrawPlaneData(ai);
-	//	}
-	//	else if (player)
-	//	{
-
-	//		DrawSteering(player);
-	//		DrawThrust(player);
-	//		DrawPlaneData(player);
+	//		DrawDebugTeamInfo(mgr->TeamA);
+	//		X += 400;
+	//		Y = 150.0f;
+	//		DrawDebugTeamInfo(mgr->TeamB);
 	//	}
 	//}
+
+	if (controller)
+	{
+		APlanePawn* ai = controller->GetPlaneSelected();
+		if (IsValid(ai))
+		{
+			APlaneAIController* aiController = ai->GetController<APlaneAIController>();
+
+			AddText(TEXT("Game Name"), FText::FromString(ai->GetGameName()));
+			//APlanePawn* target = controller->GetPlaneSelected();
+			AddText(TEXT("Name"), FText::FromString(ai->GetName()));
+			if (aiController)
+			{
+				FString enumS = UEnum::GetValueAsString(aiController->CurrentState);
+				AddText(TEXT("State"), FText::FromString(enumS));
+			}
+			DrawSteering(ai);
+			DrawThrust(ai);
+			DrawPlaneData(ai);
+		}
+		/*else if (player)
+		{
+
+			DrawSteering(player);
+			DrawThrust(player);
+			DrawPlaneData(player);
+		}*/
+	}
 	//APlane
 
 	//if (player)
 	//{
-	//	////AddFloat(TEXT("Thrust"), player->PlanePhysicsComponent->CurrentForce.X);
-	//	//AddFloat(TEXT("Targuet Quat X"), player->TargetCameraRotation.X);
-	//	//AddFloat(TEXT("Targuet Quat Y"), player->TargetCameraRotation.Y);
-	//	//AddFloat(TEXT("Targuet Quat Z"), player->TargetCameraRotation.Z);
-	//	//AddFloat(TEXT("Targuet Quat W"), player->TargetCameraRotation.W);
-	//	//AddVector(TEXT("Target Rot "), player->TargetCameraRotation.Euler());
-	//	////AddVector(TEXT("Induced Drag"), player->PlanePhysicsComponent->CurrentInducedDrag);
-	//	//AddVector(TEXT("G Force "), player->PlanePhysicsComponent->LocalGForce);
-	//	//AddVector(TEXT("Drag"), player->PlanePhysicsComponent->CurrentDrag);
-	//	//AddVector(TEXT("Lift"), player->PlanePhysicsComponent->CurrentLift);
-	//	//AddVector(TEXT("LocalVelocity"), player->PlanePhysicsComponent->LocalVelocity);
-	//	//AddFloat(TEXT("Angle of Attack"), FMath::RadiansToDegrees(player->PlanePhysicsComponent->AngleOfAttack));
-	//	//AddFloat(TEXT("Throttle"), player->PlanePhysicsComponent->Throttle);
-	//	//AddFloat(TEXT("Altitude"), player->PlaneBodyBox->GetComponentLocation().Z);
-	//	//FRotator rot = player->PlaneBodyBox->GetComponentRotation();
-	//	//FVector temp = FVector(rot.Roll, rot.Pitch, rot.Yaw);
-	//	//AddVector(TEXT("Rotation"), temp);
 
 	//	DrawSteering(player);
 	//	DrawThrust(player);
@@ -119,16 +109,20 @@ void APlanePhysicsDebugHUD::DrawThrust(APlanePawn* player)
 void APlanePhysicsDebugHUD::DrawPlaneData(APlanePawn* player)
 {
 	AddText(TEXT("--- TRANSFORM DATA"), FText());
-
-	AddFloat(TEXT("Altitude"), player->PlaneBodyBox->GetComponentLocation().Z);
+	if(player->PlaneBodyBox)
+		AddFloat(TEXT("Altitude"), player->PlaneBodyBox->GetComponentLocation().Z);
 	//FRotator rot = player->PlaneBodyBox->GetComponentRotation();
 	FRotator rot = player->GetActorRotation();
 	FVector temp = FVector(rot.Roll, rot.Pitch, rot.Yaw);
-	AddVector(TEXT("Player Rotation"), temp);
-	AddVector(TEXT("Local Velocity"), player->PlanePhysicsComponent->LocalVelocity);
-	AddVector(TEXT("Velocity"), player->PlanePhysicsComponent->Velocity);
-	AddFloat(TEXT("Velocity"), player->PlanePhysicsComponent->Velocity.Size());
-	AddVector(TEXT("Forward Vector"), player->PlanePhysicsComponent->Rigidbody->GetForwardVector());
+	if (player->PlanePhysicsComponent)
+	{
+		AddVector(TEXT("Player Rotation"), temp);
+		AddVector(TEXT("Local Velocity"), player->PlanePhysicsComponent->LocalVelocity);
+		AddVector(TEXT("Velocity"), player->PlanePhysicsComponent->Velocity);
+		AddFloat(TEXT("Velocity"), player->PlanePhysicsComponent->Velocity.Size());
+		AddVector(TEXT("Forward Vector"), player->PlanePhysicsComponent->Rigidbody->GetForwardVector());
+
+	}
 }
 
 void APlanePhysicsDebugHUD::DrawDebugTeamInfo(FTeam& team)

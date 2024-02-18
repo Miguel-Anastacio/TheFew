@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/GameStateBase.h"
 #include "GameDataUtils.generated.h"
+
 USTRUCT(BlueprintType)
 struct FPlayerGameData
 {
@@ -42,7 +43,6 @@ struct FTeamGameData
 	FTeamGameData() {};
 };
 
-
 USTRUCT(BlueprintType)
 struct FTeam
 {
@@ -72,7 +72,8 @@ struct FTeam
 	UPROPERTY(EditAnywhere, Category = "")
 		FString TeamName = FString();
 
-	//FTeamGameData GameData;
+	//UPROPERTY(EditAnywhere, Category = "Collision")
+	//TEnumAsByte<ECollisionChannel> TraceChannelProperty = ECC_Pawn;
 
 	TArray<TObjectPtr<class APlanePawnAI>> AIActors;
 
@@ -98,10 +99,6 @@ struct FTeam
 	}
 
 
-	void DrawDebugTeamInfo()
-	{
-
-	}
 };
 
 

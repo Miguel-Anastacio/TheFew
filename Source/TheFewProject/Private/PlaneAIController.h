@@ -30,14 +30,16 @@ public:
 	FString GetTargetActorName();
 	void ShowDebugInfo(FVector input);
 	void ShowDebugInfo();
+
+	FORCEINLINE void SetPatrolDestination(AActor* dest) { PatrolDestination = dest; };
 protected:
 	virtual void Tick(float DeltaTime) override;
 	virtual void OnPossess(APawn* pawn) override;
 	virtual void BeginPlay() override;
 
 	
+	//bool DetectObstacles(FVector& out_PawnToObstacle);
 	void SwitchState(AI_STATE new_state);
-	bool DetectObstacles(FVector& out_PawnToObstacle);
 	void PatrollingAction();
 	FVector SteerToTarget(const FVector& targetPosition, APawn* ownerPawn);
 	FVector RecoverAltitude(APawn* pawn);
@@ -52,13 +54,20 @@ protected:
 	float SignedAngle(FVector from, FVector to, FVector axis);
 	float Angle(FVector from, FVector to);
 
+	// ray detection and response functions
+
+	void PerformSweep(const FVector& forward, const FVector& right, const FVector& start, 
+		TFunction<void(const FVector&, const FVector&, const FVector&, const float, float&, float&)> SweepResponse,	float& out_leftHits, float& out_rightHits);
 	void PerformSweep(const FVector& forward, const FVector& right, const FVector& start, float& out_leftHits, float& out_rightHits);
+	void GroundResponse(const FVector& dir, const FVector& right, const FVector& forward, const float angle, float& out_leftHits, float& out_rightHits);
 
 protected:
 	UPROPERTY(VisibleAnywhere)
 	TObjectPtr<AActor> TargetActor;
 	UPROPERTY(VisibleAnywhere)
 	TEnumAsByte<AI_STATE> CurrentState = CHASING;
+
+
 	FVector PawnToObstacle;
 	FVector TargetInput;
 	
@@ -66,6 +75,8 @@ protected:
 	TObjectPtr<class APlanePawnAI> ControlledPlanePawn;
 	//TObjectPtr<AActor> TargetActor;
 
+	UPROPERTY(EditAnywhere, Category = "Controls")
+		TObjectPtr<AActor> PatrolDestination;
 	UPROPERTY(EditAnywhere, Category = "Controls")
 		float PitchUpThreshold;
 	UPROPERTY(EditAnywhere, Category = "Controls")
@@ -97,6 +108,10 @@ protected:
 		float AngleCovered = 30.f;
 	UPROPERTY(EditAnywhere, Category = "Detection")
 		int NumberOfRaysPerAxis = 5.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Target")
+		float MinimumTimeFollowingTarget = 5.0f;
+	float TimerChangeTargets = 100000.0f;
 
 	float Altitude = 0.f;
 	// NOT IN USE

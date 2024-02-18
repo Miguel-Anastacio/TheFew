@@ -42,7 +42,10 @@ protected:
 
 	void SpawnTeam(FTeam& team, const FRotator& rot = FRotator(0, 0, 0));
 	void InitTeamTargets(FTeam& team1, FTeam& team2);
+	
+	void UpdateTarget(AActor* currentTarget, FTeam& teamToUpdate, const TArray<TObjectPtr<class APlanePawnAI>>& newTargets);
 
+	void RemoveElementFromTeam(FTeam& team, const FString& elementName);
 protected:
 	////landscape actor
 	UPROPERTY(EditAnywhere, Category = "Level")
@@ -55,6 +58,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Level")
 		TArray<TObjectPtr<AActor>> Targets;
+
+	UPROPERTY(EditAnywhere, Category = "Level")
+		TObjectPtr<AActor> PatrolDestination;
 
 	int PlaneSelectedIndex = -1;
 

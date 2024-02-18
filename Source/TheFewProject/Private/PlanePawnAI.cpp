@@ -28,7 +28,7 @@ void APlanePawnAI::BeginPlay()
 {
 	Super::BeginPlay();
 	//PlaneBodyBox->OnComponentHit.AddDynamic(this, &APlanePawnAI::OnCompHit);
-	PlaneBodyBox->OnComponentEndOverlap.AddDynamic(this, &APlanePawnAI::OnOverlapEnd);
+	//PlaneBodyBox->OnComponentEndOverlap.AddDynamic(this, &APlanePawnAI::OnOverlapEnd);
 
 	
 
@@ -80,15 +80,17 @@ void APlanePawnAI::OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, U
 {
 	if (OtherActor->ActorHasTag("Terrain"))
 	{
-		/*FVector current = GetActorLocation();
+		FVector current = GetActorLocation();
 		current.Z = 10000.f;
 		SetActorLocation(current);
 		if (GetOwner())
 		{
 			AAIManager* mgr = Cast<AAIManager>(GetOwner());
-			mgr->IncreaseCrashes();
-		}*/
+			if(mgr)
+				mgr->IncreaseCrashes();
+		}
 		PlaneDeath(OtherActor);
+
 	}
 }
 
@@ -109,21 +111,23 @@ void APlanePawnAI::PlaneDeath(AActor* instigator)
 {
 
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), BigExplosionEffect, GetActorLocation());
-	Destroy();
 	//PlaneBodyBox->AddForce(FVector(0, 0, -100000.0f));
 	//PlanePhysicsComponent->DestroyComponent();
 	APlanePawn* other = Cast<APlanePawn>(instigator);
 	if (!IsValid(other))
 	{
+		Destroy();
 		return;
 	}
 	AArenaGameState* gameState = Cast<AArenaGameState>(GetWorld()->GetGameState());
 	if (!IsValid(gameState))
 	{
+		Destroy();
 		return;
 	}
 
 	gameState->UpdateScoreboard(other->GetGameName(), this->GameName);
+	Destroy();
 
 }
 

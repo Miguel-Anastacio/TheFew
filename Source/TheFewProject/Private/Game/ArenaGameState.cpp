@@ -89,19 +89,20 @@ void AArenaGameState::UpdateScoreboard(const FString& killer, const FString& vic
 		int victimID = GetPlayerTeamID(victim);
 		ScoreboardWidget->UpdateScoreboard(killer, killerData, GetPlayerTeamID(killer));
 		ScoreboardWidget->UpdateScoreboard(victim, victimData, GetPlayerTeamID(victim));
-		
-		// this is ass
-		// each player needs to know about its team ID
+
+
 		if (killerID == TeamAData.ID && victimID == TeamBData.ID)
 		{
 			ScoreboardWidget->UpdateScoreboardTotal(TeamAData.Kills, killerID);
-			ScoreboardWidget->UpdateScoreboardTotal(TeamBData.Kills, victimID);
+			//ScoreboardWidget->UpdateScoreboardTotal(TeamBData.Kills, victimID);
 		}
 		else if (killerID == TeamBData.ID && victimID == TeamAData.ID)
 		{
 			ScoreboardWidget->UpdateScoreboardTotal(TeamBData.Kills, killerID);
-			ScoreboardWidget->UpdateScoreboardTotal(TeamAData.Kills, victimID);
+			//ScoreboardWidget->UpdateScoreboardTotal(TeamAData.Kills, victimID);
 		}
+
+		//ScoreboardWidget->UpdateScoreboardTotal()
 
 	}
 }

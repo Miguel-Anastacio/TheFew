@@ -24,4 +24,10 @@ class IReactToHitInterface
 public:
 	virtual void ReactToHit(float damage) {};
 	virtual void ReactToHit(float damage, AActor* responsibleActor) {};
+
+	//UPROPERTY(VisibleAnywhere)
+	int32 TeamID;
+
+protected:
+	//UPROPERTY(VisibleAnywhe)
 };

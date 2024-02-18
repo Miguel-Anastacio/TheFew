@@ -21,6 +21,9 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	void SetBulletVelocity(FVector dir);
 	float GetBulletSpeed() { return BulletSpeed; };
+	
+	void SetTraceChannel(ECollisionChannel channel) { TraceChannelProperty = channel; };
+
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
@@ -44,9 +47,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item | Particles")
 		TObjectPtr<class UNiagaraSystem> ExplosionEffect;
 
-
 	TObjectPtr<class UNiagaraComponent> TrailEffectInstance;
-
 
 	UPROPERTY(EditDefaultsOnly)
 		float BulletSpeed;

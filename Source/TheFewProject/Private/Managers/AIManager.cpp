@@ -83,7 +83,7 @@ void AAIManager::BeginPlay()
 			}
 		}
 	}
-	CurrentTeamID = TeamA.ID;
+	CurrentTeamID = TeamB.ID;
 
 	AArenaGameState* gameState = Cast<AArenaGameState>(GetWorld()->GetGameState());
 	if (!IsValid(gameState))
@@ -121,64 +121,41 @@ void AAIManager::Tick(float DeltaTime)
 	TeamA.TimeSinceLastSpawn += DeltaTime;
 	TeamB.TimeSinceLastSpawn += DeltaTime;
 }
-
+UE_DISABLE_OPTIMIZATION
 void AAIManager::OnAIDestroyed(AActor* actor)
 {
 	APlanePawnAI* actorAI = Cast<APlanePawnAI>(actor);
 	if (!IsValid(actorAI))
 		return;
 
-
 	AArenaGameState* gameState = Cast<AArenaGameState>(GetWorld()->GetGameState());
 	if (!IsValid(gameState))
 		return;
 
-	int teamID = gameState->GetPlayerTeamID(actorAI->GetGameName());
+	int teamID = actorAI->GetTeamID();
 	// find planes that had this actor as target 
 	// and assign them a new target
 
 	if (teamID == TeamA.ID)
 	{
+		RemoveElementFromTeam(TeamA, actorAI->GetGameName());
+
+		Respawn(TeamA, TeamB.AIActors, actorAI->GetGameName());
 		// find planes that had this actor as target 
 		// and assign them a new target
-		// To DO : Create a function for this
-		for (auto& temp : TeamB.AIActors)
-		{
-			APlaneAIController* controller = temp->GetController<APlaneAIController>();
-			if (controller)
-			{
-				/*int index = FMath::RandRange(0, Targets.Num() - 1);*/
-				if (actor == controller->GetTargetActor())
-				{
-					int index = FMath::RandRange(0, TeamA.AIActors.Num() - 1);
-					controller->SetTargetActor(TeamA.AIActors[index]);
-				}
-			}
-		}
-		Respawn(TeamA, TeamB.AIActors, actorAI->GetGameName());
+		UpdateTarget(actor, TeamB, TeamA.AIActors);
 	}
 	else if (teamID == TeamB.ID)
 	{
+		RemoveElementFromTeam(TeamB, actorAI->GetGameName());
+		Respawn(TeamB, TeamA.AIActors, actorAI->GetGameName(), FRotator(0, 180, 0));
 		// find planes that had this actor as target 
 		// and assign them a new target
-		// To DO : Create a function for this
-		for (auto& temp : TeamA.AIActors)
-		{
-			APlaneAIController* controller = temp->GetController<APlaneAIController>();
-			if (controller)
-			{
-				/*int index = FMath::RandRange(0, Targets.Num() - 1);*/
-				if (actor == controller->GetTargetActor())
-				{
-					int index = FMath::RandRange(0, TeamB.AIActors.Num() - 1);
-					controller->SetTargetActor(TeamB.AIActors[index]);
-				}
-			}
-		}
-		Respawn(TeamB, TeamA.AIActors, actorAI->GetGameName(), FRotator(0, 180, 0));
+		UpdateTarget(actor, TeamA, TeamB.AIActors);
 	}
 	
 }
+UE_ENABLE_OPTIMIZATION
 
 void AAIManager::SpawnTeam(FTeam& team, const FRotator& rot)
 {
@@ -202,6 +179,7 @@ void AAIManager::InitTeamTargets(FTeam& team1, FTeam& team2)
 			{
 				/*int index = FMath::RandRange(0, Targets.Num() - 1);*/
 				controller->SetTargetActor(team2.AIActors[i]);
+				controller->SetPatrolDestination(PatrolDestination);
 			}
 
 			controller = team2.AIActors[i]->GetController<APlaneAIController>();
@@ -209,66 +187,95 @@ void AAIManager::InitTeamTargets(FTeam& team1, FTeam& team2)
 			{
 				//int index = FMath::RandRange(0, Targets.Num() - 1);
 				controller->SetTargetActor(team1.AIActors[team1.AIActors.Num() - 1 - i]);
+				controller->SetPatrolDestination(PatrolDestination);
 			}
+		}
+	}
+}
+
+void AAIManager::UpdateTarget(AActor* currentTarget, FTeam& teamToUpdate, const TArray<TObjectPtr<class APlanePawnAI>>& newTargets)
+{
+	for (auto& temp : teamToUpdate.AIActors)
+	{
+		APlaneAIController* controller = temp->GetController<APlaneAIController>();
+		if (controller)
+		{
+			if (currentTarget == controller->GetTargetActor())
+			{
+				int index = FMath::RandRange(0, newTargets.Num() - 1);
+				controller->SetTargetActor(newTargets[index]);
+			}
+		}
+	}
+}
+
+void AAIManager::RemoveElementFromTeam(FTeam& team, const FString& elementName)
+{
+	for (int i = 0; i < team.AIActors.Num(); i++)
+	{
+		if (elementName == team.AIActors[i]->GetGameName())
+		{
+			team.AIActors.RemoveAt(i);
 		}
 	}
 }
 
 TObjectPtr<class APlanePawnAI> AAIManager::ChangePlaneSelected(float input)
 {
-	if (CurrentTeamID == TeamA.ID)
+	if (CurrentTeamID == TeamB.ID)
 	{
-		for (int i = 0; i < TeamA.AIActors.Num(); i++)
+		/*for (int i = 0; i < TeamA.AIActors.Num(); i++)
 		{
 			if (!IsValid(TeamA.AIActors[i]))
 			{
 				TeamA.AIActors.RemoveAt(i);
 			}
-		}
-
-		PlaneSelectedIndex += input;
-		if (PlaneSelectedIndex >= TeamA.AIActors.Num())
-		{
-			PlaneSelectedIndex = 0;
-			CurrentTeamID = TeamB.ID;
-		}
-		else if (PlaneSelectedIndex < 0)
-		{
-			PlaneSelectedIndex = TeamA.AIActors.Num() - 1;
-			CurrentTeamID = TeamB.ID;
-		}
-
-		return TeamA.AIActors[PlaneSelectedIndex];
-
-	}
-	else
-	{
-
-		for (int i = 0; i < TeamB.AIActors.Num(); i++)
-		{
-			if (!IsValid(TeamB.AIActors[i]))
-			{
-				TeamB.AIActors.RemoveAt(i);
-			}
-		}
+		}*/
 
 		PlaneSelectedIndex += input;
 		if (PlaneSelectedIndex >= TeamB.AIActors.Num())
 		{
 			PlaneSelectedIndex = 0;
-			CurrentTeamID = TeamA.ID;
+			//CurrentTeamID = TeamB.ID;
 		}
 		else if (PlaneSelectedIndex < 0)
 		{
 			PlaneSelectedIndex = TeamB.AIActors.Num() - 1;
-			CurrentTeamID = TeamA.ID;
+			//CurrentTeamID = TeamB.ID;
 		}
 
-		return TeamB.AIActors[PlaneSelectedIndex];
+
 	}
+	return TeamB.AIActors[PlaneSelectedIndex];
+	//else
+	//{
+
+	//	for (int i = 0; i < TeamB.AIActors.Num(); i++)
+	//	{
+	//		if (!IsValid(TeamB.AIActors[i]))
+	//		{
+	//			TeamB.AIActors.RemoveAt(i);
+	//		}
+	//	}
+
+	//	PlaneSelectedIndex += input;
+	//	if (PlaneSelectedIndex >= TeamB.AIActors.Num())
+	//	{
+	//		PlaneSelectedIndex = 0;
+	//		CurrentTeamID = TeamA.ID;
+	//	}
+	//	else if (PlaneSelectedIndex < 0)
+	//	{
+	//		PlaneSelectedIndex = TeamB.AIActors.Num() - 1;
+	//		CurrentTeamID = TeamA.ID;
+	//	}
+
+	//	return TeamB.AIActors[PlaneSelectedIndex];
+	//}
+	// 
+	
 	//return NULL;
 }
-
 
 //void AAIManager::SpawnAIActor(const FVector2D& minBounds, const FVector2D& maxBounds, float zHeight, )
 //{
@@ -306,7 +313,7 @@ TObjectPtr<class APlanePawnAI> AAIManager::ChangePlaneSelected(float input)
 //		}
 //	}
 //}
-
+UE_DISABLE_OPTIMIZATION
 void AAIManager::SpawnAIActor(FTeam& team, const FString& playerName, const FRotator& rot)
 {
 	if (IsValid(team.AIClass))
@@ -317,23 +324,25 @@ void AAIManager::SpawnAIActor(FTeam& team, const FString& playerName, const FRot
 		loc.Y = FMath::RandRange(team.SpawnAreaBoundsMin.Y, team.SpawnAreaBoundsMax.Y);
 		loc.Z = team.SpawnHeight;
 		FHitResult hit;
-		GetWorld()->LineTraceSingleByChannel(hit, loc, loc + FVector::DownVector * 1000000, ECC_Visibility);
+		//GetWorld()->LineTraceSingleByChannel(hit, loc, loc + FVector::DownVector * 1000000, ECC_Visibility);
 		int maxTries = 10;
 		int counter = 0;
-		/*while (!hit.bBlockingHit && counter < maxTries)
+
+		// not good 
+		TObjectPtr<APlanePawnAI> enemy = GetWorld()->SpawnActor<APlanePawnAI>(team.AIClass, loc, rot, params);
+		while (!IsValid(enemy) && counter < maxTries)
 		{
-			loc.X = FMath::RandRange(minBounds.X, maxBounds.X);
-			loc.Y = FMath::RandRange(minBounds.Y, maxBounds.Y);
-			GetWorld()->LineTraceSingleByChannel(hit, loc, loc + FVector::DownVector * 100000, ECC_Visibility);
+			loc.X = FMath::RandRange(team.SpawnAreaBoundsMin.X, team.SpawnAreaBoundsMax.X);
+			loc.Y = FMath::RandRange(team.SpawnAreaBoundsMin.Y, team.SpawnAreaBoundsMax.Y);
+			enemy = GetWorld()->SpawnActor<APlanePawnAI>(team.AIClass, loc, rot, params);
+			//GetWorld()->LineTraceSingleByChannel(hit, loc, loc + FVector::DownVector * 100000, ECC_Visibility);
 			counter++;
 		}
 
 		if (counter > maxTries)
 		{
 			return;
-		}*/
-
-		TObjectPtr<APlanePawnAI> enemy = GetWorld()->SpawnActor<APlanePawnAI>(team.AIClass, loc, rot, params);
+		}
 
 		if (IsValid(enemy))
 		{
@@ -349,12 +358,14 @@ void AAIManager::SpawnAIActor(FTeam& team, const FString& playerName, const FRot
 
 			}
 			enemy->SetGameName(name);
+			enemy->SetTeamID(team.ID);
 			//UpdateTarget(enemy);
 			team.AIActors.Add(enemy);
 			team.TimeSinceLastSpawn = 0.0f;
 		}
 	}
 }
+UE_ENABLE_OPTIMIZATION
 
 void AAIManager::UpdateTarget(AActor* actor)
 {
@@ -371,6 +382,7 @@ void AAIManager::UpdateTarget(AActor* actor)
 	//}
 }
 
+UE_DISABLE_OPTIMIZATION
 void AAIManager::SpawnAIActorGameInProgress(FTeam& team, const TArray<APlanePawnAI*>& enemyTeamActors, const FString& playerName, const FRotator& rot)
 {
 	SpawnAIActor(team, playerName, rot);
@@ -379,20 +391,18 @@ void AAIManager::SpawnAIActorGameInProgress(FTeam& team, const TArray<APlanePawn
 	{
 		int index = FMath::RandRange(0, enemyTeamActors.Num() - 1);
 
+		controller->SetPatrolDestination(PatrolDestination);
 		controller->SetTargetActor(enemyTeamActors[index]);
+		if (!IsValid(controller->GetTargetActor()))
+		{
+			int  a = 0;
+		}
 	}
 }
 
+UE_ENABLE_OPTIMIZATION
 void AAIManager::Respawn(FTeam& team, const TArray<TObjectPtr<class APlanePawnAI>>& enemyTeamActors, const FString& playerName, const FRotator& rot)
 {
-	for (int i = 0; i < team.AIActors.Num(); i++)
-	{
-		if (playerName == team.AIActors[i]->GetGameName())
-		{
-			team.AIActors.RemoveAt(i);
-		}
-	}
-
 	if (team.TimeSinceLastSpawn > team.SpawnCooldown)
 	{
 		SpawnAIActorGameInProgress(team, enemyTeamActors, playerName);
@@ -406,5 +416,7 @@ void AAIManager::Respawn(FTeam& team, const TArray<TObjectPtr<class APlanePawnAI
 		GetWorld()->GetTimerManager().SetTimer(team.SpawnTimerHandler, Delegate, delay, false);
 
 	}
+
+
 }
 

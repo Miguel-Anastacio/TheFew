@@ -4,6 +4,7 @@
 #include "Weapon/WeaponComponent.h"
 #include "Weapon/Projectile.h"
 #include "../../TheFewProject.h"
+#include "Interfaces/ReactToHitInterface.h"
 
 // Sets default values for this component's properties
 UWeaponComponent::UWeaponComponent()
@@ -47,8 +48,14 @@ void UWeaponComponent::FireBullet()
 	FVector loc = this->GetComponentLocation();
 	AProjectile* bullet = GetWorld()->SpawnActor<AProjectile>(BulletTemplate, loc, FRotator(0, 0, 0), params);
 	bullet->SetOwner(this->GetOwner());
-
 	AActor* plane = GetOwner();
+
+	//IReactToHitInterface* interface = Cast<IReactToHitInterface>(plane);
+	//if (interface)
+	//{
+	//	//UE_LOG(LogTemp, Log, TEXT("Trace hit actor: %s"), *Hit.GetActor()->GetName());
+	//	interface->ReactToHit(200.0f, GetOwner());
+	//}
 
 	FVector dir = plane->GetActorForwardVector() * DistanceFromNose + plane->GetActorLocation() - GetComponentLocation();
 	dir.Normalize();

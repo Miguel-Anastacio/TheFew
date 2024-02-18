@@ -59,13 +59,13 @@ public:
 	void ReactToHit(float damage) override;
 	void ReactToHit(float damage, AActor* instigator) override;
 
-	//FORCEINLINE void SetTeamID(int ID) { GameData.TeamID = ID; };
-	//FORCEINLINE int GetTeamID() { return GameData.TeamID; };
+	FORCEINLINE void SetTeamID(int32 ID) { TeamID = ID; };
+	FORCEINLINE const int32 GetTeamID() { return TeamID; };
 
 	//FORCEINLINE void IncreaseKills() { GameData.Kills++; };
 
-	FORCEINLINE void SetGameName(FString name){GameName = name;};
-	FORCEINLINE FString GetGameName() { return GameName; };
+	FORCEINLINE void SetGameName(FString name){ GameName = name;};
+	FORCEINLINE const FString GetGameName() { return GameName; };
 
 	//void SetGameData(const FPlayerGameData& data);
 	//FORCEINLINE FPlayerGameData GetGameData() { return GameData; };
@@ -85,6 +85,12 @@ protected:
 		virtual void OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 protected:
+	UPROPERTY(VisibleAnywhere)
+	FString GameName;
+
+	//UPROPERTY(VisibleAnywhere)
+	//int32 TeamID;
+
 	UPROPERTY(EditAnywhere )
 		USceneComponent* PlaneRoot;
 	UPROPERTY(EditAnywhere)
@@ -200,8 +206,6 @@ protected:
 	//int Score = 0;
 	//UPROPERTY(VisibleAnywhere)
 	//FPlayerGameData GameData;
-	UPROPERTY(VisibleAnywhere)
-	FString GameName;
 
 	friend class APlanePhysicsDebugHUD;
 };
