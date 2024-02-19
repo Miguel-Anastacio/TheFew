@@ -43,11 +43,11 @@ protected:
 	void PatrollingAction();
 	FVector SteerToTarget(const FVector& targetPosition, APawn* ownerPawn);
 	FVector RecoverAltitude(APawn* pawn);
-	FVector AvoidGround(APawn* pawnToObstacle, float rollDirection);
+	FVector AvoidTerrain(APawn* pawnToObstacle, float rollDirection, float rollTarget = 0);
 	
 	bool IsPlaneFacingTarget(AActor* target);
-	// returns the roll direction to avoid the obstacle
-	float DetectObstacles(AActor* pawn);
+	// returns the roll direction to avoid the obstacle and the roll angle target 
+	FVector2D DetectObstacles(AActor* pawn);
 
 	float UpdateThrottle(AActor* pawn);
 
@@ -75,8 +75,13 @@ protected:
 	TObjectPtr<class APlanePawnAI> ControlledPlanePawn;
 	//TObjectPtr<AActor> TargetActor;
 
-	UPROPERTY(EditAnywhere, Category = "Controls")
+	UPROPERTY(EditAnywhere, Category = "Patrol")
 		TObjectPtr<AActor> PatrolDestination;
+	UPROPERTY(EditAnywhere, Category = "Patrol")
+		float MaxPatrolTime = 7.5f;
+
+	float PatrolTimer = 0.0f;
+
 	UPROPERTY(EditAnywhere, Category = "Controls")
 		float PitchUpThreshold;
 	UPROPERTY(EditAnywhere, Category = "Controls")

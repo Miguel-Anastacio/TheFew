@@ -80,7 +80,6 @@ protected:
 		virtual void PlaneDeathSimple();
 	UFUNCTION()
 		virtual void PlaneDeath(AActor* causer) {};
-
 	UFUNCTION()
 		virtual void OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
@@ -183,6 +182,11 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Audio")
 		UAudioComponent* GunFireAudioComponent;
 
+	UPROPERTY(EditAnywhere, Category = "UI")
+		TObjectPtr <USpringArmComponent> IconBoom;
+	UPROPERTY(EditAnywhere, Category = "UI")
+		TObjectPtr<class UPaperSpriteComponent> MinimapIcon;
+
 	UPROPERTY(EditAnywhere, Category = "Landing Gear")
 		float DeploySpeed = 1.0f;
 	UPROPERTY(EditAnywhere, Category = "Landing Gear")
@@ -199,13 +203,5 @@ protected:
 
 	FRotator LandingGearTargetRotation;
 	
-	// 
-	//int TeamID = -1;
-	//int Kills = 0;
-	//int Deaths = 0;
-	//int Score = 0;
-	//UPROPERTY(VisibleAnywhere)
-	//FPlayerGameData GameData;
-
 	friend class APlanePhysicsDebugHUD;
 };

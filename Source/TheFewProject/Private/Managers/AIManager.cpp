@@ -63,26 +63,28 @@ void AAIManager::BeginPlay()
 	SpawnTeam(TeamA);
 	SpawnTeam(TeamB, FRotator(0, 180, 0));
 
-	// Each team member targets another one in the other team
-	if (TeamA.AIActors.Num() <= TeamB.AIActors.Num())
-	{
-		for (int i = 0; i < TeamA.AIActors.Num(); i++)
-		{
-			APlaneAIController* controller = TeamA.AIActors[i]->GetController<APlaneAIController>();
-			if (controller)
-			{
-				/*int index = FMath::RandRange(0, Targets.Num() - 1);*/
-				controller->SetTargetActor(TeamB.AIActors[i]);
-			}
+	InitTeamTargets(TeamA, TeamB);
 
-			controller = TeamB.AIActors[i]->GetController<APlaneAIController>();
-			if (controller)
-			{
-				/*int index = FMath::RandRange(0, Targets.Num() - 1);*/
-				controller->SetTargetActor(TeamA.AIActors[TeamA.AIActors.Num()-1 - i]);
-			}
-		}
-	}
+	//// Each team member targets another one in the other team
+	//if (TeamA.AIActors.Num() <= TeamB.AIActors.Num())
+	//{
+	//	for (int i = 0; i < TeamA.AIActors.Num(); i++)
+	//	{
+	//		APlaneAIController* controller = TeamA.AIActors[i]->GetController<APlaneAIController>();
+	//		if (controller)
+	//		{
+	//			/*int index = FMath::RandRange(0, Targets.Num() - 1);*/
+	//			controller->SetTargetActor(TeamB.AIActors[i]);
+	//		}
+
+	//		controller = TeamB.AIActors[i]->GetController<APlaneAIController>();
+	//		if (controller)
+	//		{
+	//			/*int index = FMath::RandRange(0, Targets.Num() - 1);*/
+	//			controller->SetTargetActor(TeamA.AIActors[TeamA.AIActors.Num()-1 - i]);
+	//		}
+	//	}
+	//}
 	CurrentTeamID = TeamB.ID;
 
 	AArenaGameState* gameState = Cast<AArenaGameState>(GetWorld()->GetGameState());

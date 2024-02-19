@@ -12,6 +12,7 @@
 #include "Components/AudioComponent.h"
 #include "Components/HealthComponent.h"
 #include "../TheFewProject.h"
+#include "PaperSpriteComponent.h"
 // Sets default values
 APlanePawn::APlanePawn()
 {
@@ -73,7 +74,6 @@ APlanePawn::APlanePawn()
 	RightLandingGearMesh = CreateDefaultSubobject<UStaticMeshComponent>("Landing Gear Right Mesh");
 	RightLandingGearMesh->SetupAttachment(RightLandingGearRoot);
 	
-	
 	//CreateMeshWithPivot(LeftLandingGearRoot, LeftLandingGearMesh, "Landing Gear Left Root", "Landing Gear Left Mesh");
 	//CreateMeshWithPivot(RudderRoot, RudderMesh, "Rudder Root", "Rudder Mesh");
 	//CreateMeshWithPivot(ElevatorRoot, ElevatorMesh, "Elevator Root", "Elevator Mesh");
@@ -89,9 +89,7 @@ APlanePawn::APlanePawn()
 
 	PropellerCamera = CreateDefaultSubobject<UCameraComponent>("Propeller Camera");
 	PropellerCamera->SetupAttachment(PropellerCameraBoom);
-	
-	
-	PlanePhysicsComponent = CreateDefaultSubobject<UAircraftPhysics>("Plane Physics");
+		
 
 	LeftWeaponComponent = CreateDefaultSubobject<UWeaponComponent>("Left Weapon");
 	LeftWeaponComponent->SetupAttachment(PlaneBodyBox);
@@ -107,8 +105,20 @@ APlanePawn::APlanePawn()
 
 
 	PlaneEngineAudioComponent = CreateDefaultSubobject<UAudioComponent>("Engine Audio");
+	PlaneEngineAudioComponent->SetupAttachment(RootComponent);
 	GunFireAudioComponent = CreateDefaultSubobject<UAudioComponent>("Gun Audio");
+	GunFireAudioComponent->SetupAttachment(RootComponent);
 
+	IconBoom = CreateDefaultSubobject<USpringArmComponent>("Icon Boom");
+	IconBoom->SetupAttachment(RootComponent);
+	IconBoom->bInheritPitch = false;
+	IconBoom->bInheritRoll = false;
+	IconBoom->bInheritYaw = true;
+
+	MinimapIcon = CreateDefaultSubobject<UPaperSpriteComponent>("Minimap Icon");
+	MinimapIcon->SetupAttachment(IconBoom);
+
+	PlanePhysicsComponent = CreateDefaultSubobject<UAircraftPhysics>("Plane Physics");
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>("Health Component");
 
 }
@@ -339,8 +349,6 @@ void APlanePawn::ReactToHit(float damage)
 
 void APlanePawn::ReactToHit(float damage, AActor* instigator)
 {
-
-
 	HealthComponent->TakeDamage(damage, instigator);
 }
 
@@ -414,7 +422,6 @@ void APlanePawn::Tick(float DeltaTime)
 	float rotSpeed = PlanePhysicsComponent->GetThrottle() * PropellerRotationSpeed * DeltaTime;
 	PropellerRoot->AddLocalRotation(FRotator(rotSpeed, 0, 0));
 	
-	
 	if(RudderRoot)
 		AnimateControlSurface(PlanePhysicsComponent->GetDebugInput().Z, RudderRoot, FRotator(0, 1, 0), DeltaTime);
 	if(ElevatorRoot)
@@ -448,6 +455,8 @@ void APlanePawn::Tick(float DeltaTime)
 	}
 
 	PlaneEngineAudioComponent->SetVolumeMultiplier(PlanePhysicsComponent->GetThrottle());
+
+	IconBoom->SetRelativeRotation(FRotator(-90, GetActorRotation().Yaw, 0));
 }
 
 // Called to bind functionality to input

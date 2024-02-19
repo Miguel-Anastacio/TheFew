@@ -14,6 +14,7 @@
 #include "Components/WidgetComponent.h"
 #include "UI/IndicatorWidget.h"
 #include "Game/ArenaGameState.h"
+#include "PaperSpriteComponent.h"
 APlanePawnAI::APlanePawnAI()
 {
 	DetectionVolume = CreateDefaultSubobject<UBoxComponent>("Detection Volume");
@@ -27,11 +28,7 @@ APlanePawnAI::APlanePawnAI()
 void APlanePawnAI::BeginPlay()
 {
 	Super::BeginPlay();
-	//PlaneBodyBox->OnComponentHit.AddDynamic(this, &APlanePawnAI::OnCompHit);
-	//PlaneBodyBox->OnComponentEndOverlap.AddDynamic(this, &APlanePawnAI::OnOverlapEnd);
-
-	
-
+	PlanePhysicsComponent->SetThrottleInput(1);
 	//PlaneBodyBox->SetPhysicsLinearVelocity(FVector(600.0f, 0, 0));
 	//UPROPERTY(EditAnywhere, Category = "Tail Camera")
 	//	USpringArmComponent* TailCameraBoom;
@@ -78,6 +75,9 @@ TObjectPtr<class UBoxComponent> APlanePawnAI::GetDetectionVolume()
 }
 void APlanePawnAI::OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+	if (!IsValid(OtherActor))
+		return;
+
 	if (OtherActor->ActorHasTag("Terrain"))
 	{
 		FVector current = GetActorLocation();
@@ -96,6 +96,9 @@ void APlanePawnAI::OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, U
 
 void APlanePawnAI::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
+	if (!IsValid(OtherActor))
+		return;
+
 	if (OtherActor->ActorHasTag("Bounds"))
 	{
 		//FVector current = GetActorLocation();
@@ -138,4 +141,6 @@ void APlanePawnAI::SetWidgetColor(const FLinearColor& color)
 	{
 		widget->SetColorAndOpacity(color);
 	}
+	MinimapIcon->SetSpriteColor(color);
+
 }

@@ -19,46 +19,46 @@ void APlanePhysicsDebugHUD::DrawHUD()
 
 	APlaneController* controller = Cast<APlaneController>(player->GetController());
 
-	//if (controller)
-	//{
-	//	AAIManager* mgr = controller->GetAIManager();
-	//	if (mgr)
-	//	{
-	//		DrawDebugTeamInfo(mgr->TeamA);
-	//		X += 400;
-	//		Y = 150.0f;
-	//		DrawDebugTeamInfo(mgr->TeamB);
-	//	}
-	//}
-
 	if (controller)
 	{
-		APlanePawn* ai = controller->GetPlaneSelected();
-		if (IsValid(ai))
+		AAIManager* mgr = controller->GetAIManager();
+		if (mgr)
 		{
-			APlaneAIController* aiController = ai->GetController<APlaneAIController>();
-
-			AddText(TEXT("Game Name"), FText::FromString(ai->GetGameName()));
-			//APlanePawn* target = controller->GetPlaneSelected();
-			AddText(TEXT("Name"), FText::FromString(ai->GetName()));
-			if (aiController)
-			{
-				FString enumS = UEnum::GetValueAsString(aiController->CurrentState);
-				AddText(TEXT("State"), FText::FromString(enumS));
-			}
-			DrawSteering(ai);
-			DrawThrust(ai);
-			DrawPlaneData(ai);
+			DrawDebugTeamInfo(mgr->TeamA);
+			X += 400;
+			Y = 150.0f;
+			DrawDebugTeamInfo(mgr->TeamB);
 		}
-		/*else if (player)
-		{
-
-			DrawSteering(player);
-			DrawThrust(player);
-			DrawPlaneData(player);
-		}*/
 	}
-	//APlane
+
+	//if (controller)
+	//{
+	//	APlanePawn* ai = controller->GetPlaneSelected();
+	//	if (IsValid(ai))
+	//	{
+	//		APlaneAIController* aiController = ai->GetController<APlaneAIController>();
+
+	//		AddText(TEXT("Game Name"), FText::FromString(ai->GetGameName()));
+	//		//APlanePawn* target = controller->GetPlaneSelected();
+	//		AddText(TEXT("Name"), FText::FromString(ai->GetName()));
+	//		if (aiController)
+	//		{
+	//			FString enumS = UEnum::GetValueAsString(aiController->CurrentState);
+	//			AddText(TEXT("State"), FText::FromString(enumS));
+	//		}
+	//		DrawSteering(ai);
+	//		DrawThrust(ai);
+	//		DrawPlaneData(ai);
+	//	}
+	//	/*else if (player)
+	//	{
+
+	//		DrawSteering(player);
+	//		DrawThrust(player);
+	//		DrawPlaneData(player);
+	//	}*/
+	//}
+	////APlane
 
 	//if (player)
 	//{
@@ -75,22 +75,24 @@ void APlanePhysicsDebugHUD::DrawHUD()
 void APlanePhysicsDebugHUD::DrawSteering(APlanePawn* pl)
 {
 	AddText(TEXT("--- STEERING DATA"), FText());
-	AddFloat(TEXT("Throttle "), pl->PlanePhysicsComponent->Throttle, FLinearColor::Red);
+	if (pl->PlanePhysicsComponent)
+	{
 
-	AddVector(TEXT("Current Angular Velocity"), pl->PlanePhysicsComponent->CurrentAngularVelocity);
-	AddVector(TEXT("Target Angular Velocity"), pl->PlanePhysicsComponent->TargetAngularVelocity);
-	AddVector(TEXT("Steering Torque"), pl->PlanePhysicsComponent->TorqueApplied);
-	AddVector(TEXT("G Force "), pl->PlanePhysicsComponent->LocalGForce);
-	AddFloat(TEXT("G Limit Scaling "), pl->PlanePhysicsComponent->GForceScaling);
-	AddVector(TEXT("G Force Limit "), pl->PlanePhysicsComponent->GForceLimitDebug);
-	AddVector(TEXT("Control Input "), pl->PlanePhysicsComponent->ControlInput);
-	AddFloat(TEXT("Steering Power "), pl->PlanePhysicsComponent->SteeringPower);
-	AddFloat(TEXT("AoA "), FMath::RadiansToDegrees(pl->PlanePhysicsComponent->AngleOfAttack));
-	AddFloat(TEXT("AoA Yaw"), FMath::RadiansToDegrees(pl->PlanePhysicsComponent->AngleOfAttackYaw));
-	//AddFloat(TEXT("AoA Yaw"), FMath::RadiansToDegrees(pl->PlanePhysicsComponent->AngleOfAttackYaw));
-	AddVector(TEXT("Angular Drag"), pl->PlanePhysicsComponent->CurrentAngularDrag);
+		AddFloat(TEXT("Throttle "), pl->PlanePhysicsComponent->Throttle, FLinearColor::Red);
 
-
+		AddVector(TEXT("Current Angular Velocity"), pl->PlanePhysicsComponent->CurrentAngularVelocity);
+		AddVector(TEXT("Target Angular Velocity"), pl->PlanePhysicsComponent->TargetAngularVelocity);
+		AddVector(TEXT("Steering Torque"), pl->PlanePhysicsComponent->TorqueApplied);
+		AddVector(TEXT("G Force "), pl->PlanePhysicsComponent->LocalGForce);
+		AddFloat(TEXT("G Limit Scaling "), pl->PlanePhysicsComponent->GForceScaling);
+		AddVector(TEXT("G Force Limit "), pl->PlanePhysicsComponent->GForceLimitDebug);
+		AddVector(TEXT("Control Input "), pl->PlanePhysicsComponent->ControlInput);
+		AddFloat(TEXT("Steering Power "), pl->PlanePhysicsComponent->SteeringPower);
+		AddFloat(TEXT("AoA "), FMath::RadiansToDegrees(pl->PlanePhysicsComponent->AngleOfAttack));
+		AddFloat(TEXT("AoA Yaw"), FMath::RadiansToDegrees(pl->PlanePhysicsComponent->AngleOfAttackYaw));
+		//AddFloat(TEXT("AoA Yaw"), FMath::RadiansToDegrees(pl->PlanePhysicsComponent->AngleOfAttackYaw));
+		AddVector(TEXT("Angular Drag"), pl->PlanePhysicsComponent->CurrentAngularDrag);
+	}
 }
 
 void APlanePhysicsDebugHUD::DrawThrust(APlanePawn* player)
@@ -121,7 +123,6 @@ void APlanePhysicsDebugHUD::DrawPlaneData(APlanePawn* player)
 		AddVector(TEXT("Velocity"), player->PlanePhysicsComponent->Velocity);
 		AddFloat(TEXT("Velocity"), player->PlanePhysicsComponent->Velocity.Size());
 		AddVector(TEXT("Forward Vector"), player->PlanePhysicsComponent->Rigidbody->GetForwardVector());
-
 	}
 }
 

@@ -68,6 +68,7 @@ void APlaneAIController::SwitchState(AI_STATE state)
 	case CHASING:
 		break;
 	case PATROLLING:
+		PatrolTimer = 0.f;
 		break;
 	case AVOIDING_OBSTACLES:
 		break;
@@ -132,7 +133,7 @@ FVector APlaneAIController::SteerToTarget(const FVector& targetPosition, APawn* 
 	return targetInput;
 }
 
-FVector APlaneAIController::AvoidGround(APawn* pawn, float rollDirection)
+FVector APlaneAIController::AvoidTerrain(APawn* pawn, float rollDirection, float rollTarget)
 {
 	float roll = pawn->GetActorRotation().Roll;
 	if (roll > 180.f)
@@ -207,7 +208,7 @@ float APlaneAIController::UpdateThrottle(AActor* pawn)
 }
 UE_ENABLE_OPTIMIZATION
 
-float APlaneAIController::DetectObstacles(AActor* pawn)
+FVector2D APlaneAIController::DetectObstacles(AActor* pawn)
 {
 	// Sweep across z = 0 in local space
 	FVector up = pawn->GetActorUpVector();
@@ -215,41 +216,84 @@ float APlaneAIController::DetectObstacles(AActor* pawn)
 	FVector forward = pawn->GetActorForwardVector();
 	FVector start = pawn->GetActorLocation() + pawn->GetActorForwardVector() * StartPosOffSet;
 	
-	// cast rays
 	float sumRightHits = 0;
 	float sumLeftHits = 0;
-	// rays in plane z = 0, same plane as the nose
 
-	
+	float RollDirection = 0;
+	float RollTarget = 0;
+
+	// rays in plane z = 0, same plane as the nose
+	float prevLeft = 0;
+	float prevRight = 0;
+
+	bool rightHit[3];
+	bool leftHit[3];
+	for (int i = 0; i < 3; i++)
+	{
+		rightHit[i] = false;
+		leftHit[i] = false;
+	}
+
+	//bool RightHit = false;
+	//bool RightLowHit = false;
+	//bool RightHighHit = false;
+
+	//bool LefttHit = false;
+	//bool LefttLowHit = false;
+	//bool LefttHighHit = false;
+
 	PerformSweep(forward, right, start, sumLeftHits, sumRightHits);
+	//if (sumRightHits > prevRight)
+	//{
+	//	rightHit[0] = true;
+	//}
+
+	//prevLeft = sumLeftHits;
+	//prevRight = sumRightHits;
 
 	forward = UKismetMathLibrary::RotateAngleAxis(forward, AngleBetweenRays, right);
 	up = UKismetMathLibrary::RotateAngleAxis(up, AngleBetweenRays, right);
-
 	// rays with negative z component
 	PerformSweep(forward, right, start, sumLeftHits, sumRightHits);
+	//if (sumRightHits > prevRight)
+	//{
+	//	rightHit[1] = true;
+	//}
+	//prevLeft = sumLeftHits;
+	//prevRight = sumRightHits;
 
 	forward = UKismetMathLibrary::RotateAngleAxis(forward, -AngleBetweenRays*2, right);
 	up = UKismetMathLibrary::RotateAngleAxis(up, -AngleBetweenRays*2, right);
-
 	// rays with positive z component
 	PerformSweep(forward, right, start, sumLeftHits, sumRightHits);
+	//if (sumRightHits > prevRight)
+	//{
+	//	rightHit[2] = true;
+	//}
+	//prevLeft = sumLeftHits;
+	//prevRight = sumRightHits;
+
+
+
 
 	if (sumLeftHits == 0 && sumRightHits == 0)
 	{
 		// nothing detected return 0;
-		SwitchState(CHASING);
-		return 0.0f;
+		if(CurrentState != PATROLLING)
+			SwitchState(CHASING);
+		return FVector2D(0, 0);
 	}
 	
 	if (sumLeftHits > sumRightHits)
 	{
-		return -1.0f;
+		RollDirection = -1.0f;
 	}
 	else
 	{
-		return 1.0f;
+		RollDirection = 1.0f;
 	}
+
+	return FVector2D(RollDirection, 0);
 
 }
 UE_DISABLE_OPTIMIZATION
@@ -302,7 +346,8 @@ void APlaneAIController::PerformSweep(const FVector& forward, const FVector& rig
 		else if (actorHit->ActorHasTag("Bounds"))
 		{
 			// Switch to state return to level
-			SwitchState(PATROLLING);
+			if(CurrentState == CHASING)
+				SwitchState(PATROLLING);
 		}
 		else
 		{
@@ -411,8 +456,8 @@ void APlaneAIController::Tick(float dt)
 		target = TargetActor->GetActorLocation() + TargetActor->GetVelocity();
 	}
 
-	float rollDirection = DetectObstacles(ControlledPlanePawn);
-	if (abs(rollDirection) > 0.1f)
+	FVector2D rollData = DetectObstacles(ControlledPlanePawn);
+	if (abs(rollData.X) > 0.1f)
 	{
 		SwitchState(AVOIDING_OBSTACLES);
 	}
@@ -451,10 +496,14 @@ void APlaneAIController::Tick(float dt)
 			//return FVector(roll, -1, 0);
 			input.X = roll;
 		}
+		PatrolTimer += dt;
+		if (PatrolTimer > MaxPatrolTime)
+			SwitchState(CHASING);
+
 		//PatrollingAction();
 		break;
 	case AVOIDING_OBSTACLES:
-		input = AvoidGround(ControlledPlanePawn, rollDirection);
+		input = AvoidTerrain(ControlledPlanePawn, rollData.X);
 		break;
 	case GAINING_ALTITUDE:
 		input = RecoverAltitude(ControlledPlanePawn);

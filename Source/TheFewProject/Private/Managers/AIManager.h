@@ -25,7 +25,6 @@ public:
 	void UpdateTarget(AActor* actor);
 	TObjectPtr<class APlanePawnAI> ChangePlaneSelected(float input);
 
-
 	void IncreaseCrashes() { Crashes++; };
 	void IncreaseTargetsDestroyed() { TargetsDestroyed++; };
 
@@ -63,7 +62,6 @@ protected:
 		TObjectPtr<AActor> PatrolDestination;
 
 	int PlaneSelectedIndex = -1;
-
 
 	UPROPERTY(VisibleAnywhere, Category = "Data")
 	int Crashes = 0;
