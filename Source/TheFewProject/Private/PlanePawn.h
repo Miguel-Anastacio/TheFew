@@ -84,22 +84,21 @@ protected:
 		virtual void OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
 
 protected:
-	UPROPERTY(VisibleAnywhere)
+	UPROPERTY(EditDefaultsOnly)
 	FString GameName;
 
 	//UPROPERTY(VisibleAnywhere)
 	//int32 TeamID;
-
-	UPROPERTY(EditAnywhere )
-		USceneComponent* PlaneRoot;
+	UPROPERTY(EditAnywhere)
+		UBoxComponent* PlaneBodyBox;
+	//UPROPERTY(EditAnywhere)
+	//	TObjectPtr<UCapsuleComponent> PlaneWings;
 	UPROPERTY(EditAnywhere)
 		UCapsuleComponent* BackWheel;
 	UPROPERTY(EditAnywhere)
 		UCapsuleComponent* LeftWheelCollider;
 	UPROPERTY(EditAnywhere)
 		UCapsuleComponent* RightWheelCollider;
-	UPROPERTY(EditAnywhere)
-		UBoxComponent* PlaneBodyBox;
 
 	UPROPERTY(EditAnywhere, Category = "Meshes")
 		UStaticMeshComponent* PlaneBodyMesh;
@@ -163,7 +162,7 @@ protected:
 
 	UPROPERTY(EditAnywhere, Category = "Plane VFX")
 		UVfxComponent* LeftTrail;
-	UPROPERTY(EditAnywhere, Category = "Plane VVFX")
+	UPROPERTY(EditAnywhere, Category = "Plane VFX")
 		UVfxComponent* RightTrail;
 
 	UPROPERTY(EditAnywhere, Category = "Camera")
@@ -191,6 +190,10 @@ protected:
 		float DeploySpeed = 1.0f;
 	UPROPERTY(EditAnywhere, Category = "Landing Gear")
 	bool LandingGear = false;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX")
+	TObjectPtr<class UNiagaraSystem> BigExplosionEffect;
 
 	UPROPERTY(VisibleAnywhere)
 	bool Flying = false;

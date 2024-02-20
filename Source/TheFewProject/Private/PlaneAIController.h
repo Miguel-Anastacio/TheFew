@@ -25,6 +25,7 @@ class APlaneAIController : public AAIController
 	GENERATED_BODY()
 public:
 	APlaneAIController();
+	void SetTargetActorVisibility(ESlateVisibility visibility);
 	FORCEINLINE void SetTargetActor(AActor* target) { TargetActor = target; };
 	FORCEINLINE AActor* GetTargetActor() { return TargetActor; };
 	FString GetTargetActorName();

@@ -27,6 +27,9 @@ public:
 	AAIManager* GetAIManager() {
 		return AIManager;
 	};
+
+	UPlaneHUD* GetWidgetHUD() { return PlaneHUD; };
+
 protected:
 	void PreInitializeComponents() override;
 	void SetupInputComponent() override;
@@ -43,7 +46,6 @@ protected:
 	void ToggleWheels();
 	void Fire();
 	void StopFiring();
-
 	void ToggleScoreboard();
 protected:
 	/** MappingContext */
@@ -75,11 +77,10 @@ protected:
 
 	// UI
 	UPROPERTY(EditAnywhere, Category = "UI")
-		TSubclassOf<UPlaneHUD> PlaneHUDClass;
+		TSubclassOf<UUserWidget> PlaneHUDClass;
+	UPlaneHUD* PlaneHUD;
 
 	APlanePawn* ControlledPlane;
-
-	UPlaneHUD* PlaneHUD;
 
 	FVector SteeringInput;
 
@@ -100,7 +101,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		TObjectPtr<class AAIManager> AIManager;
 
-	TObjectPtr<class APlanePawnAI> CurrentAISelected;
+	TObjectPtr<class APlanePawn> CurrentAISelected;
 
 	void ChangeFocusedPlane(const FInputActionInstance& Instance);
 	void FocusOnLevel();

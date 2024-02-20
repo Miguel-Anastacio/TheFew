@@ -21,6 +21,12 @@ void AArenaGameState::InitTeamData(const FTeam& teamA, const FTeam& teamB)
 	}
 }
 
+void AArenaGameState::InitTeamID(const FTeam& teamA, const FTeam& teamB)
+{
+	TeamAData.ID = teamA.ID;
+	TeamBData.ID = teamB.ID;
+}
+
 void AArenaGameState::UpdateTeamGameData(const FTeamGameData& data)
 {
 	if (data.ID == TeamAData.ID)
@@ -30,6 +36,24 @@ void AArenaGameState::UpdateTeamGameData(const FTeamGameData& data)
 	else if (data.ID == TeamBData.ID)
 	{
 		TeamBData = data;
+	}
+}
+
+void AArenaGameState::AddPlayerToTeam(const FString& playerName, int32 id)
+{
+	if (id == TeamAData.ID)
+	{
+		if (TeamAData.PlayersGameData.Find(playerName) == NULL)
+		{
+			TeamAData.PlayersGameData.Add(playerName, FPlayerGameData());
+		}
+	}
+	else if (id == TeamBData.ID)
+	{
+		if (TeamBData.PlayersGameData.Find(playerName) == NULL)
+		{
+			TeamBData.PlayersGameData.Add(playerName, FPlayerGameData());
+		}
 	}
 }
 

@@ -11,6 +11,7 @@
 #include "Components/TextBlock.h"
 #include "Components/HealthComponent.h"
 #include "UI/ScoreboardWidget.h"
+#include "UI/DeathWidget.h"
 #include "Game/ArenaGameState.h"
 void UPlaneHUD::SetPlaneReference(APlanePawn* ref)
 {
@@ -62,6 +63,24 @@ void UPlaneHUD::ToggleScoreboard(bool status)
 	}
 }
 
+void UPlaneHUD::DisplayDeathScreen()
+{
+	if (!IsValid(DeathWidget))
+	{
+		DeathWidget = CreateWidget<UDeathWidget>(GetOwningPlayer(), DeathClass);
+		DeathWidget->AddToViewport();
+	}
+	if (DeathWidget)
+	{
+		this->SetVisibility(ESlateVisibility::Collapsed);
+		CrosshairWidget->SetVisibility(ESlateVisibility::Collapsed);
+		DeathWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+		DeathWidget->ResetTimer();
+		FTimerHandle timer;
+		GetWorld()->GetTimerManager().SetTimer(timer, this, &UPlaneHUD::RemoveDeathScreen, DeathWidget->Lifetime, false);
+	}
+}
+
 void UPlaneHUD::NativeConstruct()
 {
 	Super::NativeConstruct();
@@ -94,6 +113,16 @@ void UPlaneHUD::NativeOnInitialized()
 	CrosshairWidget = CreateWidget<UUserWidget>(GetOwningPlayer(), CrosshairImageClass);
 	if (CrosshairWidget)
 		CrosshairWidget->AddToViewport();
+}
+
+void UPlaneHUD::RemoveDeathScreen()
+{
+	if (DeathWidget)
+	{
+		this->SetVisibility(ESlateVisibility::HitTestInvisible);
+		CrosshairWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+		DeathWidget->SetVisibility(ESlateVisibility::Collapsed);
+	}
 }
 
 void UPlaneHUD::UpdateHealthBar(float currentPercent)

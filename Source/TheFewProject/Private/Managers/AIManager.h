@@ -7,6 +7,7 @@
 #include "Game/GameDataUtils.h"
 #include "AIManager.generated.h"
 
+
 UCLASS()
 class AAIManager : public AActor
 {
@@ -20,10 +21,11 @@ public:
 	//void SpawnAIActor(const FVector2D& minBounds, const FVector2D& maxBounds, float zHeight);
 	void SpawnAIActor(FTeam& team, const FString& name = FString(), const FRotator& rot = FRotator(0, 0, 0));
 	UFUNCTION()
-	void SpawnAIActorGameInProgress(FTeam& team, const TArray<class APlanePawnAI*>& enemyTeamActors, const FString& name = FString(), const FRotator& rot = FRotator(0, 0, 0));
-	void Respawn(FTeam& team, const TArray<TObjectPtr<class APlanePawnAI>>& enemyTeamActors, const FString& name = FString(), const FRotator& rot = FRotator(0, 0, 0));
+	void SpawnAIActorGameInProgress(FTeam& team, const TArray<class APlanePawn*>& enemyTeamActors, const FString& name = FString(), const FRotator& rot = FRotator(0, 0, 0), bool timer = false);
+
+	void Respawn(FTeam& team, const TArray<TObjectPtr<class APlanePawn>>& enemyTeamActors, const FString& name = FString(), const FRotator& rot = FRotator(0, 0, 0));
 	void UpdateTarget(AActor* actor);
-	TObjectPtr<class APlanePawnAI> ChangePlaneSelected(float input);
+	TObjectPtr<class APlanePawn> ChangePlaneSelected(float input);
 
 	void IncreaseCrashes() { Crashes++; };
 	void IncreaseTargetsDestroyed() { TargetsDestroyed++; };
@@ -42,9 +44,11 @@ protected:
 	void SpawnTeam(FTeam& team, const FRotator& rot = FRotator(0, 0, 0));
 	void InitTeamTargets(FTeam& team1, FTeam& team2);
 	
-	void UpdateTarget(AActor* currentTarget, FTeam& teamToUpdate, const TArray<TObjectPtr<class APlanePawnAI>>& newTargets);
+	void UpdateTarget(AActor* currentTarget, FTeam& teamToUpdate, const TArray<TObjectPtr<class APlanePawn>>& newTargets);
 
 	void RemoveElementFromTeam(FTeam& team, const FString& elementName);
+
+	void HandleSpawnQueue(FTeam& team);
 protected:
 	////landscape actor
 	UPROPERTY(EditAnywhere, Category = "Level")
@@ -68,6 +72,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Data")
 	int TargetsDestroyed = 0;
 
+	TQueue<FSpawnData> SpawnInProgress;
 
 	int CurrentTeamID = 0;
 	//UPROPERTY

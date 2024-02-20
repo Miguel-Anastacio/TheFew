@@ -14,11 +14,30 @@ UAircraftPhysics::UAircraftPhysics()
 }
 
 
+void UAircraftPhysics::Reset(const FVector& vel)
+{
+	Throttle = 1;
+	ThrottleInput = 0;
+	ControlInput = FVector::Zero();
+	Rigidbody->SetPhysicsAngularVelocityInDegrees(FVector::Zero());
+	Rigidbody->SetPhysicsLinearVelocity(vel);
+}
+
+void UAircraftPhysics::Disable()
+{
+	Throttle = 0;
+	ThrottleInput = 0;
+	ControlInput = FVector::Zero();
+	Rigidbody->SetPhysicsAngularVelocityInDegrees(FVector::Zero());
+	Rigidbody->SetPhysicsLinearVelocity(FVector::Zero());
+}
+
 // Called when the game starts
 void UAircraftPhysics::BeginPlay()
 {
 	Super::BeginPlay();
 	Flaps = true;
+	//Throttle = 1;
 	UE_LOG(LogProjectFew, Log, TEXT("Hello Custom Log"));
 	// ...
 	//LocalVelocity = FVector(800, 35, -140);

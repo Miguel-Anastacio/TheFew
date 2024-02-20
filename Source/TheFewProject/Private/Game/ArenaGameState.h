@@ -14,7 +14,9 @@ class AArenaGameState : public AGameStateBase
 	
 public:
 	void InitTeamData(const FTeam& teamA, const FTeam& teamB);
+	void InitTeamID(const FTeam& teamA, const FTeam& teamB);
 	void UpdateTeamGameData(const FTeamGameData& data);
+	void AddPlayerToTeam(const FString& playerName, int32 id);
 	
 	FPlayerGameData IncreaseKills(const FString& playerName);
 	FPlayerGameData IncreaseDeaths(const FString& playerName);

@@ -10,8 +10,7 @@
 #include "BehaviorTree/BehaviorTreeComponent.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Components/BoxComponent.h"
-
-
+#include "Components/SlateWrapperTypes.h"
 
 APlaneAIController::APlaneAIController()
 {
@@ -21,6 +20,15 @@ APlaneAIController::APlaneAIController()
 	BehaviorTreeComponent = CreateDefaultSubobject<UBehaviorTreeComponent>("Behavior Tree");
 	BlackboardComponent = CreateDefaultSubobject<UBlackboardComponent>("Blackboard");
 	//ActionsComponent = CreateDefaultSubobject<UAIPerceptionComponent>("Actions");
+}
+
+void APlaneAIController::SetTargetActorVisibility(ESlateVisibility visibility)
+{
+	APlanePawnAI* current = Cast<APlanePawnAI>(TargetActor);
+	if (IsValid(current))
+	{
+		current->SetWidgetVisibility(visibility);
+	}
 }
 
 void APlaneAIController::BeginPlay()
@@ -357,6 +365,13 @@ void APlaneAIController::PerformSweep(const FVector& forward, const FVector& rig
 				// check if plane is of opposite team
 				if (TargetActor != planeDetected && planeDetected->TeamID != ControlledPlanePawn->TeamID && TimerChangeTargets > MinimumTimeFollowingTarget)
 				{
+					/*APlanePawnAI* current = Cast<APlanePawnAI>(TargetActor);
+					if (IsValid(current))
+					{
+						planeDetected->SetWidgetVisibility(current->GetWidgetVisibility());
+					}
+					SetTargetActorVisibility(ESlateVisibility::Collapsed);*/
+
 					TargetActor = planeDetected;
 					TimerChangeTargets = 0.0f; 
 				}

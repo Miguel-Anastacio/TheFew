@@ -43,6 +43,26 @@ struct FTeamGameData
 	FTeamGameData() {};
 };
 
+USTRUCT()
+struct FSpawnData
+{
+	GENERATED_BODY()
+
+	const TArray<TObjectPtr<class APlanePawn>>* EnemyTeamActors;
+	UPROPERTY(VisibleAnywhere)
+	FString Name;
+	FRotator Rot;
+
+	FSpawnData() {};
+	FSpawnData(const TArray<TObjectPtr<class APlanePawn>>* enemies, const FString& name, const FRotator& rot = FRotator())
+		: EnemyTeamActors(enemies), Name(name), Rot(rot)
+	{
+
+	};
+};
+
+// Disable copy constructor cause Tqueue does not allow it
+
 USTRUCT(BlueprintType)
 struct FTeam
 {
@@ -74,8 +94,8 @@ struct FTeam
 
 	//UPROPERTY(EditAnywhere, Category = "Collision")
 	//TEnumAsByte<ECollisionChannel> TraceChannelProperty = ECC_Pawn;
-
-	TArray<TObjectPtr<class APlanePawnAI>> AIActors;
+	UPROPERTY(VisibleAnywhere, Category = "")
+	TArray<TObjectPtr<class APlanePawn>> AIActors;
 
 	FVector2D SpawnAreaBoundsMax;
 	FVector2D SpawnAreaBoundsMin;
@@ -97,8 +117,9 @@ struct FTeam
 			SpawnAreaBoundsMin.Y = origin.Y - extent.Y;
 		}
 	}
-
-
+	UPROPERTY(VisibleAnywhere)
+    TArray<FSpawnData> SpawnQueue;
 };
+
 
 

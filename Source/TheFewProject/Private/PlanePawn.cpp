@@ -103,7 +103,6 @@ APlanePawn::APlanePawn()
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
-
 	PlaneEngineAudioComponent = CreateDefaultSubobject<UAudioComponent>("Engine Audio");
 	PlaneEngineAudioComponent->SetupAttachment(RootComponent);
 	GunFireAudioComponent = CreateDefaultSubobject<UAudioComponent>("Gun Audio");
@@ -121,6 +120,7 @@ APlanePawn::APlanePawn()
 	PlanePhysicsComponent = CreateDefaultSubobject<UAircraftPhysics>("Plane Physics");
 	HealthComponent = CreateDefaultSubobject<UHealthComponent>("Health Component");
 
+
 }
 
 void APlanePawn::PostInitializeComponents()
@@ -131,7 +131,6 @@ void APlanePawn::PostInitializeComponents()
 		HealthComponent->ActorSimpleDeathDelegate.AddDynamic(this, &APlanePawn::PlaneDeathSimple);
 		HealthComponent->ActorDeathDelegate.AddDynamic(this, &APlanePawn::PlaneDeath);
 	}
-
 }
 
 
@@ -143,6 +142,7 @@ void APlanePawn::PostInitializeComponents()
 void APlanePawn::BeginPlay()
 {
 	Super::BeginPlay();
+
 	if (!PlaneBodyBox)
 		UE_LOG(LogTemp, Warning, TEXT("Body Null"));
 	PlanePhysicsComponent->SetRigidbody(PlaneBodyBox);
@@ -167,7 +167,9 @@ void APlanePawn::BeginPlay()
 		PlaneBodyBox->OnComponentHit.AddDynamic(this, &APlanePawn::OnCompHit);
 	}
 
-	PlaneBodyBox->SetPhysicsLinearVelocity(FVector(700.0f, 0, 600.f));
+	PlaneBodyBox->SetPhysicsLinearVelocity(FVector(2000.0f, 0, 600.f));
+	TeamID = 0;
+
 }
 //void APlanePawn::ReactToHit_Implementation(float damage)
 //{

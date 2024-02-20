@@ -57,6 +57,10 @@ public:
 
 	void Setflaps(bool flaps) { Flaps = flaps; };
 
+
+	void Reset(const FVector& vel);
+	void Disable();
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;

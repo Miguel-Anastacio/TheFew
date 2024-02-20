@@ -15,6 +15,7 @@
 #include "UI/IndicatorWidget.h"
 #include "Game/ArenaGameState.h"
 #include "PaperSpriteComponent.h"
+#include "Player/PlanePawnPlayer.h"
 APlanePawnAI::APlanePawnAI()
 {
 	DetectionVolume = CreateDefaultSubobject<UBoxComponent>("Detection Volume");
@@ -57,22 +58,13 @@ void APlanePawnAI::BeginPlay()
 void APlanePawnAI::Tick(float deltaTime)
 {
 	Super::Tick(deltaTime);
-	//FVector dirVel = PlaneBodyBox->GetPhysicsLinearVelocity();
-	//FRotator faceRot = dirVel.Rotation();
-	//
-	//FVector input = PlanePhysicsComponent->GetControlInput();
-	//FVector boxDirection = UKismetMathLibrary::RotateAngleAxis(GetActorForwardVector(), 60 * input.Y, FVector::RightVector);
-
-	//faceRot = UKismetMathLibrary::FindLookAtRotation(DetectionVolume->GetComponentLocation(), DetectionVolume->GetComponentLocation() + boxDirection * 100.f);
-	//faceRot = FQuat::Slerp(DetectionVolume->GetRelativeRotation().Quaternion(), faceRot.Quaternion(), deltaTime).Rotator();
-	//DetectionVolume->SetRelativeRotation(faceRot);
-	// Display Plane Data
 }
 
 TObjectPtr<class UBoxComponent> APlanePawnAI::GetDetectionVolume()
 {
 	return DetectionVolume;
 }
+
 void APlanePawnAI::OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
 	if (!IsValid(OtherActor))
@@ -112,7 +104,6 @@ void APlanePawnAI::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* Oth
 
 void APlanePawnAI::PlaneDeath(AActor* instigator)
 {
-
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), BigExplosionEffect, GetActorLocation());
 	//PlaneBodyBox->AddForce(FVector(0, 0, -100000.0f));
 	//PlanePhysicsComponent->DestroyComponent();
@@ -122,6 +113,12 @@ void APlanePawnAI::PlaneDeath(AActor* instigator)
 		Destroy();
 		return;
 	}
+
+	if (Cast<APlanePawnPlayer>(other))
+	{
+		int a = 0;
+	}
+
 	AArenaGameState* gameState = Cast<AArenaGameState>(GetWorld()->GetGameState());
 	if (!IsValid(gameState))
 	{
@@ -131,7 +128,6 @@ void APlanePawnAI::PlaneDeath(AActor* instigator)
 
 	gameState->UpdateScoreboard(other->GetGameName(), this->GameName);
 	Destroy();
-
 }
 
 void APlanePawnAI::SetWidgetColor(const FLinearColor& color)
@@ -143,4 +139,23 @@ void APlanePawnAI::SetWidgetColor(const FLinearColor& color)
 	}
 	MinimapIcon->SetSpriteColor(color);
 
+}
+
+void APlanePawnAI::SetWidgetVisibility(ESlateVisibility visibiliy)
+{
+	UUserWidget* widget = WidgetComponent->GetWidget();
+	if (IsValid(widget))
+	{
+		widget->SetVisibility(visibiliy);
+	}
+}
+
+ESlateVisibility APlanePawnAI::GetWidgetVisibility()
+{
+	UUserWidget* widget = WidgetComponent->GetWidget();
+	if (IsValid(widget))
+	{
+		return widget->GetVisibility();
+	}
+	return ESlateVisibility();
 }

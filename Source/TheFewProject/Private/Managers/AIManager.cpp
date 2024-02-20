@@ -8,6 +8,8 @@
 #include "PlaneController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Game/ArenaGameState.h"
+#include "Components/SlateWrapperTypes.h"
+
 // Sets default values
 AAIManager::AAIManager()
 {
@@ -34,6 +36,12 @@ void AAIManager::PostInitializeComponents()
 	{
 		tgt->SetOwner(this);
 	}
+
+	//AArenaGameState* gameState = Cast<AArenaGameState>(GetWorld()->GetGameState());
+	//if (!IsValid(gameState))
+	//	return;
+	//gameState->InitTeamID(TeamA, TeamB);
+	//gameState->InitTeamData(TeamA, TeamB);
 }
 
 // Called when the game starts or when spawned
@@ -43,62 +51,29 @@ void AAIManager::BeginPlay()
 	APlaneController* controllerPlayer = Cast<APlaneController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 	controllerPlayer->InitDebugVariables(LevelLandscape, this);
 
-	/*if (SpawnArea)
-	{
-		FVector origin, extent;
-		SpawnArea->GetActorBounds(false, origin, extent);
-		SpawnAreaBoundsMax.X = origin.X + extent.X;
-		SpawnAreaBoundsMax.Y = origin.Y + extent.Y;
-
-		SpawnAreaBoundsMin.X = origin.X - extent.X;
-		SpawnAreaBoundsMin.Y = origin.Y - extent.Y;
-
-	}*/
-
-	/*for (int i = 0; i < NumberOfEnemies; i++)
-	{
-		SpawnAIActor(SpawnAreaBoundsMin, SpawnAreaBoundsMax, SpawnHeight);
-	}*/
-
 	SpawnTeam(TeamA);
 	SpawnTeam(TeamB, FRotator(0, 180, 0));
 
-	InitTeamTargets(TeamA, TeamB);
+	APlanePawn* player = Cast<APlanePawn>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+	if (!IsValid(player))
+		return;
+	TeamA.AIActors.Add(player);
 
-	//// Each team member targets another one in the other team
-	//if (TeamA.AIActors.Num() <= TeamB.AIActors.Num())
-	//{
-	//	for (int i = 0; i < TeamA.AIActors.Num(); i++)
-	//	{
-	//		APlaneAIController* controller = TeamA.AIActors[i]->GetController<APlaneAIController>();
-	//		if (controller)
-	//		{
-	//			/*int index = FMath::RandRange(0, Targets.Num() - 1);*/
-	//			controller->SetTargetActor(TeamB.AIActors[i]);
-	//		}
-
-	//		controller = TeamB.AIActors[i]->GetController<APlaneAIController>();
-	//		if (controller)
-	//		{
-	//			/*int index = FMath::RandRange(0, Targets.Num() - 1);*/
-	//			controller->SetTargetActor(TeamA.AIActors[TeamA.AIActors.Num()-1 - i]);
-	//		}
-	//	}
-	//}
-	CurrentTeamID = TeamB.ID;
 
 	AArenaGameState* gameState = Cast<AArenaGameState>(GetWorld()->GetGameState());
 	if (!IsValid(gameState))
 		return;
-
 	gameState->InitTeamData(TeamA, TeamB);
 
+	InitTeamTargets(TeamA, TeamB);
+
+	CurrentTeamID = TeamB.ID;
 }
 void AAIManager::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {
 	Super::EndPlay(EndPlayReason);
-	GetWorld()->GetTimerManager().ClearTimer(TeamA.SpawnTimerHandler);
-	GetWorld()->GetTimerManager().ClearTimer(TeamB.SpawnTimerHandler);
+	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+	//GetWorld()->GetTimerManager().ClearTimer(TeamB.SpawnTimerHandler);
 
 }
 // Called every frame
@@ -121,7 +96,10 @@ void AAIManager::Tick(float DeltaTime)
 	//}
 
 	TeamA.TimeSinceLastSpawn += DeltaTime;
+	HandleSpawnQueue(TeamA);
+
 	TeamB.TimeSinceLastSpawn += DeltaTime;
+	HandleSpawnQueue(TeamB);
 }
 UE_DISABLE_OPTIMIZATION
 void AAIManager::OnAIDestroyed(AActor* actor)
@@ -171,31 +149,33 @@ void AAIManager::SpawnTeam(FTeam& team, const FRotator& rot)
 
 void AAIManager::InitTeamTargets(FTeam& team1, FTeam& team2)
 {
-	// Each team member targets another one in the other team
-	if (team1.AIActors.Num() <= team2.AIActors.Num())
+	
+	for (auto& actor : team1.AIActors)
 	{
-		for (int i = 0; i < team1.AIActors.Num(); i++)
+		APlaneAIController* controller = actor->GetController<APlaneAIController>();
+		if (controller)
 		{
-			APlaneAIController* controller = team1.AIActors[i]->GetController<APlaneAIController>();
-			if (controller)
-			{
-				/*int index = FMath::RandRange(0, Targets.Num() - 1);*/
-				controller->SetTargetActor(team2.AIActors[i]);
-				controller->SetPatrolDestination(PatrolDestination);
-			}
-
-			controller = team2.AIActors[i]->GetController<APlaneAIController>();
-			if (controller)
-			{
-				//int index = FMath::RandRange(0, Targets.Num() - 1);
-				controller->SetTargetActor(team1.AIActors[team1.AIActors.Num() - 1 - i]);
-				controller->SetPatrolDestination(PatrolDestination);
-			}
+			int index = FMath::RandRange(0, team2.AIActors.Num() - 1);
+			controller->SetTargetActor(team2.AIActors[index]);
+			controller->SetPatrolDestination(PatrolDestination);
 		}
+
+	}
+
+	for (auto& actor : team2.AIActors)
+	{
+		APlaneAIController* controller = actor->GetController<APlaneAIController>();
+		if (controller)
+		{
+			int index = FMath::RandRange(0, team1.AIActors.Num() - 1);
+			controller->SetTargetActor(team1.AIActors[index]);
+			controller->SetPatrolDestination(PatrolDestination);
+		}
+
 	}
 }
 
-void AAIManager::UpdateTarget(AActor* currentTarget, FTeam& teamToUpdate, const TArray<TObjectPtr<class APlanePawnAI>>& newTargets)
+void AAIManager::UpdateTarget(AActor* currentTarget, FTeam& teamToUpdate, const TArray<TObjectPtr<class APlanePawn>>& newTargets)
 {
 	for (auto& temp : teamToUpdate.AIActors)
 	{
@@ -222,8 +202,27 @@ void AAIManager::RemoveElementFromTeam(FTeam& team, const FString& elementName)
 	}
 }
 
-TObjectPtr<class APlanePawnAI> AAIManager::ChangePlaneSelected(float input)
+void AAIManager::HandleSpawnQueue(FTeam& team)
 {
+	if (team.TimeSinceLastSpawn > team.SpawnCooldown)
+	{
+		if (team.SpawnQueue.IsEmpty())
+			return;
+		FSpawnData data = team.SpawnQueue.Pop();
+		SpawnAIActorGameInProgress(team, *data.EnemyTeamActors, data.Name, data.Rot);
+	}
+}
+
+TObjectPtr<class APlanePawn> AAIManager::ChangePlaneSelected(float input)
+{
+	/*if (TeamB.AIActors.IsValidIndex(PlaneSelectedIndex))
+	{
+		APlaneAIController* controller = TeamB.AIActors[PlaneSelectedIndex]->GetController<APlaneAIController>();
+		if (controller)
+		{
+			controller->SetTargetActorVisibility(ESlateVisibility::Collapsed);
+		}
+	}*/
 	if (CurrentTeamID == TeamB.ID)
 	{
 		/*for (int i = 0; i < TeamA.AIActors.Num(); i++)
@@ -248,6 +247,12 @@ TObjectPtr<class APlanePawnAI> AAIManager::ChangePlaneSelected(float input)
 
 
 	}
+
+	//APlaneAIController* controller = TeamB.AIActors[PlaneSelectedIndex]->GetController<APlaneAIController>();
+	//if (controller)
+	//{
+	//	controller->SetTargetActorVisibility(ESlateVisibility::HitTestInvisible);
+	//}
 	return TeamB.AIActors[PlaneSelectedIndex];
 	//else
 	//{
@@ -371,7 +376,6 @@ UE_ENABLE_OPTIMIZATION
 
 void AAIManager::UpdateTarget(AActor* actor)
 {
-
 	//APlanePawnAI* enemy = Cast<APlanePawnAI>(actor);
 	//if (enemy)
 	//{
@@ -385,8 +389,10 @@ void AAIManager::UpdateTarget(AActor* actor)
 }
 
 UE_DISABLE_OPTIMIZATION
-void AAIManager::SpawnAIActorGameInProgress(FTeam& team, const TArray<APlanePawnAI*>& enemyTeamActors, const FString& playerName, const FRotator& rot)
+void AAIManager::SpawnAIActorGameInProgress(FTeam& team, const TArray<class APlanePawn*>& enemyTeamActors, const FString& playerName, const FRotator& rot, bool timer)
 {
+	if (timer)
+		int a = 0;
 	SpawnAIActor(team, playerName, rot);
 	APlaneAIController* controller = team.AIActors.Last()->GetController<APlaneAIController>();
 	if (controller)
@@ -403,20 +409,31 @@ void AAIManager::SpawnAIActorGameInProgress(FTeam& team, const TArray<APlanePawn
 }
 
 UE_ENABLE_OPTIMIZATION
-void AAIManager::Respawn(FTeam& team, const TArray<TObjectPtr<class APlanePawnAI>>& enemyTeamActors, const FString& playerName, const FRotator& rot)
+void AAIManager::Respawn(FTeam& team, const TArray<TObjectPtr<class APlanePawn>>& enemyTeamActors, const FString& playerName, const FRotator& rot)
 {
 	if (team.TimeSinceLastSpawn > team.SpawnCooldown)
 	{
-		SpawnAIActorGameInProgress(team, enemyTeamActors, playerName);
+		SpawnAIActorGameInProgress(team, enemyTeamActors, playerName, rot, false);
 	}
 	else
 	{
-		// start a timer to spawn an actor
-		FTimerDelegate Delegate; // Delegate to bind function with parameters
-		Delegate.BindUFunction(this, "SpawnAIActorGameInProgress", team, enemyTeamActors, playerName, rot);
-		float delay = team.SpawnCooldown - team.TimeSinceLastSpawn;
-		GetWorld()->GetTimerManager().SetTimer(team.SpawnTimerHandler, Delegate, delay, false);
+		//// start a timer to spawn an actor
+		//FTimerDelegate Delegate; // Delegate to bind function with parameters
+		//bool timer = true;
+		//Delegate.BindUFunction(this, "SpawnAIActorGameInProgress", team, enemyTeamActors, playerName, rot, timer);
+		//float delay = team.SpawnCooldown - team.TimeSinceLastSpawn;
+		//if (GetWorld()->GetTimerManager().IsTimerActive(team.SpawnTimerHandler))
+		//{
+		//	FTimerHandle newTimer;
+		//	GetWorld()->GetTimerManager().SetTimer(newTimer, Delegate, delay, false);
+		//}
+		//else
+		//{
+		//	GetWorld()->GetTimerManager().SetTimer(team.SpawnTimerHandler, Delegate, delay, false);
 
+		//}
+
+		team.SpawnQueue.Push(FSpawnData(&enemyTeamActors, playerName, rot));
 	}
 
 

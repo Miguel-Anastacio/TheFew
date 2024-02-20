@@ -19,6 +19,8 @@ public:
 	void Tick(float deltaTime) override;
 
 	void SetWidgetColor(const FLinearColor& color);
+	void SetWidgetVisibility(ESlateVisibility visibiliy);
+	ESlateVisibility GetWidgetVisibility();
 
 protected:
 	void BeginPlay() override;
@@ -32,9 +34,7 @@ protected:
 protected:
 	UPROPERTY(EditAnywhere, Category = "Obstacle Detection")
 		TObjectPtr<class UBoxComponent> DetectionVolume;
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "VFX")
-		TObjectPtr<class UNiagaraSystem> BigExplosionEffect;
-	UPROPERTY(EditAnywhere, Category = "UI")
+	UPROPERTY(EditAnywhere, Category = "UI", BlueprintReadWrite)
 		TObjectPtr<class UWidgetComponent> WidgetComponent;
 
 };

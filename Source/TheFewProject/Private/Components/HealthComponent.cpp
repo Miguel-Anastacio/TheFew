@@ -40,8 +40,9 @@ void UHealthComponent::TakeDamage(float damage, AActor* causer)
 {
 	CurrentHealth -= damage;
 	ActorDamageDelegate.Broadcast(CurrentHealth/MaxHealth);
-	if (CurrentHealth <= 0)
+	if (CurrentHealth <= 0 && Alive)
 	{
+		Alive = false;
 		ActorDeathDelegate.Broadcast(causer);
 	}
 	UE_LOG(LogProjectFew, Warning, TEXT("Current health of %s : %f"), *GetOwner()->GetName(), CurrentHealth);

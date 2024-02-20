@@ -18,14 +18,17 @@ public:
 
 	void SetPlaneReference(APlanePawn* ref);
 	void ToggleScoreboard(bool status);
+	void DisplayDeathScreen();
+	UFUNCTION()
+	void UpdateHealthBar(float currentPercent);
+
 protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual void NativeOnInitialized() override;
 
 	UFUNCTION()
-	void UpdateHealthBar(float currentPercent);
-
+	void RemoveDeathScreen();
 	UPROPERTY(meta = (BindWidget))
 		class UProgressBar* ThrottleBar;
 	UPROPERTY(meta = (BindWidget))
@@ -38,10 +41,14 @@ protected:
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<class UScoreboardWidget> ScoreboardClass;
 
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class UDeathWidget> DeathClass;
+
 	APlanePawn* ControlledPlane;
 	float* ThrottleRef = NULL;
 	UUserWidget* CrosshairWidget = NULL;
 	TObjectPtr<class UScoreboardWidget> ScoreboardWidget;
+	TObjectPtr<class UDeathWidget> DeathWidget;
 	// health bar
 	
 };
