@@ -69,6 +69,8 @@ public:
 
 	//void SetGameData(const FPlayerGameData& data);
 	//FORCEINLINE FPlayerGameData GetGameData() { return GameData; };
+	UFUNCTION()
+		virtual void PlaneDeathSimple();
 
 protected:
 	virtual void BeginPlay() override;
@@ -77,11 +79,16 @@ protected:
 	void UpdateFlying();
 
 	UFUNCTION()
-		virtual void PlaneDeathSimple();
-	UFUNCTION()
 		virtual void PlaneDeath(AActor* causer) {};
 	UFUNCTION()
 		virtual void OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit);
+
+	UFUNCTION()
+		virtual void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep,
+			const FHitResult& SweepResult);
+
+	UFUNCTION()
+		virtual void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 
 protected:
 	UPROPERTY(EditDefaultsOnly)

@@ -21,6 +21,7 @@ void UAircraftPhysics::Reset(const FVector& vel)
 	ControlInput = FVector::Zero();
 	Rigidbody->SetPhysicsAngularVelocityInDegrees(FVector::Zero());
 	Rigidbody->SetPhysicsLinearVelocity(vel);
+	Rigidbody->SetEnableGravity(true);
 }
 
 void UAircraftPhysics::Disable()
@@ -30,6 +31,7 @@ void UAircraftPhysics::Disable()
 	ControlInput = FVector::Zero();
 	Rigidbody->SetPhysicsAngularVelocityInDegrees(FVector::Zero());
 	Rigidbody->SetPhysicsLinearVelocity(FVector::Zero());
+	Rigidbody->SetEnableGravity(false);
 }
 
 // Called when the game starts

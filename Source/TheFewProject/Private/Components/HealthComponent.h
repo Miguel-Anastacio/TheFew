@@ -24,6 +24,7 @@ public:
 	void TakeDamage(float damage, AActor* causer);
 	FORCEINLINE void SetMaxHealth(float health) { MaxHealth = health; };
 	FORCEINLINE void Reset() { CurrentHealth = MaxHealth; Alive = true; };
+	FORCEINLINE bool IsAlive() { return Alive; };
 	//FORCEINLINE void AddHealth(float health) { CurrentHealth += health; };
 
 public:

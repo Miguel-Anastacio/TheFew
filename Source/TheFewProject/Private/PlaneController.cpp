@@ -5,15 +5,23 @@
 #include "EnhancedInputSubsystems.h"
 #include "PlanePawn.h"
 #include "PlanePawnAI.h"
+#include "Player/PlanePawnPlayer.h"
 #include "Physics/AircraftPhysics.h"
 #include "UI/PlaneHUD.h"
 #include "Weapon/WeaponComponent.h"
 #include "Managers/AIManager.h"
 #include "Kismet/GameplayStatics.h"
+#include "Interfaces/ReactToClickInterface.h"
+#include "BattlePlaneGameMode.h"
 void APlaneController::InitDebugVariables(AActor* landscape, AAIManager* manager)
 {
 	LandscapeActor = landscape;
 	AIManager = manager;
+
+	if (AIManager)
+	{
+		AIManager->TeamDataInitDelegate.AddDynamic(PlaneHUD, &UPlaneHUD::DisplaySpawnScreen);
+	}
 }
 APlanePawn* APlaneController::GetPlaneSelected()
 {
@@ -48,6 +56,9 @@ void APlaneController::SetupInputComponent()
 
 		// UI Actions
 		EnhancedInputComponent->BindAction(ToggleScoreboardAction, ETriggerEvent::Started, this, &APlaneController::ToggleScoreboard);
+
+		// Menu actions
+		EnhancedInputComponent->BindAction(MouseClickAction, ETriggerEvent::Started, this, &APlaneController::MouseClick);
 	}
 }
 
@@ -57,7 +68,8 @@ void APlaneController::BeginPlay()
 	//bShowMouseCursor = true;
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(this->GetLocalPlayer()))
 	{
-		Subsystem->AddMappingContext(DefaultMappingContext, 0);
+		//Subsystem->AddMappingContext(DefaultMappingContext, 0);
+		Subsystem->AddMappingContext(UIMappingContext, 1);
 	}
 
 	//ControlledPlane = Cast<APlanePawn>(GetPawn());
@@ -66,6 +78,17 @@ void APlaneController::BeginPlay()
 	//PlaneHUD->AddToViewport();
 	//PlaneHUD->SetPlaneReference(ControlledPlane);
 
+	ABattlePlaneGameMode* gameMode = Cast< ABattlePlaneGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+	if (IsValid(gameMode))
+	{
+		gameMode->PlayingStateDelegate.AddDynamic(this, &APlaneController::TransitionSpawnToPlaying);
+		gameMode->SpawnMenuStateDelegate.AddDynamic(this, &APlaneController::FocusOnMap);
+	}
+
+	if (IsValid(LandscapeActor))
+		this->SetViewTarget(LandscapeActor);
+
+	SetShowMouseCursor(true);
 }
 
 void APlaneController::OnPossess(APawn* pawn)
@@ -75,7 +98,15 @@ void APlaneController::OnPossess(APawn* pawn)
 
 	PlaneHUD = CreateWidget<UPlaneHUD>(this, PlaneHUDClass);
 	PlaneHUD->AddToViewport();
+	PlaneHUD->SetVisibility(ESlateVisibility::Collapsed);
+
 	PlaneHUD->SetPlaneReference(ControlledPlane);
+
+	//APlanePawnPlayer* player = Cast<APlanePawnPlayer>(ControlledPlane);
+	//if (IsValid(player))
+	//{
+	//	player->PlaneDeathSimple();
+	//}
 }
 
 void APlaneController::Yaw(const FInputActionInstance& Instance)
@@ -165,6 +196,62 @@ void APlaneController::ToggleScoreboard()
 		ScoreboardStatus = !ScoreboardStatus;
 		PlaneHUD->ToggleScoreboard(ScoreboardStatus);
 	}
+}
+
+void APlaneController::MouseClick()
+{
+	FHitResult hit;
+	ETraceTypeQuery traceType = UEngineTypes::ConvertToTraceType(ECollisionChannel::ECC_GameTraceChannel1);
+
+	GetHitResultUnderCursorByChannel(traceType, false, hit);
+
+	AActor* actor = hit.GetActor();
+
+	if (!IsValid(actor))
+		return;
+	IReactToClickInterface* interface = Cast<IReactToClickInterface>(actor);
+
+	if (interface)
+	{
+		interface->ReactToClick();
+	}
+}
+
+void APlaneController::TransitionSpawnToPlaying(const FVector& location)
+{
+	APlanePawnPlayer* player = Cast<APlanePawnPlayer>(ControlledPlane);
+	if (IsValid(player))
+	{
+		PlaneHUD->RemoveSpawnScreen();
+		
+		player->RespawnPlayer(location);
+
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(this->GetLocalPlayer()))
+		{
+			Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			//Subsystem->AddMappingContext(UIMappingContext, 1);
+			Subsystem->RemoveMappingContext(UIMappingContext);
+		}
+
+		SetShowMouseCursor(false);
+		this->SetViewTargetWithBlend(player, TimeSpawnToPlayCameraTransition);
+	}
+}
+
+void APlaneController::FocusOnMap()
+{
+	if (LandscapeActor)
+	{
+		this->SetViewTargetWithBlend(LandscapeActor, TimeDeathToSpawnCameraTransition);
+	}
+	SetShowMouseCursor(true);
+	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(this->GetLocalPlayer()))
+	{
+		//Subsystem->AddMappingContext(DefaultMappingContext, 0);
+		Subsystem->RemoveMappingContext(DefaultMappingContext);
+		Subsystem->AddMappingContext(UIMappingContext, 1);
+	}
+	//Subsystem->AddMappingContext(UIMappingContext, 1);
 }
 
 void APlaneController::ChangeFocusedPlane(const FInputActionInstance& Instance)

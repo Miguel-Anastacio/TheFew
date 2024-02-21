@@ -24,14 +24,15 @@ public:
 
 protected:
 	void BeginPlay() override;
-
 	void OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) override;
-	// declare overlap end function
-	UFUNCTION()
-		void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 	void PlaneDeath(AActor* instigator) override;
 
+	// NOT IN USE
+	UFUNCTION()
+		void OnOverlapDetectionEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
+
 protected:
+	// NOT IN USE
 	UPROPERTY(EditAnywhere, Category = "Obstacle Detection")
 		TObjectPtr<class UBoxComponent> DetectionVolume;
 	UPROPERTY(EditAnywhere, Category = "UI", BlueprintReadWrite)

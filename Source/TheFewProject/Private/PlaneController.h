@@ -47,11 +47,19 @@ protected:
 	void Fire();
 	void StopFiring();
 	void ToggleScoreboard();
+
+	void MouseClick();
+
+	// functions bound to game mode state transitions
+	UFUNCTION()
+	void TransitionSpawnToPlaying(const FVector& location);
+	UFUNCTION()
+		void FocusOnMap();
 protected:
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		UInputMappingContext* DefaultMappingContext;
-	/** Mouse Input Action */
+
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		UInputAction* ThrottleAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -71,10 +79,21 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		UInputAction* ToggleScoreboardAction;
 
+	// UI Mapping Context
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		UInputMappingContext* UIMappingContext;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		UInputAction* MouseClickAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		FVector2D MovementDeadzone = FVector2D(0.1, 0.1);
 
+
+	UPROPERTY(EditAnywhere, Category = " Transitions")
+		float TimeSpawnToPlayCameraTransition = 2.0f;
+	UPROPERTY(EditAnywhere, Category = " Transitions")
+		float TimeDeathToSpawnCameraTransition = 1.0f;
 	// UI
 	UPROPERTY(EditAnywhere, Category = "UI")
 		TSubclassOf<UUserWidget> PlaneHUDClass;

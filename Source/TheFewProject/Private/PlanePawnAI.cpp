@@ -86,7 +86,8 @@ void APlanePawnAI::OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, U
 	}
 }
 
-void APlanePawnAI::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+// NOT IN USE
+void APlanePawnAI::OnOverlapDetectionEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	if (!IsValid(OtherActor))
 		return;

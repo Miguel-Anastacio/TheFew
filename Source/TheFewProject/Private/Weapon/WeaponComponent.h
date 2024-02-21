@@ -40,6 +40,8 @@ protected:
 		float ReloadTime = 0.0f;
 	UPROPERTY(EditAnywhere, Category = "Gun")
 		float DistanceFromNose = 0.0f;
+	UPROPERTY(EditAnywhere, Category = "Gun")
+		float DamagePerBullet = 50.0f;
 
 	float Timer = 1000.0f;
 	float TimeBetweenShots = 0.0f;

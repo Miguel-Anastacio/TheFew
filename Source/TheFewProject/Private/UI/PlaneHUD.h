@@ -19,6 +19,14 @@ public:
 	void SetPlaneReference(APlanePawn* ref);
 	void ToggleScoreboard(bool status);
 	void DisplayDeathScreen();
+
+	void DisplayOutOfBoundsWidget();
+	void RemoveOutOfBoundsWidget();
+	float GetLifetimeOfOutOfBoundsWidget();
+	UFUNCTION()
+	void DisplaySpawnScreen();
+	void RemoveSpawnScreen();
+
 	UFUNCTION()
 	void UpdateHealthBar(float currentPercent);
 
@@ -40,15 +48,20 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<class UScoreboardWidget> ScoreboardClass;
-
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<class UDeathWidget> DeathClass;
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class UOutOfBoundsWidget> OutOfBoundsClass;
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class USpawnMenuWidget> SpawnClass;
 
 	APlanePawn* ControlledPlane;
 	float* ThrottleRef = NULL;
 	UUserWidget* CrosshairWidget = NULL;
 	TObjectPtr<class UScoreboardWidget> ScoreboardWidget;
 	TObjectPtr<class UDeathWidget> DeathWidget;
+	TObjectPtr<class UOutOfBoundsWidget> OutOfBoundsWidget;
+	TObjectPtr<class USpawnMenuWidget> SpawnMenuWidget;
 	// health bar
 	
 };

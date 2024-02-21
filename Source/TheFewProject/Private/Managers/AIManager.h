@@ -6,7 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "Game/GameDataUtils.h"
 #include "AIManager.generated.h"
-
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnTeamDataInitSignature);
 
 UCLASS()
 class AAIManager : public AActor
@@ -31,6 +31,9 @@ public:
 	void IncreaseTargetsDestroyed() { TargetsDestroyed++; };
 
 	void IncreaseTeamScore(int teamID);
+
+public:
+	FOnTeamDataInitSignature TeamDataInitDelegate;
 	
 protected:
 	// Called when the game starts or when spawned

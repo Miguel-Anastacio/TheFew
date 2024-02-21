@@ -23,6 +23,7 @@ public:
 	float GetBulletSpeed() { return BulletSpeed; };
 	
 	void SetTraceChannel(ECollisionChannel channel) { TraceChannelProperty = channel; };
+	void SetBulletDamage(float damage) { BulletDamage = damage; };
 
 protected:
 	// Called when the game starts or when spawned
@@ -61,6 +62,8 @@ protected:
 		float TracerThickness = 10.0f;
 	UPROPERTY(EditAnywhere, Category = "Collision")
 		TEnumAsByte<ECollisionChannel> TraceChannelProperty = ECC_Pawn;
+
+	float BulletDamage = 50.0f;
 
 	FTimerHandle LineTracerTimerHandle;
 	FVector PreviousPosition = FVector(0, 0, 0);

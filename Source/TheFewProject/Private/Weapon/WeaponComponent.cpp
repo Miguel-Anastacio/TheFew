@@ -48,14 +48,8 @@ void UWeaponComponent::FireBullet()
 	FVector loc = this->GetComponentLocation();
 	AProjectile* bullet = GetWorld()->SpawnActor<AProjectile>(BulletTemplate, loc, FRotator(0, 0, 0), params);
 	bullet->SetOwner(this->GetOwner());
+	bullet->SetBulletDamage(DamagePerBullet);
 	AActor* plane = GetOwner();
-
-	//IReactToHitInterface* interface = Cast<IReactToHitInterface>(plane);
-	//if (interface)
-	//{
-	//	//UE_LOG(LogTemp, Log, TEXT("Trace hit actor: %s"), *Hit.GetActor()->GetName());
-	//	interface->ReactToHit(200.0f, GetOwner());
-	//}
 
 	FVector dir = plane->GetActorForwardVector() * DistanceFromNose + plane->GetActorLocation() - GetComponentLocation();
 	dir.Normalize();

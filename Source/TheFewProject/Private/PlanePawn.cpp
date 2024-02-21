@@ -131,6 +131,12 @@ void APlanePawn::PostInitializeComponents()
 		HealthComponent->ActorSimpleDeathDelegate.AddDynamic(this, &APlanePawn::PlaneDeathSimple);
 		HealthComponent->ActorDeathDelegate.AddDynamic(this, &APlanePawn::PlaneDeath);
 	}
+
+	if (IsValid(PlaneBodyBox))
+	{
+		PlaneBodyBox->OnComponentBeginOverlap.AddDynamic(this, &APlanePawn::OnOverlapBegin);
+		PlaneBodyBox->OnComponentEndOverlap.AddDynamic(this, &APlanePawn::OnOverlapEnd);
+	}
 }
 
 
@@ -417,6 +423,14 @@ void APlanePawn::OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPr
 	}
 }
 
+void APlanePawn::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+}
+
+void APlanePawn::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+}
+
 // Called every frame
 void APlanePawn::Tick(float DeltaTime)
 {
@@ -439,12 +453,13 @@ void APlanePawn::Tick(float DeltaTime)
 	//RightWeaponComponent->SetActorForwardVector(PlaneBodyBox->GetForwardVector());
 
 	UpdateFlying();
-
 	if (Flying)
 	{
 		LeftTrail->UpdateNiagaraSystem(GetVelocity());
 		RightTrail->UpdateNiagaraSystem(GetVelocity());
 	}
+
+	IconBoom->SetRelativeRotation(FRotator(-90, GetActorRotation().Yaw, 0));
 
 	if (!PlaneEngineAudioComponent)
 	{
@@ -458,7 +473,6 @@ void APlanePawn::Tick(float DeltaTime)
 
 	PlaneEngineAudioComponent->SetVolumeMultiplier(PlanePhysicsComponent->GetThrottle());
 
-	IconBoom->SetRelativeRotation(FRotator(-90, GetActorRotation().Yaw, 0));
 }
 
 // Called to bind functionality to input

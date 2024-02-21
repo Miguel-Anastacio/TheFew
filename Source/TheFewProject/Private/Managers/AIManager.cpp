@@ -65,6 +65,8 @@ void AAIManager::BeginPlay()
 		return;
 	gameState->InitTeamData(TeamA, TeamB);
 
+	TeamDataInitDelegate.Broadcast();
+
 	InitTeamTargets(TeamA, TeamB);
 
 	CurrentTeamID = TeamB.ID;

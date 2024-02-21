@@ -4,16 +4,17 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
-#include "Interfaces/ReactToHitInterface.h"
-#include "DamageableActor.generated.h"
+#include "Interfaces/ReactToClickInterface.h"
+#include "InteractableActor.generated.h"
+
 UCLASS()
-class ADamageableActor : public AActor, public IReactToHitInterface
+class AInteractableActor : public AActor, public IReactToClickInterface
 {
 	GENERATED_BODY()
 	
 public:	
 	// Sets default values for this actor's properties
-	ADamageableActor();
+	AInteractableActor();
 
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -22,18 +23,19 @@ protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
+	void SetWidgetVisible();
+	UFUNCTION()
+	void HideWidget(const FVector& vec = FVector(0, 0, 0));
+
+	virtual void ReactToClick() override;
 protected:
-	UPROPERTY(EditAnywhere, Category = "Health")
-		TObjectPtr<class UHealthComponent> HealthComponent;
+
 	UPROPERTY(EditAnywhere, Category = "Mesh")
 		TObjectPtr<class UStaticMeshComponent> MeshComponent;
 	UPROPERTY(EditAnywhere, Category = "UI")
 		TObjectPtr<class UWidgetComponent> WidgetComponent;
 
-	void ReactToHit(float damage) override;
-	void ReactToHit(float damage, AActor* responsible) override;
 
-	TObjectPtr<class AAIManager> Manager;
-	UFUNCTION()
-		void OnActorDeath(AActor* causer);
+
 };

@@ -28,6 +28,7 @@ public:
 	FORCEINLINE FTeamGameData GetTeamBData() { return TeamBData; };
 
 	void SetScoreboardWidgetRef(class UScoreboardWidget* widget);
+	void SetScoreboardSpawnWidgetRef(class USpawnMenuWidget* widget);
 private:
 	UPROPERTY(VisibleAnywhere)
 	FTeamGameData TeamAData;
@@ -35,5 +36,6 @@ private:
 	FTeamGameData TeamBData;
 
 	TObjectPtr<class UScoreboardWidget> ScoreboardWidget;
+	TObjectPtr<class USpawnMenuWidget> SpawMenuWidget;
 
 };

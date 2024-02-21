@@ -4,6 +4,7 @@
 #include "Game/ArenaGameState.h"
 #include "PlanePawnAI.h"
 #include "UI/ScoreboardWidget.h"
+#include "UI/SpawnMenuWidget.h"
 void AArenaGameState::InitTeamData(const FTeam& teamA, const FTeam& teamB)
 {
 	TeamAData.ID = teamA.ID;
@@ -118,11 +119,13 @@ void AArenaGameState::UpdateScoreboard(const FString& killer, const FString& vic
 		if (killerID == TeamAData.ID && victimID == TeamBData.ID)
 		{
 			ScoreboardWidget->UpdateScoreboardTotal(TeamAData.Kills, killerID);
+			SpawMenuWidget->UpdateScoreboardTotal(TeamAData.Kills, killerID);
 			//ScoreboardWidget->UpdateScoreboardTotal(TeamBData.Kills, victimID);
 		}
 		else if (killerID == TeamBData.ID && victimID == TeamAData.ID)
 		{
 			ScoreboardWidget->UpdateScoreboardTotal(TeamBData.Kills, killerID);
+			SpawMenuWidget->UpdateScoreboardTotal(TeamBData.Kills, killerID);
 			//ScoreboardWidget->UpdateScoreboardTotal(TeamAData.Kills, victimID);
 		}
 
@@ -174,4 +177,9 @@ int AArenaGameState::GetPlayerTeamID(const FString& playerName)
 void AArenaGameState::SetScoreboardWidgetRef(UScoreboardWidget* widget)
 {
 	ScoreboardWidget = widget;
+}
+
+void AArenaGameState::SetScoreboardSpawnWidgetRef(USpawnMenuWidget* widget)
+{
+	SpawMenuWidget = widget;
 }
