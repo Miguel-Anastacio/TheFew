@@ -98,6 +98,7 @@ void AProjectile::LineTrace()
 
 			UE_LOG(LogTemp, Log, TEXT("Trace hit actor: %s"), *Hit.GetActor()->GetName());
 			interface->ReactToHit(BulletDamage, GetOwner());
+
 			Destroy();
 		}
 	}

@@ -9,14 +9,13 @@
 /**
  * 
  */
-class APlanePawn;
 UCLASS()
 class UPlaneHUD : public UUserWidget
 {
 	GENERATED_BODY()
 public:
 
-	void SetPlaneReference(APlanePawn* ref);
+	void SetPlaneReference(class APlanePawnPlayer* ref);
 	void ToggleScoreboard(bool status);
 	void DisplayDeathScreen();
 
@@ -36,7 +35,13 @@ protected:
 	virtual void NativeOnInitialized() override;
 
 	UFUNCTION()
+	void DisplayHitmarker();
+	UFUNCTION()
+	void HideHitmarker();
+	UFUNCTION()
 	void RemoveDeathScreen();
+
+protected:
 	UPROPERTY(meta = (BindWidget))
 		class UProgressBar* ThrottleBar;
 	UPROPERTY(meta = (BindWidget))
@@ -44,7 +49,13 @@ protected:
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<UUserWidget> CrosshairImageClass;
 	UPROPERTY(meta = (BindWidget))
-		class UTextBlock* AltitudeValue;
+		class URichTextBlock* AltitudeValue;
+	UPROPERTY(meta = (BindWidget))
+		class URichTextBlock* VelocityValue;
+	UPROPERTY(meta = (BindWidget))
+		class UImage* HitmarkerIcon;
+	UPROPERTY(meta = (BindWidget))
+		TObjectPtr<class UTotalScoreWidget> TotalScoreWidget;
 
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<class UScoreboardWidget> ScoreboardClass;
@@ -54,8 +65,10 @@ protected:
 		TSubclassOf<class UOutOfBoundsWidget> OutOfBoundsClass;
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<class USpawnMenuWidget> SpawnClass;
+	UPROPERTY(EditAnywhere, Category = "Hitmarker")
+		float DurationHitmarker = 0.3f;
 
-	APlanePawn* ControlledPlane;
+	TWeakObjectPtr<class APlanePawnPlayer> ControlledPlane;
 	float* ThrottleRef = NULL;
 	UUserWidget* CrosshairWidget = NULL;
 	TObjectPtr<class UScoreboardWidget> ScoreboardWidget;

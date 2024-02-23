@@ -160,6 +160,12 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Health")
 		TObjectPtr<class UHealthComponent> HealthComponent;
 
+	UPROPERTY(EditAnywhere, Category = "Crash")
+		float DamageTakenOnCrash = 20.0f;
+	UPROPERTY(EditAnywhere, Category = "Crash")
+		float ForceAppliedOnCrash = 2000.0f;
+
+
 	UPROPERTY(EditAnywhere, Category = "Plane Animation")
 		float PropellerRotationSpeed = 200.0f;
 	UPROPERTY(EditAnywhere, Category = "Plane Animation")

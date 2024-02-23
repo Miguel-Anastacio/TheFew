@@ -37,10 +37,10 @@ void AAIManager::PostInitializeComponents()
 		tgt->SetOwner(this);
 	}
 
-	//AArenaGameState* gameState = Cast<AArenaGameState>(GetWorld()->GetGameState());
-	//if (!IsValid(gameState))
-	//	return;
-	//gameState->InitTeamID(TeamA, TeamB);
+	AArenaGameState* gameState = Cast<AArenaGameState>(GetWorld()->GetGameState());
+	if (!IsValid(gameState))
+		return;
+	gameState->InitTeamID(TeamA, TeamB);
 	//gameState->InitTeamData(TeamA, TeamB);
 }
 

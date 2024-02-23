@@ -6,6 +6,7 @@
 #include "PlanePawn.h"
 #include "PlanePawnPlayer.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEnemyHitSignature);
 /**
  * 
  */
@@ -21,12 +22,17 @@ public:
 	void RespawnPlayer(const FVector& spawnLocation);
 	void RespawnPlayer();
 	void PlaneDeathSimple() override;
+public:
+	FOnEnemyHitSignature EnemyHitDelegate;
 protected:
+	void Tick(float dt) override;
 	void PlaneDeath(AActor* instigator) override;
 	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, 
 		const FHitResult& SweepResult) override;
 
 	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) override;
+
+	//void OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) override;
 
 protected:
 	UPROPERTY(EditAnywhere)

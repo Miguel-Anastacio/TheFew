@@ -16,6 +16,7 @@
 #include "Game/ArenaGameState.h"
 #include "PaperSpriteComponent.h"
 #include "Player/PlanePawnPlayer.h"
+
 APlanePawnAI::APlanePawnAI()
 {
 	DetectionVolume = CreateDefaultSubobject<UBoxComponent>("Detection Volume");
@@ -65,26 +66,44 @@ TObjectPtr<class UBoxComponent> APlanePawnAI::GetDetectionVolume()
 	return DetectionVolume;
 }
 
-void APlanePawnAI::OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
-{
-	if (!IsValid(OtherActor))
-		return;
-
-	if (OtherActor->ActorHasTag("Terrain"))
-	{
-		FVector current = GetActorLocation();
-		current.Z = 10000.f;
-		SetActorLocation(current);
-		if (GetOwner())
-		{
-			AAIManager* mgr = Cast<AAIManager>(GetOwner());
-			if(mgr)
-				mgr->IncreaseCrashes();
-		}
-		PlaneDeath(OtherActor);
-
-	}
-}
+//void APlanePawnAI::OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+//{
+//	if (!IsValid(OtherActor))
+//		return;
+//
+//	if (OtherActor->ActorHasTag("Terrain"))
+//	{
+//		if (GetOwner())
+//		{
+//			AAIManager* mgr = Cast<AAIManager>(GetOwner());
+//			if(mgr)
+//				mgr->IncreaseCrashes();
+//		}
+//		HealthComponent->TakeDamage(DamageTakenOnCrash, OtherActor);
+//		//PlaneDeath(OtherActor);
+//		return;
+//	}
+//	IReactToHitInterface* interface = Cast<IReactToHitInterface>(OtherActor);
+//
+//	if (interface)
+//	{
+//		if (interface->TeamID != TeamID)
+//		{
+//			HealthComponent->TakeDamage(DamageTakenOnCrash, OtherActor);
+//		}
+//
+//		APlanePawn* plane = Cast<APlanePawn>(OtherActor);
+//		if (plane && HealthComponent->IsAlive())
+//		{
+//			//UGameplayStatics::GetPlayerController(GetWorld(), 0)->SetViewTarget(this);
+//			FVector awayFromOtherPlane = GetActorLocation() - plane->GetActorLocation();
+//			awayFromOtherPlane.Normalize();
+//			PlaneBodyBox->AddImpulse(awayFromOtherPlane * ForceAppliedOnCrash, NAME_None, true);
+//
+//
+//		}
+//	}
+//}
 
 // NOT IN USE
 void APlanePawnAI::OnOverlapDetectionEnd(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
@@ -103,6 +122,17 @@ void APlanePawnAI::OnOverlapDetectionEnd(UPrimitiveComponent* OverlappedComp, AA
 	}
 }
 
+void APlanePawnAI::ReactToHit(float damage, AActor* instigator)
+{
+	Super::ReactToHit(damage, instigator);
+	APlanePawnPlayer* player = Cast<APlanePawnPlayer>(instigator);
+	if (IsValid(player))
+	{
+		player->EnemyHitDelegate.Broadcast();
+	}
+
+}
+
 void APlanePawnAI::PlaneDeath(AActor* instigator)
 {
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), BigExplosionEffect, GetActorLocation());
@@ -113,11 +143,6 @@ void APlanePawnAI::PlaneDeath(AActor* instigator)
 	{
 		Destroy();
 		return;
-	}
-
-	if (Cast<APlanePawnPlayer>(other))
-	{
-		int a = 0;
 	}
 
 	AArenaGameState* gameState = Cast<AArenaGameState>(GetWorld()->GetGameState());

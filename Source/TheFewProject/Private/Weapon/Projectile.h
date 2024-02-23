@@ -6,6 +6,7 @@
 #include "GameFramework/Actor.h"
 #include "Projectile.generated.h"
 
+
 class UCapsuleComponent;
 class UStaticMeshComponent;
 //class UParticleSystemComponent;
@@ -24,6 +25,7 @@ public:
 	
 	void SetTraceChannel(ECollisionChannel channel) { TraceChannelProperty = channel; };
 	void SetBulletDamage(float damage) { BulletDamage = damage; };
+
 
 protected:
 	// Called when the game starts or when spawned

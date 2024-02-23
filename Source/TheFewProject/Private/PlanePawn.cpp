@@ -417,9 +417,40 @@ void APlanePawn::PlaneDeathSimple()
 
 void APlanePawn::OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
 {
+	if (!IsValid(OtherActor))
+		return;
+
 	if (OtherActor->ActorHasTag("Terrain"))
 	{
-		HealthComponent->TakeDamage(10.0f, OtherActor);
+		if (GetOwner())
+		{
+			AAIManager* mgr = Cast<AAIManager>(GetOwner());
+			if (mgr)
+				mgr->IncreaseCrashes();
+		}
+		HealthComponent->TakeDamage(DamageTakenOnCrash, OtherActor);
+		//PlaneDeath(OtherActor);
+		return;
+	}
+	IReactToHitInterface* interface = Cast<IReactToHitInterface>(OtherActor);
+
+	if (interface)
+	{
+		if (interface->TeamID != TeamID)
+		{
+			HealthComponent->TakeDamage(DamageTakenOnCrash, OtherActor);
+		}
+
+		APlanePawn* plane = Cast<APlanePawn>(OtherActor);
+		if (plane && HealthComponent->IsAlive())
+		{
+			//UGameplayStatics::GetPlayerController(GetWorld(), 0)->SetViewTarget(this);
+			FVector awayFromOtherPlane = GetActorLocation() - plane->GetActorLocation();
+			awayFromOtherPlane.Normalize();
+			PlaneBodyBox->AddImpulse(awayFromOtherPlane * ForceAppliedOnCrash, NAME_None, true);
+
+
+		}
 	}
 }
 
@@ -465,13 +496,6 @@ void APlanePawn::Tick(float DeltaTime)
 	{
 		return;
 	}
-
-	if (!PlaneEngineAudioComponent->IsPlaying())
-	{
-		PlaneEngineAudioComponent->Play();
-	}
-
-	PlaneEngineAudioComponent->SetVolumeMultiplier(PlanePhysicsComponent->GetThrottle());
 
 }
 

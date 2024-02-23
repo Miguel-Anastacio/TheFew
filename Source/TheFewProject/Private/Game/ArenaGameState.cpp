@@ -5,6 +5,7 @@
 #include "PlanePawnAI.h"
 #include "UI/ScoreboardWidget.h"
 #include "UI/SpawnMenuWidget.h"
+#include "UI/TotalScoreWidget.h"
 void AArenaGameState::InitTeamData(const FTeam& teamA, const FTeam& teamB)
 {
 	TeamAData.ID = teamA.ID;
@@ -25,8 +26,12 @@ void AArenaGameState::InitTeamData(const FTeam& teamA, const FTeam& teamB)
 void AArenaGameState::InitTeamID(const FTeam& teamA, const FTeam& teamB)
 {
 	TeamAData.ID = teamA.ID;
+	TeamAData.TeamName = teamA.TeamName;
 	TeamBData.ID = teamB.ID;
+	TeamBData.TeamName = teamB.TeamName;
 }
+
+
 
 void AArenaGameState::UpdateTeamGameData(const FTeamGameData& data)
 {
@@ -108,10 +113,11 @@ void AArenaGameState::UpdateScoreboard(const FString& killer, const FString& vic
 {
 	FPlayerGameData killerData = IncreaseKills(killer);
 	FPlayerGameData victimData  = IncreaseDeaths(victim);
-	if (IsValid(ScoreboardWidget))
+	int killerID = GetPlayerTeamID(killer);
+	int victimID = GetPlayerTeamID(victim);
+
+	if (IsValid(ScoreboardWidget.Get()))
 	{
-		int killerID = GetPlayerTeamID(killer);
-		int victimID = GetPlayerTeamID(victim);
 		ScoreboardWidget->UpdateScoreboard(killer, killerData, GetPlayerTeamID(killer));
 		ScoreboardWidget->UpdateScoreboard(victim, victimData, GetPlayerTeamID(victim));
 
@@ -119,19 +125,40 @@ void AArenaGameState::UpdateScoreboard(const FString& killer, const FString& vic
 		if (killerID == TeamAData.ID && victimID == TeamBData.ID)
 		{
 			ScoreboardWidget->UpdateScoreboardTotal(TeamAData.Kills, killerID);
-			SpawMenuWidget->UpdateScoreboardTotal(TeamAData.Kills, killerID);
 			//ScoreboardWidget->UpdateScoreboardTotal(TeamBData.Kills, victimID);
 		}
 		else if (killerID == TeamBData.ID && victimID == TeamAData.ID)
 		{
 			ScoreboardWidget->UpdateScoreboardTotal(TeamBData.Kills, killerID);
-			SpawMenuWidget->UpdateScoreboardTotal(TeamBData.Kills, killerID);
 			//ScoreboardWidget->UpdateScoreboardTotal(TeamAData.Kills, victimID);
 		}
 
-		//ScoreboardWidget->UpdateScoreboardTotal()
-
 	}
+
+	if (IsValid(SpawMenuWidget.Get()))
+	{
+		if (killerID == TeamAData.ID && victimID == TeamBData.ID)
+		{
+			SpawMenuWidget->UpdateScoreboardTotal(TeamAData.Kills, killerID);
+		}
+		else if (killerID == TeamBData.ID && victimID == TeamAData.ID)
+		{
+			SpawMenuWidget->UpdateScoreboardTotal(TeamBData.Kills, killerID);
+		}
+	}
+
+	if (IsValid(HudScoreWidget.Get()))
+	{
+		if (killerID == TeamAData.ID && victimID == TeamBData.ID)
+		{
+			HudScoreWidget->UpdateTotalScore(TeamAData.Kills, killerID);
+		}
+		else if (killerID == TeamBData.ID && victimID == TeamAData.ID)
+		{
+			HudScoreWidget->UpdateTotalScore(TeamBData.Kills, killerID);
+		}
+	}
+
 }
 
 
@@ -182,4 +209,12 @@ void AArenaGameState::SetScoreboardWidgetRef(UScoreboardWidget* widget)
 void AArenaGameState::SetScoreboardSpawnWidgetRef(USpawnMenuWidget* widget)
 {
 	SpawMenuWidget = widget;
+}
+
+void AArenaGameState::SetHUDScoreWidgetRef(UTotalScoreWidget* widget)
+{
+	widget->InitTeamA(TeamAData.TeamName, TeamAData.Kills, TeamAData.ID);
+	widget->InitTeamB(TeamBData.TeamName, TeamBData.Kills, TeamBData.ID);
+	HudScoreWidget = widget;
+
 }

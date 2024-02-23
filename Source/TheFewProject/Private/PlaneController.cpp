@@ -94,12 +94,11 @@ void APlaneController::BeginPlay()
 void APlaneController::OnPossess(APawn* pawn)
 {
 	Super::OnPossess(pawn);
-	ControlledPlane = Cast<APlanePawn>(pawn);
+	ControlledPlane = Cast<APlanePawnPlayer>(pawn);
 
 	PlaneHUD = CreateWidget<UPlaneHUD>(this, PlaneHUDClass);
 	PlaneHUD->AddToViewport();
 	PlaneHUD->SetVisibility(ESlateVisibility::Collapsed);
-
 	PlaneHUD->SetPlaneReference(ControlledPlane);
 
 	//APlanePawnPlayer* player = Cast<APlanePawnPlayer>(ControlledPlane);

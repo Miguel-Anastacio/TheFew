@@ -25,17 +25,7 @@ public:
 
 protected:
 
-	UPROPERTY(meta = (BindWidget))
-		TObjectPtr<class URichTextBlock> TeamAName;
-
-	UPROPERTY(meta = (BindWidget))
-		TObjectPtr<class URichTextBlock> TeamAScore;
-
-	UPROPERTY(meta = (BindWidget))
-		TObjectPtr<class URichTextBlock> TeamBName;
-
-	UPROPERTY(meta = (BindWidget))
-		TObjectPtr<class URichTextBlock> TeamBScore;
+	void NativePreConstruct() override;
 
 	UPROPERTY(meta = (BindWidget))
 		TObjectPtr<class UVerticalBox> TeamABox;
@@ -44,11 +34,15 @@ protected:
 
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<class UPlayerScoreWidget> PlayerScoreWidgetClass;
+	//UPROPERTY(EditAnywhere)
+	//	TSubclassOf<class UTotalScoreWidget> TotalScoreWidgetClass;
 
 	TMap<FString, TObjectPtr<class UPlayerScoreWidget>> TeamAPlayerScores;
 
 	TMap<FString, TObjectPtr<class UPlayerScoreWidget>> TeamBPlayerScores;
 
+	UPROPERTY(meta = (BindWidget))
+	TObjectPtr<class UTotalScoreWidget> TotalScoreWidget;
 
 	int teamAID = 0;
 	int teamBID = 0;

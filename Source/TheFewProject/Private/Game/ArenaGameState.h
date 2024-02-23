@@ -29,13 +29,15 @@ public:
 
 	void SetScoreboardWidgetRef(class UScoreboardWidget* widget);
 	void SetScoreboardSpawnWidgetRef(class USpawnMenuWidget* widget);
+	void SetHUDScoreWidgetRef(class UTotalScoreWidget* widget);
 private:
 	UPROPERTY(VisibleAnywhere)
 	FTeamGameData TeamAData;
 	UPROPERTY(VisibleAnywhere)
 	FTeamGameData TeamBData;
 
-	TObjectPtr<class UScoreboardWidget> ScoreboardWidget;
-	TObjectPtr<class USpawnMenuWidget> SpawMenuWidget;
+	TWeakObjectPtr<class UScoreboardWidget> ScoreboardWidget;
+	TWeakObjectPtr <class USpawnMenuWidget> SpawMenuWidget;
+	TWeakObjectPtr <class UTotalScoreWidget> HudScoreWidget;
 
 };

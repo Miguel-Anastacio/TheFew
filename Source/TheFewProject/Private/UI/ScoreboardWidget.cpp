@@ -5,18 +5,21 @@
 #include "Components/RichTextBlock.h"
 #include "Components/VerticalBox.h"
 #include "UI/PlayerScoreWidget.h"
+#include "UI/TotalScoreWidget.h"
+void UScoreboardWidget::NativePreConstruct()
+{
+	/*Super::NativePreConstruct();
+	US*/
+}
 
 void UScoreboardWidget::InitTeamA(const FTeamGameData& team)
 {
 	teamAID = team.ID;
-	if (TeamAName)
+	if (TotalScoreWidget)
 	{
-		TeamAName->SetText(FText::FromString(team.TeamName));
+		TotalScoreWidget->InitTeamA(team.TeamName, team.Kills, team.ID);
 	}
-	if (TeamAScore)
-	{
-		TeamAScore->SetText(FText::AsNumber(team.Kills));
-	}
+
 	if (TeamABox)
 	{
 		for (auto& it : team.PlayersGameData)
@@ -25,7 +28,6 @@ void UScoreboardWidget::InitTeamA(const FTeamGameData& team)
 			widget->Init(it.Key, it.Value.Kills, it.Value.Deaths, it.Value.Score);
 			TeamABox->AddChildToVerticalBox(widget);
 			TeamAPlayerScores.Add(it.Key, widget);
-			//
 		}
 	}
 
@@ -34,13 +36,9 @@ void UScoreboardWidget::InitTeamA(const FTeamGameData& team)
 void UScoreboardWidget::InitTeamB(const FTeamGameData& team)
 {
 	teamBID = team.ID;
-	if (TeamBName)
+	if (TotalScoreWidget)
 	{
-		TeamBName->SetText(FText::FromString(team.TeamName));
-	}
-	if (TeamBScore)
-	{
-		TeamBScore->SetText(FText::AsNumber(team.Kills));
+		TotalScoreWidget->InitTeamB(team.TeamName, team.Kills, team.ID);
 	}
 
 	if (TeamBBox)
@@ -57,15 +55,10 @@ void UScoreboardWidget::InitTeamB(const FTeamGameData& team)
 
 void UScoreboardWidget::UpdateScoreboardTotal(int32 score, int32 teamID)
 {
-	if (teamID == teamAID)
-	{
-		TeamAScore->SetText(FText::AsNumber(score));
-	}
-	else if (teamID == teamBID)
-	{
-		TeamBScore->SetText(FText::AsNumber(score));
-	}
+	if(TotalScoreWidget)
+		TotalScoreWidget->UpdateTotalScore(score, teamID);
 }
+
 
 void UScoreboardWidget::UpdateScoreboard(const FString& playerName, const FPlayerGameData& data, int32 teamID)
 {

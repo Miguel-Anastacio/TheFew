@@ -99,7 +99,7 @@ protected:
 		TSubclassOf<UUserWidget> PlaneHUDClass;
 	UPlaneHUD* PlaneHUD;
 
-	APlanePawn* ControlledPlane;
+	TObjectPtr<class APlanePawnPlayer> ControlledPlane;
 
 	FVector SteeringInput;
 

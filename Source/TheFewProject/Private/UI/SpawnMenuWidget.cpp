@@ -2,41 +2,24 @@
 
 
 #include "UI/SpawnMenuWidget.h"
+#include "UI/TotalScoreWidget.h"
 #include "Components/RichTextBlock.h"
-void USpawnMenuWidget::InitTeamA(const FTeamGameData& team)
-{
-	teamAID = team.ID;
-	if (TeamAName)
-	{
-		TeamAName->SetText(FText::FromString(team.TeamName));
-	}
-	if (TeamAScore)
-	{
-		TeamAScore->SetText(FText::AsNumber(team.Kills));
-	}
-}
 
-void USpawnMenuWidget::InitTeamB(const FTeamGameData& team)
-{
-	teamBID = team.ID;
-	if (TeamBName)
-	{
-		TeamBName->SetText(FText::FromString(team.TeamName));
-	}
-	if (TeamBScore)
-	{
-		TeamBScore->SetText(FText::AsNumber(team.Kills));
-	}
-}
 
 void USpawnMenuWidget::UpdateScoreboardTotal(int32 score, int32 teamID)
 {
-	if (teamID == teamAID)
-	{
-		TeamAScore->SetText(FText::AsNumber(score));
-	}
-	else if (teamID == teamBID)
-	{
-		TeamBScore->SetText(FText::AsNumber(score));
-	}
+	if (TotalScoreWidget)
+		TotalScoreWidget->UpdateTotalScore(score, teamID);
+}
+
+void USpawnMenuWidget::InitTeamAData(const FString& teamName, int32 score, int32 teamID)
+{
+	if (TotalScoreWidget)
+		TotalScoreWidget->InitTeamA(teamName, score, teamID);
+}
+
+void USpawnMenuWidget::InitTeamBData(const FString& teamName, int32 score, int32 teamID)
+{
+	if (TotalScoreWidget)
+		TotalScoreWidget->InitTeamB(teamName, score, teamID);
 }
