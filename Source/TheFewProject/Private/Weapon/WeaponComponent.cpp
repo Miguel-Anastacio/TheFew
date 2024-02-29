@@ -46,7 +46,9 @@ void UWeaponComponent::FireBullet()
 	FActorSpawnParameters params;
 	//params.
 	FVector loc = this->GetComponentLocation();
-	AProjectile* bullet = GetWorld()->SpawnActor<AProjectile>(BulletTemplate, loc, FRotator(0, 0, 0), params);
+	FRotator rot = GetOwner()->GetActorRotation();
+	rot.Roll = 0;
+	AProjectile* bullet = GetWorld()->SpawnActor<AProjectile>(BulletTemplate, loc, rot, params);
 	bullet->SetOwner(this->GetOwner());
 	bullet->SetBulletDamage(DamagePerBullet);
 	AActor* plane = GetOwner();
@@ -64,6 +66,6 @@ void UWeaponComponent::FireBullet()
 
 	FVector end = dir * bullet->GetBulletSpeed() + GetComponentLocation();
 	bullet->SetBulletVelocity(dir);
-	//DrawDebugLine(GetWorld(), GetComponentLocation(), end, FColor::Green, false, 0.1f, 0, 1.0f);
+	//DrawDebugLine(GetWorld(), GetComponentLocation(), end, FColor::Green, false, 1.0f);
 }
 

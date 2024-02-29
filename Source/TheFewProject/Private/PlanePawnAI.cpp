@@ -16,6 +16,7 @@
 #include "Game/ArenaGameState.h"
 #include "PaperSpriteComponent.h"
 #include "Player/PlanePawnPlayer.h"
+#include "PlaneAIController.h"
 
 APlanePawnAI::APlanePawnAI()
 {
@@ -136,8 +137,6 @@ void APlanePawnAI::ReactToHit(float damage, AActor* instigator)
 void APlanePawnAI::PlaneDeath(AActor* instigator)
 {
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), BigExplosionEffect, GetActorLocation());
-	//PlaneBodyBox->AddForce(FVector(0, 0, -100000.0f));
-	//PlanePhysicsComponent->DestroyComponent();
 	APlanePawn* other = Cast<APlanePawn>(instigator);
 	if (!IsValid(other))
 	{
@@ -184,4 +183,14 @@ ESlateVisibility APlanePawnAI::GetWidgetVisibility()
 		return widget->GetVisibility();
 	}
 	return ESlateVisibility();
+}
+
+AActor* APlanePawnAI::GetTargetActor()
+{
+	APlaneAIController* controller = GetController<APlaneAIController>();
+	if (controller)
+	{
+		return controller->GetTargetActor();
+	}
+	return nullptr;
 }

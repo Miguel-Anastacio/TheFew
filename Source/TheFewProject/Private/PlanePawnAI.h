@@ -22,6 +22,8 @@ public:
 	void SetWidgetVisibility(ESlateVisibility visibiliy);
 	ESlateVisibility GetWidgetVisibility();
 
+	AActor* GetTargetActor();
+
 protected:
 	void BeginPlay() override;
 	//void OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) override;

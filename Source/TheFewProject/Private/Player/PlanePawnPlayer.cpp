@@ -62,6 +62,7 @@ void APlanePawnPlayer::RespawnPlayer(const FVector& spawnLocation)
 		controller->GetWidgetHUD()->UpdateHealthBar(1);
 	}
 
+	PlayerSpawnDelegate.Broadcast(this);
 }
 void APlanePawnPlayer::RespawnPlayer()
 {
@@ -94,6 +95,8 @@ void APlanePawnPlayer::RespawnPlayer()
 	{
 		controller->GetWidgetHUD()->UpdateHealthBar(1);
 	}
+
+	PlayerSpawnDelegate.Broadcast(this);
 }
 
 void APlanePawnPlayer::PlaneDeathSimple()

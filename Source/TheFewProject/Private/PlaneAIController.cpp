@@ -371,9 +371,9 @@ void APlaneAIController::PerformSweep(const FVector& forward, const FVector& rig
 						planeDetected->SetWidgetVisibility(current->GetWidgetVisibility());
 					}
 					SetTargetActorVisibility(ESlateVisibility::Collapsed);*/
-
 					TargetActor = planeDetected;
 					TimerChangeTargets = 0.0f; 
+					TargetShiftDelegate.Broadcast(TargetActor);
 				}
 			}
 		}

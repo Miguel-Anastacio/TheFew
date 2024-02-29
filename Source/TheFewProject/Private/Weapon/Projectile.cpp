@@ -118,6 +118,7 @@ void AProjectile::Tick(float DeltaTime)
 
 void AProjectile::SetBulletVelocity(FVector dir)
 {
-	CapsuleComponent->SetPhysicsLinearVelocity(dir * BulletSpeed);
+	AActor* plane = GetOwner();
+	CapsuleComponent->SetPhysicsLinearVelocity(dir * BulletSpeed + plane->GetVelocity());
 }
 

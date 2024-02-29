@@ -7,6 +7,8 @@
 
 #include "PlaneAIController.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnTargetShiftedSignature, AActor*, actor);
+
 UENUM(BlueprintType)
 enum AI_STATE
 {
@@ -32,6 +34,8 @@ public:
 	void ShowDebugInfo(FVector input);
 	void ShowDebugInfo();
 
+	FOnTargetShiftedSignature TargetShiftDelegate;
+		 
 	FORCEINLINE void SetPatrolDestination(AActor* dest) { PatrolDestination = dest; };
 protected:
 	virtual void Tick(float DeltaTime) override;

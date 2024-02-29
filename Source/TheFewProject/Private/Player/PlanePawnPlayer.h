@@ -7,6 +7,7 @@
 #include "PlanePawnPlayer.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnEnemyHitSignature);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnPlayerSpawnSignature, AActor*, player);
 /**
  * 
  */
@@ -24,6 +25,7 @@ public:
 	void PlaneDeathSimple() override;
 public:
 	FOnEnemyHitSignature EnemyHitDelegate;
+	FOnPlayerSpawnSignature PlayerSpawnDelegate;
 protected:
 	void Tick(float dt) override;
 	void PlaneDeath(AActor* instigator) override;

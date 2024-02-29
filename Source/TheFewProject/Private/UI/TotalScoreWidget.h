@@ -23,7 +23,7 @@ public:
 
 protected:
 
-	UPROPERTY(meta = (BindWidget))
+	/*UPROPERTY(meta = (BindWidget))
 		TObjectPtr<class URichTextBlock> TeamAName;
 
 	UPROPERTY(meta = (BindWidget))
@@ -33,9 +33,11 @@ protected:
 		TObjectPtr<class URichTextBlock> TeamBName;
 
 	UPROPERTY(meta = (BindWidget))
-		TObjectPtr<class URichTextBlock> TeamBScore;
-
-
+		TObjectPtr<class URichTextBlock> TeamBScore;*/
+	UPROPERTY(meta = (BindWidget))
+		TObjectPtr<class UStatisticWidget> TeamAWidget;
+	UPROPERTY(meta = (BindWidget))
+		TObjectPtr<class UStatisticWidget> TeamBWidget;
 	int teamAID = 0;
 	int teamBID = 0;
 
