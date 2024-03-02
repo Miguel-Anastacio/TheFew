@@ -29,6 +29,10 @@ public:
 	UFUNCTION()
 	void UpdateHealthBar(float currentPercent);
 
+	void FocusActiveWidget();
+	UFUNCTION(BlueprintCallable)
+		void SetActiveWidget(UUserWidget* widget);
+
 protected:
 	virtual void NativeConstruct() override;
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
@@ -40,6 +44,11 @@ protected:
 	void HideHitmarker();
 	UFUNCTION()
 	void RemoveDeathScreen();
+
+	UFUNCTION()
+		void DisplayEndOfRound();
+
+
 
 protected:
 	UPROPERTY(meta = (BindWidget))
@@ -57,6 +66,14 @@ protected:
 	UPROPERTY(meta = (BindWidget))
 		TObjectPtr<class UTotalScoreWidget> TotalScoreWidget;
 
+	// Game Timer
+	UPROPERTY(meta = (BindWidget))
+		class URichTextBlock* MinutesText;
+	UPROPERTY(meta = (BindWidget))
+		class URichTextBlock* SecondsText;
+
+	TWeakObjectPtr<class AArenaGameState> GameState;
+
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<class UScoreboardWidget> ScoreboardClass;
 	UPROPERTY(EditAnywhere)
@@ -65,6 +82,8 @@ protected:
 		TSubclassOf<class UOutOfBoundsWidget> OutOfBoundsClass;
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<class USpawnMenuWidget> SpawnClass;
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class UEndOfRoundWidget> EndOfRoundClass;
 	UPROPERTY(EditAnywhere, Category = "Hitmarker")
 		float DurationHitmarker = 0.3f;
 
@@ -75,6 +94,11 @@ protected:
 	TObjectPtr<class UDeathWidget> DeathWidget;
 	TObjectPtr<class UOutOfBoundsWidget> OutOfBoundsWidget;
 	TObjectPtr<class USpawnMenuWidget> SpawnMenuWidget;
+	TObjectPtr<class UEndOfRoundWidget> EndOfRoundWidget;
+
+	TWeakObjectPtr<UUserWidget> ActiveWidget;
+
+	FTimerHandle DeathTimerHandle;
 	// health bar
 	
 };

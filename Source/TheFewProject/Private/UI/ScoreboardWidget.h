@@ -23,14 +23,16 @@ public:
 	void UpdateScoreboard(const FString& playerName, const FPlayerGameData& data, int32 teamID);
 	void UpdateScoreboardTotal(int32 score, int32 teamID);
 
+	void SetBoxSize();
+
 protected:
 
 	void NativePreConstruct() override;
 
 	UPROPERTY(meta = (BindWidget))
-		TObjectPtr<class UVerticalBox> TeamABox;
+		TObjectPtr<class UScrollBox> TeamABox;
 	UPROPERTY(meta = (BindWidget))
-		TObjectPtr<class UVerticalBox> TeamBBox;
+		TObjectPtr<class UScrollBox> TeamBBox;
 
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<class UPlayerScoreWidget> PlayerScoreWidgetClass;

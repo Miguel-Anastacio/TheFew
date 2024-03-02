@@ -11,6 +11,7 @@
 #include "Components/HealthComponent.h"
 #include "Components/PrimitiveComponent.h"
 #include "Components/AudioComponent.h"
+
 void APlanePawnPlayer::PostInitializeComponents()
 {
 	Super::PostInitializeComponents();
@@ -135,10 +136,10 @@ void APlanePawnPlayer::PlaneDeathSimple()
 void APlanePawnPlayer::Tick(float dt)
 {
 	Super::Tick(dt);
-	if (!PlaneEngineAudioComponent->IsPlaying())
-	{
-		PlaneEngineAudioComponent->Play();
-	}
+	//if (!PlaneEngineAudioComponent->IsPlaying())
+	//{
+	//	PlaneEngineAudioComponent->Play();
+	//}
 
 	PlaneEngineAudioComponent->SetVolumeMultiplier(PlanePhysicsComponent->GetThrottle());
 }
@@ -237,38 +238,7 @@ void APlanePawnPlayer::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor*
 	}
 }
 
-//void APlanePawnPlayer::OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
-//{
-//	if (!IsValid(OtherActor))
-//		return;
-//
-//	if (OtherActor->ActorHasTag("Terrain"))
-//	{
-//		if (GetOwner())
-//		{
-//			AAIManager* mgr = Cast<AAIManager>(GetOwner());
-//			if (mgr)
-//				mgr->IncreaseCrashes();
-//		}
-//		HealthComponent->TakeDamage(DamageTakenOnCrash, OtherActor);
-//		//PlaneDeath(OtherActor);
-//		return;
-//	}
-//	IReactToHitInterface* interface = Cast<IReactToHitInterface>(OtherActor);
-//
-//	if (interface)
-//	{
-//		if (interface->TeamID != TeamID)
-//		{
-//			HealthComponent->TakeDamage(DamageTakenOnCrash, OtherActor);
-//		}
-//
-//		APlanePawn* plane = Cast<APlanePawn>(OtherActor);
-//		if (plane && HealthComponent->IsAlive())
-//		{
-//			//UGameplayStatics::GetPlayerController(GetWorld(), 0)->SetViewTarget(this);
-//			FVector awayFromOtherPlane = GetActorLocation() - plane->GetActorLocation();
-//			awayFromOtherPlane.Normalize();
-//			PlaneBodyBox->AddImpulse(awayFromOtherPlane * ForceAppliedOnCrash, NAME_None, true);
-//		}
-//}
+void APlanePawnPlayer::OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
+{
+	Super::OnCompHit(HitComp, OtherActor, OtherComp, NormalImpulse, Hit);
+}

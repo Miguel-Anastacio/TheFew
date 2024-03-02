@@ -3,7 +3,7 @@
 
 #include "UI/ScoreboardWidget.h"
 #include "Components/RichTextBlock.h"
-#include "Components/VerticalBox.h"
+#include "Components/ScrollBox.h"
 #include "UI/PlayerScoreWidget.h"
 #include "UI/TotalScoreWidget.h"
 void UScoreboardWidget::NativePreConstruct()
@@ -22,11 +22,25 @@ void UScoreboardWidget::InitTeamA(const FTeamGameData& team)
 
 	if (TeamABox)
 	{
+		int maxLength = 25;
+		for (auto& it : team.PlayersGameData)
+		{
+			if (it.Key.Len() > maxLength)
+				maxLength = it.Key.Len();
+		}
+
 		for (auto& it : team.PlayersGameData)
 		{
 			UPlayerScoreWidget* widget = CreateWidget<UPlayerScoreWidget>(GetOwningPlayer(), PlayerScoreWidgetClass);
-			widget->Init(it.Key, it.Value.Kills, it.Value.Deaths, it.Value.Score);
-			TeamABox->AddChildToVerticalBox(widget);
+			const int dif = maxLength - it.Key.Len();
+			FString name = it.Key;
+			for(int i = 0; i < dif; i++)
+			{
+				name += " ";
+			}
+
+			widget->Init(name, it.Value.Kills, it.Value.Deaths, it.Value.Score);
+			TeamABox->AddChild(widget);
 			TeamAPlayerScores.Add(it.Key, widget);
 		}
 	}
@@ -43,11 +57,23 @@ void UScoreboardWidget::InitTeamB(const FTeamGameData& team)
 
 	if (TeamBBox)
 	{
+		int maxLength = 0;
+		for (auto& it : team.PlayersGameData)
+		{
+			if (it.Key.Len() > maxLength)
+				maxLength = it.Key.Len();
+		}
 		for (auto& it : team.PlayersGameData)
 		{
 			UPlayerScoreWidget* widget = CreateWidget<UPlayerScoreWidget>(GetOwningPlayer(), PlayerScoreWidgetClass);
-			widget->Init(it.Key, it.Value.Kills, it.Value.Deaths, it.Value.Score);
-			TeamBBox->AddChildToVerticalBox(widget);
+			const int dif = maxLength - it.Key.Len();
+			FString name = it.Key;
+			for (int i = 0; i < dif; i++)
+			{
+				name += " ";
+			}
+			widget->Init(name, it.Value.Kills, it.Value.Deaths, it.Value.Score);
+			TeamBBox->AddChild(widget);
 			TeamBPlayerScores.Add(it.Key, widget);
 		}
 	}
@@ -57,6 +83,14 @@ void UScoreboardWidget::UpdateScoreboardTotal(int32 score, int32 teamID)
 {
 	if(TotalScoreWidget)
 		TotalScoreWidget->UpdateTotalScore(score, teamID);
+}
+
+void UScoreboardWidget::SetBoxSize()
+{
+	/*if (TeamABox)
+	{
+		Te
+	}*/
 }
 
 

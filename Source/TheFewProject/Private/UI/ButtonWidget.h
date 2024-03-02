@@ -15,6 +15,7 @@ class UButtonWidget : public UUserWidget
 	GENERATED_BODY()
 
 public:
+	UFUNCTION(BlueprintCallable)
 	class UButton* GetButton() { return Button; };
 	virtual void NativePreConstruct() override;
 

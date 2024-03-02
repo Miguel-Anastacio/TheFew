@@ -14,22 +14,34 @@ UCLASS()
 class UMainMenuWidget : public UUserWidget
 {
 	GENERATED_BODY()
-
+public:
+	UFUNCTION(BlueprintCallable)
+		void AsyncLevelLoad(const FString& levelDir, const FString& levelName);
 protected:
+	UFUNCTION()
+		void OnPreheatFinished();
 	//virtual void NativeConstruct() override;
 	//virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 	virtual void NativeOnInitialized() override;
-
+	void AsyncLevelLoadFinished(const FString& LevelName);
+	//void PlayLoadAnimation();
 	UFUNCTION()
 		void StartGame();
-	
 	UFUNCTION()
 		void QuitGame();
-	UPROPERTY(EditAnywhere, meta = (BindWidget))
+	UPROPERTY(EditAnywhere, meta = (BindWidget), BlueprintReadWrite)
 		TObjectPtr<UButtonWidget> StartButton;
-	UPROPERTY(meta = (BindWidget))
+	UPROPERTY(meta = (BindWidget), BlueprintReadWrite)
 		TObjectPtr<UButtonWidget> QuitButton;
 
+
 	UPROPERTY(EditAnywhere, Category = "Start Level")
-	FName StartLevelName;
+	FString StartLevelName;
+	UPROPERTY(EditAnywhere, Category = "Start Level")
+	FString LevelDirectory;
+
+	FString LevelName;
+	UPROPERTY(meta = (BindWiget))
+	class UCircularThrobber* LoadIndicator;
+
 };

@@ -17,6 +17,7 @@ class APlanePawnPlayer : public APlanePawn
 	GENERATED_BODY()
 	
 public:
+	//APlanePawnPlayer();
 	void PostInitializeComponents() override;
 	void BeginPlay() override;
 	UFUNCTION(BlueprintCallable)
@@ -34,12 +35,13 @@ protected:
 
 	void OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex) override;
 
-	//void OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) override;
+	void OnCompHit(UPrimitiveComponent* HitComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit) override;
 
 protected:
+	//UPROPERTY(EditAnywhere, Category = "UI")
+	//	TObjectPtr<class  UWidgetInteractionComponent> WidgetInteractionComponent;
 	UPROPERTY(EditAnywhere)
 		FVector InitialVelocity = FVector(1000, 0, 600);
-
 	FTimerHandle OutOfBoundsTimerHandle;
 
 	FRotator InitalRotation;

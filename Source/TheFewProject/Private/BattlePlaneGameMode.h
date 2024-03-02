@@ -37,6 +37,7 @@ public:
 	FOnPlayerStateChangeSignatureSimple EndOfRoundStateDelegate;
 protected:
 	void PostInitializeComponents() override;
+	void BeginPlay() override;
 	UFUNCTION()
 		void SwitchStateFunction(PlayerGameState state);
 
@@ -46,5 +47,8 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "State")
 		TEnumAsByte<PlayerGameState> CurrentState;
+
+
+
 	
 };

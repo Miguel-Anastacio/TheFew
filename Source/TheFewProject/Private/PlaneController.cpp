@@ -59,6 +59,7 @@ void APlaneController::SetupInputComponent()
 
 		// Menu actions
 		EnhancedInputComponent->BindAction(MouseClickAction, ETriggerEvent::Started, this, &APlaneController::MouseClick);
+		EnhancedInputComponent->BindAction(ControllerInputUIAction, ETriggerEvent::Started, this, &APlaneController::ControllerInputUI);
 	}
 }
 
@@ -83,6 +84,7 @@ void APlaneController::BeginPlay()
 	{
 		gameMode->PlayingStateDelegate.AddDynamic(this, &APlaneController::TransitionSpawnToPlaying);
 		gameMode->SpawnMenuStateDelegate.AddDynamic(this, &APlaneController::FocusOnMap);
+		gameMode->EndOfRoundStateDelegate.AddDynamic(this, &APlaneController::TransitionToEndOFRound);
 	}
 
 	if (IsValid(LandscapeActor))
@@ -216,14 +218,19 @@ void APlaneController::MouseClick()
 	}
 }
 
+void APlaneController::ControllerInputUI()
+{
+	PlaneHUD->FocusActiveWidget();
+}
+
 void APlaneController::TransitionSpawnToPlaying(const FVector& location)
 {
-	APlanePawnPlayer* player = Cast<APlanePawnPlayer>(ControlledPlane);
-	if (IsValid(player))
+	//APlanePawnPlayer* player = Cast<APlanePawnPlayer>(ControlledPlane);
+	if (IsValid(ControlledPlane))
 	{
 		PlaneHUD->RemoveSpawnScreen();
 		
-		player->RespawnPlayer(location);
+		ControlledPlane->RespawnPlayer(location);
 
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(this->GetLocalPlayer()))
 		{
@@ -233,7 +240,7 @@ void APlaneController::TransitionSpawnToPlaying(const FVector& location)
 		}
 
 		SetShowMouseCursor(false);
-		this->SetViewTargetWithBlend(player, TimeSpawnToPlayCameraTransition);
+		this->SetViewTargetWithBlend(ControlledPlane, TimeSpawnToPlayCameraTransition);
 	}
 }
 
@@ -251,6 +258,13 @@ void APlaneController::FocusOnMap()
 		Subsystem->AddMappingContext(UIMappingContext, 1);
 	}
 	//Subsystem->AddMappingContext(UIMappingContext, 1);
+}
+
+void APlaneController::TransitionToEndOFRound()
+{
+	FocusOnMap();
+	//Pause();
+	ControlledPlane->PlaneDeathSimple();
 }
 
 void APlaneController::ChangeFocusedPlane(const FInputActionInstance& Instance)

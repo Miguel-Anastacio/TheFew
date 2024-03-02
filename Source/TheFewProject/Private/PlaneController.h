@@ -49,12 +49,15 @@ protected:
 	void ToggleScoreboard();
 
 	void MouseClick();
+	void ControllerInputUI();
 
 	// functions bound to game mode state transitions
 	UFUNCTION()
 	void TransitionSpawnToPlaying(const FVector& location);
 	UFUNCTION()
 		void FocusOnMap();
+	UFUNCTION()
+		void TransitionToEndOFRound();
 protected:
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -85,6 +88,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		UInputAction* MouseClickAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		UInputAction* ControllerInputUIAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		FVector2D MovementDeadzone = FVector2D(0.1, 0.1);
@@ -97,6 +102,7 @@ protected:
 	// UI
 	UPROPERTY(EditAnywhere, Category = "UI")
 		TSubclassOf<UUserWidget> PlaneHUDClass;
+	UPROPERTY(BlueprintReadWrite)
 	UPlaneHUD* PlaneHUD;
 
 	TObjectPtr<class APlanePawnPlayer> ControlledPlane;

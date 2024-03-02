@@ -51,6 +51,9 @@ protected:
 		void OnPlayerDeath(AActor* player);
 
 
+	UFUNCTION()
+		void OnGameEnd();
+
 	void SpawnTeam(FTeam& team, const FVector& offsetSpawn, const FRotator& rot = FRotator(0, 0, 0));
 	void InitTeamTargets(FTeam& team1, FTeam& team2);
 	
@@ -95,5 +98,6 @@ protected:
 	int PlaneSelectedIndex = -1;
 	int CurrentTeamID = 0;
 
+	bool GameActive = true;
 	friend class APlanePhysicsDebugHUD;
 };

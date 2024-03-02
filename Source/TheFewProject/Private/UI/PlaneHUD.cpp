@@ -14,6 +14,7 @@
 #include "UI/DeathWidget.h"
 #include "UI/OutOfBoundsWidget.h"
 #include "UI/SpawnMenuWidget.h"
+#include "UI/EndOfRoundWidget.h"
 //#include "UI/TotalScoreWidget.h"
 #include "Game/ArenaGameState.h"
 #include "BattlePlaneGameMode.h"
@@ -34,12 +35,16 @@ void UPlaneHUD::NativeOnInitialized()
 	if (IsValid(gameMode))
 	{
 		gameMode->SpawnMenuStateDelegate.AddDynamic(this, &UPlaneHUD::DisplaySpawnScreen);
+		gameMode->EndOfRoundStateDelegate.AddDynamic(this, &UPlaneHUD::DisplayEndOfRound);
 	}
 	AArenaGameState* gameState = Cast<AArenaGameState>(GetWorld()->GetGameState());
 	if (gameState)
 	{
 		/*TotalScoreWidget*/
 		gameState->SetHUDScoreWidgetRef(TotalScoreWidget);
+
+		//GameTimer = gameState->
+		GameState = gameState;
 	}
 }
 
@@ -63,6 +68,22 @@ void UPlaneHUD::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 		AltitudeValue->SetText(FText::AsNumber(int(ControlledPlane->GetActorLocation().Z * 0.01)));
 		int Velocity = ControlledPlane->GetVelocity().Size();
 		VelocityValue->SetText(FText::AsNumber(Velocity));
+	}
+
+	if (GameState.Get())
+	{
+		float timer = GameState.Get()->GameTimer;
+		int minutes = FMath::FloorToInt(timer / 60.f);
+		int seconds = (int)timer % 60;
+
+		if (MinutesText)
+		{
+			MinutesText->SetText(FText::AsNumber(minutes));
+		}
+		if (SecondsText)
+		{
+			SecondsText->SetText(FText::AsNumber(seconds));
+		}
 	}
 }
 
@@ -108,6 +129,8 @@ void UPlaneHUD::ToggleScoreboard(bool status)
 		{
 			ScoreboardWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
 		}
+
+		ActiveWidget = ScoreboardWidget;
 	}
 	else
 	{
@@ -141,9 +164,12 @@ void UPlaneHUD::DisplayDeathScreen()
 		DeathWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
 		//DeathWidget->AddToViewport();
 		DeathWidget->ResetTimer();
-		FTimerHandle timer;
-		GetWorld()->GetTimerManager().SetTimer(timer, this, &UPlaneHUD::RemoveDeathScreen, DeathWidget->Lifetime, false);
+		//FTimerHandle timer;
+		GetWorld()->GetTimerManager().SetTimer(DeathTimerHandle, this, &UPlaneHUD::RemoveDeathScreen, DeathWidget->Lifetime, false);
+
+		ActiveWidget = DeathWidget;
 	}
+
 }
 
 void UPlaneHUD::DisplayOutOfBoundsWidget()
@@ -162,6 +188,7 @@ void UPlaneHUD::DisplayOutOfBoundsWidget()
 		OutOfBoundsWidget->ResetTimer();
 		//FTimerHandle timer;
 		//GetWorld()->GetTimerManager().SetTimer(timer, this, &UPlaneHUD::RemoveDeathScreen, DeathWidget->Lifetime, false);
+		ActiveWidget = OutOfBoundsWidget;
 	}
 }
 
@@ -203,6 +230,8 @@ void UPlaneHUD::DisplaySpawnScreen()
 		//CrosshairWidget->SetVisibility(ESlateVisibility::Collapsed);
 		if(DeathWidget)
 			DeathWidget->SetVisibility(ESlateVisibility::Collapsed);
+
+		ActiveWidget = SpawnMenuWidget;
 	}
 }
 
@@ -210,7 +239,7 @@ void UPlaneHUD::RemoveSpawnScreen()
 {
 	if (SpawnMenuWidget)
 	{
-		SpawnMenuWidget->RemoveFromViewport();
+		//SpawnMenuWidget->RemoveFromViewport();
 		SpawnMenuWidget->RemoveFromParent();
 		this->SetVisibility(ESlateVisibility::HitTestInvisible);
 		CrosshairWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
@@ -236,9 +265,48 @@ void UPlaneHUD::RemoveDeathScreen()
 	}
 }
 
+void UPlaneHUD::DisplayEndOfRound()
+{
+	ToggleScoreboard(true);
+	if (!IsValid(EndOfRoundWidget))
+	{
+		EndOfRoundWidget = CreateWidget<UEndOfRoundWidget>(GetOwningPlayer(), EndOfRoundClass);
+		EndOfRoundWidget->AddToViewport();
+	}
+
+	if (OutOfBoundsWidget)
+		OutOfBoundsWidget->SetVisibility(ESlateVisibility::Collapsed);
+	//if (ScoreboardWidget)
+	//	ScoreboardWidget->SetVisibility(ESlateVisibility::Collapsed);
+	if(DeathWidget)
+		DeathWidget->SetVisibility(ESlateVisibility::Collapsed);
+
+	if (SpawnMenuWidget)
+		SpawnMenuWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+
+	HideHitmarker();
+
+	this->SetVisibility(ESlateVisibility::Collapsed);
+	CrosshairWidget->SetVisibility(ESlateVisibility::Collapsed);
+	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
+
+	ActiveWidget = EndOfRoundWidget;
+}
+
 void UPlaneHUD::UpdateHealthBar(float currentPercent)
 {
 	HealthBar->SetPercent(currentPercent);
+}
+
+void UPlaneHUD::FocusActiveWidget()
+{
+	if (ActiveWidget.Get())
+		ActiveWidget->SetKeyboardFocus();
+}
+
+void UPlaneHUD::SetActiveWidget(UUserWidget* widget)
+{
+	ActiveWidget = widget;
 }
 
 void UPlaneHUD::DisplayHitmarker()

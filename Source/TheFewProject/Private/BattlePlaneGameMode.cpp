@@ -14,6 +14,11 @@ void ABattlePlaneGameMode::PostInitializeComponents()
 
 }
 
+void ABattlePlaneGameMode::BeginPlay()
+{
+	Super::BeginPlay();
+}
+
 void ABattlePlaneGameMode::SwitchStateFunction(PlayerGameState state)
 {
 	/*switch (CurrentState)

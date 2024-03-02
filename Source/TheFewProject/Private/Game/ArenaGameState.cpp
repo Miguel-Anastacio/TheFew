@@ -6,6 +6,14 @@
 #include "UI/ScoreboardWidget.h"
 #include "UI/SpawnMenuWidget.h"
 #include "UI/TotalScoreWidget.h"
+#include "Kismet/GameplayStatics.h"
+#include "BattlePlaneGameMode.h"
+AArenaGameState::AArenaGameState()
+{
+	PrimaryActorTick.bStartWithTickEnabled = true;
+	PrimaryActorTick.bCanEverTick = true;
+
+}
 void AArenaGameState::InitTeamData(const FTeam& teamA, const FTeam& teamB)
 {
 	TeamAData.ID = teamA.ID;
@@ -21,6 +29,8 @@ void AArenaGameState::InitTeamData(const FTeam& teamA, const FTeam& teamB)
 	{
 		TeamBData.PlayersGameData.Add(it->GetGameName(), FPlayerGameData());
 	}
+
+	GameTimer = MaxTime;
 }
 
 void AArenaGameState::InitTeamID(const FTeam& teamA, const FTeam& teamB)
@@ -59,6 +69,27 @@ void AArenaGameState::AddPlayerToTeam(const FString& playerName, int32 id)
 		if (TeamBData.PlayersGameData.Find(playerName) == NULL)
 		{
 			TeamBData.PlayersGameData.Add(playerName, FPlayerGameData());
+		}
+	}
+}
+
+void AArenaGameState::BeginPlay()
+{
+	Super::BeginPlay();
+	PrimaryActorTick.bCanEverTick = true;
+}
+
+void AArenaGameState::Tick(float dt)
+{
+	Super::Tick(dt);
+	GameTimer -= dt;
+	if (GameTimer <= 0)
+	{
+		ABattlePlaneGameMode* gameMode = Cast< ABattlePlaneGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+		if (IsValid(gameMode))
+		{
+			gameMode->EndOfRoundStateDelegate.Broadcast();
+			PrimaryActorTick.bCanEverTick = false;
 		}
 	}
 }
@@ -156,6 +187,15 @@ void AArenaGameState::UpdateScoreboard(const FString& killer, const FString& vic
 		else if (killerID == TeamBData.ID && victimID == TeamAData.ID)
 		{
 			HudScoreWidget->UpdateTotalScore(TeamBData.Kills, killerID);
+		}
+	}
+
+	if (TeamAData.Kills >= MaxKills || TeamBData.Kills >= MaxKills)
+	{
+		ABattlePlaneGameMode* gameMode = Cast< ABattlePlaneGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+		if (IsValid(gameMode))
+		{
+			gameMode->EndOfRoundStateDelegate.Broadcast();
 		}
 	}
 

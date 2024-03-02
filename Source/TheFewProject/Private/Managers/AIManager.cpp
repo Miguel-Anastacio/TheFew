@@ -9,7 +9,7 @@
 #include "Components/SlateWrapperTypes.h"
 #include "Player/PlanePawnPlayer.h"
 #include "Components/HealthComponent.h"
-
+#include "BattlePlaneGameMode.h"
 // Sets default values
 AAIManager::AAIManager()
 {
@@ -41,6 +41,11 @@ void AAIManager::PostInitializeComponents()
 	if (!IsValid(gameState))
 		return;
 	gameState->InitTeamID(TeamA, TeamB);
+
+	ABattlePlaneGameMode* gameMode = Cast<ABattlePlaneGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+	if (!IsValid(gameMode))
+		return;
+	gameMode->EndOfRoundStateDelegate.AddDynamic(this, &AAIManager::OnGameEnd);
 	//gameState->InitTeamData(TeamA, TeamB);
 }
 
@@ -51,10 +56,6 @@ void AAIManager::BeginPlay()
 	APlaneController* controllerPlayer = Cast<APlaneController>(UGameplayStatics::GetPlayerController(GetWorld(), 0));
 	controllerPlayer->InitDebugVariables(LevelLandscape, this);
 
-	SpawnTeam(TeamA, SpawnOffsetA);
-	SpawnTeam(TeamB, SpawnOffsetB, FRotator(0, 180, 0));
-	InitTeamTargets(TeamA, TeamB);
-
 	APlanePawnPlayer* player = Cast<APlanePawnPlayer>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
 	if (!IsValid(player))
 		return;
@@ -62,6 +63,11 @@ void AAIManager::BeginPlay()
 	player->GetHealthComponent()->ActorDeathDelegate.AddDynamic(this, &AAIManager::OnPlayerDeath);
 	//player->GetHealthComponent()->ActorSimpleDeathDelegate.AddDynamic();
 	TeamA.AIActors.Add(player);
+
+	SpawnTeam(TeamA, SpawnOffsetA);
+	SpawnTeam(TeamB, SpawnOffsetB, FRotator(0, 180, 0));
+	InitTeamTargets(TeamA, TeamB);
+
 
 	AArenaGameState* gameState = Cast<AArenaGameState>(GetWorld()->GetGameState());
 	if (!IsValid(gameState))
@@ -71,7 +77,6 @@ void AAIManager::BeginPlay()
 	RemoveElementFromTeam(TeamA, player->GetGameName());
 
 	TeamDataInitDelegate.Broadcast();
-
 
 	CurrentTeamID = TeamB.ID;
 }
@@ -111,6 +116,9 @@ void AAIManager::Tick(float DeltaTime)
 
 void AAIManager::OnAIDestroyed(AActor* actor)
 {
+	if (!GameActive)
+		return;
+
 	APlanePawnAI* actorAI = Cast<APlanePawnAI>(actor);
 	if (!IsValid(actorAI))
 		return;
@@ -148,7 +156,6 @@ void AAIManager::OnPlayerSpawn(AActor* player)
 {
 	APlanePawn* plane = Cast<APlanePawn>(player);
 	TeamA.AIActors.Add(plane);
-	int i = 0;
 	int maxTries = 10;
 	TMap<int, bool> indexUsed;
 	CurrentEnemiesTargetingPlayer = TeamMembersTargetingActor(TeamB, player);
@@ -188,6 +195,24 @@ void AAIManager::OnAITargetShifted(AActor* actor)
 	//}
 
 	CurrentEnemiesTargetingPlayer = TeamMembersTargetingActor(TeamB, UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
+}
+
+void AAIManager::OnGameEnd()
+{
+	GameActive = false;
+	for (auto& actor : TeamA.AIActors)
+	{
+		actor->Destroy();
+		actor = NULL;
+	}
+	TeamA.AIActors.Empty();
+	for (auto& actor : TeamB.AIActors)
+	{
+		actor->Destroy();
+		actor = NULL;
+	}
+	TeamB.AIActors.Empty();
+
 }
 
 void AAIManager::SpawnTeam(FTeam& team, const FVector& spawnOffset, const FRotator& rot)
