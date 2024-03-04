@@ -213,6 +213,9 @@ void AAIManager::OnGameEnd()
 	}
 	TeamB.AIActors.Empty();
 
+	TeamA.SpawnQueue.Empty();
+	TeamB.SpawnQueue.Empty();
+
 }
 
 void AAIManager::SpawnTeam(FTeam& team, const FVector& spawnOffset, const FRotator& rot)
@@ -230,7 +233,6 @@ void AAIManager::SpawnTeam(FTeam& team, const FVector& spawnOffset, const FRotat
 
 void AAIManager::InitTeamTargets(FTeam& team1, FTeam& team2)
 {
-
 	for (auto& actor : team1.AIActors)
 	{
 		APlaneAIController* controller = actor->GetController<APlaneAIController>();

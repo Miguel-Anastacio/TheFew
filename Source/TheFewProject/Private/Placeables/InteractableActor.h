@@ -34,7 +34,7 @@ protected:
 	UPROPERTY(EditAnywhere, Category = "Mesh")
 		TObjectPtr<class UStaticMeshComponent> MeshComponent;
 	UPROPERTY(EditAnywhere, Category = "UI")
-		TObjectPtr<class UWidgetComponent> WidgetComponent;
+		TObjectPtr<class  UWidgetComponent> WidgetComponent;
 
 
 

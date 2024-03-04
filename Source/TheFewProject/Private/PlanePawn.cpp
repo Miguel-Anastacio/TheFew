@@ -162,8 +162,10 @@ void APlanePawn::BeginPlay()
 		LeftWheelCollider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		RightWheelCollider->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		BackWheel->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+		//FrontLeftWheelCapsule->Deactivate();
+		LeftLandingGearRoot->SetRelativeRotation(FRotator(0, 0, 0));
+		RightLandingGearRoot->SetRelativeRotation(FRotator(0, 0, 0));
 	}
-
 
 	LeftTrail->SetSpeedForMaxTrail(SpeedForMaxFOV);
 	RightTrail->SetSpeedForMaxTrail(SpeedForMaxFOV);

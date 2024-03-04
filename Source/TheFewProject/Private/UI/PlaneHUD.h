@@ -30,6 +30,7 @@ public:
 	void UpdateHealthBar(float currentPercent);
 
 	void FocusActiveWidget();
+	void UnFocusActiveWidget();
 	UFUNCTION(BlueprintCallable)
 		void SetActiveWidget(UUserWidget* widget);
 

@@ -39,11 +39,14 @@ void UMainMenuWidget::OnPreheatFinished()
 
 void UMainMenuWidget::NativeOnInitialized()
 {
+	Super::NativeOnInitialized();
 	if (IsValid(StartButton))
 	{
 		UButton* button = StartButton->GetButton();
 		if (IsValid(button))
 			button->OnClicked.AddDynamic(this, &UMainMenuWidget::StartGame);
+		
+		StartButton->UIInputActionDelegate.AddDynamic(this, &UMainMenuWidget::StartGame);
 	}
 
 	if (IsValid(QuitButton))
@@ -51,6 +54,8 @@ void UMainMenuWidget::NativeOnInitialized()
 		UButton* button = QuitButton->GetButton();
 		if(IsValid(button))
 			button->OnClicked.AddDynamic(this, &UMainMenuWidget::QuitGame);
+
+		QuitButton->UIInputActionDelegate.AddDynamic(this, &UMainMenuWidget::QuitGame);
 	}
 	
 }

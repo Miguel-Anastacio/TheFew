@@ -31,6 +31,8 @@ void AArenaGameState::InitTeamData(const FTeam& teamA, const FTeam& teamB)
 	}
 
 	GameTimer = MaxTime;
+
+	GameActive = true;
 }
 
 void AArenaGameState::InitTeamID(const FTeam& teamA, const FTeam& teamB)
@@ -73,24 +75,34 @@ void AArenaGameState::AddPlayerToTeam(const FString& playerName, int32 id)
 	}
 }
 
+void AArenaGameState::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	GameActive = false;
+
+}
+
 void AArenaGameState::BeginPlay()
 {
 	Super::BeginPlay();
-	PrimaryActorTick.bCanEverTick = true;
 }
 
 void AArenaGameState::Tick(float dt)
 {
 	Super::Tick(dt);
-	GameTimer -= dt;
-	if (GameTimer <= 0)
+	if (GameActive)
 	{
-		ABattlePlaneGameMode* gameMode = Cast< ABattlePlaneGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
-		if (IsValid(gameMode))
+		GameTimer -= dt;	
+		if (GameTimer <= 0)
 		{
-			gameMode->EndOfRoundStateDelegate.Broadcast();
-			PrimaryActorTick.bCanEverTick = false;
+			ABattlePlaneGameMode* gameMode = Cast< ABattlePlaneGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+			if (IsValid(gameMode))
+			{
+				gameMode->EndOfRoundStateDelegate.Broadcast();
+				GameActive = false;
+			}
 		}
+
 	}
 }
 

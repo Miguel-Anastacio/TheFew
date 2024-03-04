@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 #include "ButtonWidget.generated.h"
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUISelectionInputSignature);
 /**
  * 
  */
@@ -22,7 +23,12 @@ public:
 	UPROPERTY(EditAnywhere)
 	FText Text;
 
+	UPROPERTY(BlueprintCallable, BlueprintAssignable)
+	FOnUISelectionInputSignature UIInputActionDelegate;
+
 protected:
+	//UFUNCTION()
+	//	void OnInputActionUI();
 	UPROPERTY(meta = (BindWidget))
 	TObjectPtr<class UButton> Button;
 

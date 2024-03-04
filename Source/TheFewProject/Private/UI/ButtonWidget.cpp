@@ -3,6 +3,7 @@
 
 #include "UI/ButtonWidget.h"
 #include "Components/RichTextBlock.h"
+#include "Components/Button.h"
 void UButtonWidget::NativePreConstruct()
 {
 	if (IsValid(ButtonText))
@@ -10,3 +11,4 @@ void UButtonWidget::NativePreConstruct()
 		ButtonText->SetText(Text);
 	}
 }
+

@@ -13,6 +13,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Interfaces/ReactToClickInterface.h"
 #include "BattlePlaneGameMode.h"
+#include "Components/HealthComponent.h"
 void APlaneController::InitDebugVariables(AActor* landscape, AAIManager* manager)
 {
 	LandscapeActor = landscape;
@@ -60,6 +61,7 @@ void APlaneController::SetupInputComponent()
 		// Menu actions
 		EnhancedInputComponent->BindAction(MouseClickAction, ETriggerEvent::Started, this, &APlaneController::MouseClick);
 		EnhancedInputComponent->BindAction(ControllerInputUIAction, ETriggerEvent::Started, this, &APlaneController::ControllerInputUI);
+		EnhancedInputComponent->BindAction(ControllerCursorAction, ETriggerEvent::Triggered, this, &APlaneController::AnalogStickMovement);
 	}
 }
 
@@ -91,12 +93,17 @@ void APlaneController::BeginPlay()
 		this->SetViewTarget(LandscapeActor);
 
 	SetShowMouseCursor(true);
+	FInputModeGameAndUI InputMode;
+	SetInputMode(InputMode);
+
+
 }
 
 void APlaneController::OnPossess(APawn* pawn)
 {
 	Super::OnPossess(pawn);
 	ControlledPlane = Cast<APlanePawnPlayer>(pawn);
+	ControlledPlane->GetHealthComponent()->ActorDeathDelegate.AddDynamic(this, &APlaneController::OnPlayerDeath);
 
 	PlaneHUD = CreateWidget<UPlaneHUD>(this, PlaneHUDClass);
 	PlaneHUD->AddToViewport();
@@ -223,6 +230,17 @@ void APlaneController::ControllerInputUI()
 	PlaneHUD->FocusActiveWidget();
 }
 
+void APlaneController::AnalogStickMovement(const FInputActionInstance& Instance)
+{
+	PlaneHUD->UnFocusActiveWidget();
+	FVector2D input = Instance.GetValue().Get<FVector2D>();
+	input.Y *= -1;
+	FVector2D mousePos;
+	GetMousePosition(mousePos.X, mousePos.Y);
+	mousePos += input;
+	SetMouseLocation(mousePos.X, mousePos.Y);
+}
+
 void APlaneController::TransitionSpawnToPlaying(const FVector& location)
 {
 	//APlanePawnPlayer* player = Cast<APlanePawnPlayer>(ControlledPlane);
@@ -239,6 +257,8 @@ void APlaneController::TransitionSpawnToPlaying(const FVector& location)
 			Subsystem->RemoveMappingContext(UIMappingContext);
 		}
 
+		FInputModeGameOnly InputMode;
+		SetInputMode(InputMode);
 		SetShowMouseCursor(false);
 		this->SetViewTargetWithBlend(ControlledPlane, TimeSpawnToPlayCameraTransition);
 	}
@@ -257,6 +277,8 @@ void APlaneController::FocusOnMap()
 		Subsystem->RemoveMappingContext(DefaultMappingContext);
 		Subsystem->AddMappingContext(UIMappingContext, 1);
 	}
+	FInputModeGameAndUI InputMode;
+	SetInputMode(InputMode);
 	//Subsystem->AddMappingContext(UIMappingContext, 1);
 }
 
@@ -265,6 +287,18 @@ void APlaneController::TransitionToEndOFRound()
 	FocusOnMap();
 	//Pause();
 	ControlledPlane->PlaneDeathSimple();
+
+}
+
+void APlaneController::OnPlayerDeath(AActor* other)
+{
+	StopFiring();
+	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(this->GetLocalPlayer()))
+	{
+		//Subsystem->AddMappingContext(DefaultMappingContext, 0);
+		Subsystem->RemoveMappingContext(DefaultMappingContext);
+		Subsystem->AddMappingContext(UIMappingContext, 1);
+	}
 }
 
 void APlaneController::ChangeFocusedPlane(const FInputActionInstance& Instance)

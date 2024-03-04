@@ -18,6 +18,7 @@
 //#include "UI/TotalScoreWidget.h"
 #include "Game/ArenaGameState.h"
 #include "BattlePlaneGameMode.h"
+#include "Blueprint/WidgetBlueprintLibrary.h"
 
 void UPlaneHUD::NativeConstruct()
 {
@@ -134,8 +135,12 @@ void UPlaneHUD::ToggleScoreboard(bool status)
 	}
 	else
 	{
+			
 		if(ScoreboardWidget)
 			ScoreboardWidget->SetVisibility(ESlateVisibility::Collapsed);
+
+		if (EndOfRoundWidget)
+			return;
 
 		if (!IsValid(SpawnMenuWidget))
 		{
@@ -282,7 +287,7 @@ void UPlaneHUD::DisplayEndOfRound()
 		DeathWidget->SetVisibility(ESlateVisibility::Collapsed);
 
 	if (SpawnMenuWidget)
-		SpawnMenuWidget->SetVisibility(ESlateVisibility::HitTestInvisible);
+		SpawnMenuWidget->SetVisibility(ESlateVisibility::Collapsed);
 
 	HideHitmarker();
 
@@ -302,6 +307,12 @@ void UPlaneHUD::FocusActiveWidget()
 {
 	if (ActiveWidget.Get())
 		ActiveWidget->SetKeyboardFocus();
+}
+
+void UPlaneHUD::UnFocusActiveWidget()
+{
+	if (ActiveWidget.Get())
+		UWidgetBlueprintLibrary::SetFocusToGameViewport();
 }
 
 void UPlaneHUD::SetActiveWidget(UUserWidget* widget)

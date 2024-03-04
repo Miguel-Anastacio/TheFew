@@ -49,7 +49,6 @@ protected:
 	void ToggleScoreboard();
 
 	void MouseClick();
-	void ControllerInputUI();
 
 	// functions bound to game mode state transitions
 	UFUNCTION()
@@ -58,6 +57,12 @@ protected:
 		void FocusOnMap();
 	UFUNCTION()
 		void TransitionToEndOFRound();
+	UFUNCTION()
+		void OnPlayerDeath(AActor* other);
+	
+	// MoveToCreatePlugin()
+	void ControllerInputUI();
+	void AnalogStickMovement(const FInputActionInstance& Instance);
 protected:
 	/** MappingContext */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -88,13 +93,17 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		UInputAction* MouseClickAction;
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		UInputAction* ControllerInputUIAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		FVector2D MovementDeadzone = FVector2D(0.1, 0.1);
 
-
+	// Move to create plugin
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* ControllerInputUIAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* ControllerCursorAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* ControllerSelectAction;
 	UPROPERTY(EditAnywhere, Category = " Transitions")
 		float TimeSpawnToPlayCameraTransition = 2.0f;
 	UPROPERTY(EditAnywhere, Category = " Transitions")

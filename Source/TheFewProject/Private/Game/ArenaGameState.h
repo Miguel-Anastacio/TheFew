@@ -34,6 +34,7 @@ public:
 
 	float GameTimer = 0.0f;
 protected:
+	void PostInitializeComponents() override;
 	void BeginPlay() override;
 	void Tick(float dt) override;
 
@@ -46,7 +47,7 @@ protected:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Game End")
 		int32 MaxKills = 25;
 
-
+	bool GameActive = false;
 
 private:
 	UPROPERTY(VisibleAnywhere)

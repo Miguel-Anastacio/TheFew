@@ -16,6 +16,8 @@ void UEndOfRoundWidget::NativeOnInitialized()
 		UButton* button = MainMenuButton->GetButton();
 		if (IsValid(button))
 			button->OnClicked.AddDynamic(this, &UEndOfRoundWidget::LoadMainMenu);
+
+		MainMenuButton->UIInputActionDelegate.AddDynamic(this, &UEndOfRoundWidget::LoadMainMenu);
 	}
 
 	if (IsValid(QuitButton))
@@ -23,6 +25,8 @@ void UEndOfRoundWidget::NativeOnInitialized()
 		UButton* button = QuitButton->GetButton();
 		if (IsValid(button))
 			button->OnClicked.AddDynamic(this, &UEndOfRoundWidget::QuitGame);
+
+		QuitButton->UIInputActionDelegate.AddDynamic(this, &UEndOfRoundWidget::QuitGame);
 	}
 }
 
