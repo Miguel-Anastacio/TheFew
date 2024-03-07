@@ -48,6 +48,9 @@ protected:
 	void StopFiring();
 	void ToggleScoreboard();
 
+	UFUNCTION(BlueprintCallable)
+	void TogglePause();
+
 	void MouseClick();
 
 	// functions bound to game mode state transitions
@@ -93,6 +96,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		UInputAction* MouseClickAction;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+		UInputAction* PauseAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 		FVector2D MovementDeadzone = FVector2D(0.1, 0.1);

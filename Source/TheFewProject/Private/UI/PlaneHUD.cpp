@@ -303,6 +303,47 @@ void UPlaneHUD::UpdateHealthBar(float currentPercent)
 	HealthBar->SetPercent(currentPercent);
 }
 
+void UPlaneHUD::TogglePauseMenu()
+{
+	if (!IsValid(PauseMenuWidget))
+	{
+		PauseMenuWidget = CreateWidget<UEndOfRoundWidget>(GetOwningPlayer(), PauseMenuClass);
+		if (PauseMenuWidget)
+		{
+			PauseMenuWidget->AddToViewport();
+			this->SetVisibility(ESlateVisibility::Collapsed);
+			if (ScoreboardWidget)
+			{
+				ScoreboardWidget->SetVisibility(ESlateVisibility::Collapsed);
+			}
+		}
+	}
+	else
+	{
+		if (PauseMenuWidget->IsVisible())
+		{
+			PauseMenuWidget->SetVisibility(ESlateVisibility::Collapsed);
+			this->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+			/*if (ScoreboardWidget)
+			{
+				ScoreboardWidget->SetVisibility(ESlateVisibility::Collapsed);
+			}*/
+		}
+		else
+		{
+			PauseMenuWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+			PauseMenuWidget->AddToViewport();
+			this->SetVisibility(ESlateVisibility::Collapsed);
+			if (ScoreboardWidget)
+			{
+				ScoreboardWidget->SetVisibility(ESlateVisibility::Collapsed);
+			}
+		}
+	}
+
+	ActiveWidget = PauseMenuWidget;
+}
+
 void UPlaneHUD::FocusActiveWidget()
 {
 	if (ActiveWidget.Get())

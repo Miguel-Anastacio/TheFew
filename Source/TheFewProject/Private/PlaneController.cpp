@@ -62,6 +62,7 @@ void APlaneController::SetupInputComponent()
 		EnhancedInputComponent->BindAction(MouseClickAction, ETriggerEvent::Started, this, &APlaneController::MouseClick);
 		EnhancedInputComponent->BindAction(ControllerInputUIAction, ETriggerEvent::Started, this, &APlaneController::ControllerInputUI);
 		EnhancedInputComponent->BindAction(ControllerCursorAction, ETriggerEvent::Triggered, this, &APlaneController::AnalogStickMovement);
+		EnhancedInputComponent->BindAction(PauseAction, ETriggerEvent::Started, this, &APlaneController::TogglePause);
 	}
 }
 
@@ -206,6 +207,34 @@ void APlaneController::ToggleScoreboard()
 	}
 }
 
+void APlaneController::TogglePause()
+{
+	SetPause(!IsPaused());
+	bShowMouseCursor = IsPaused();
+	if (bShowMouseCursor)
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(this->GetLocalPlayer()))
+		{
+			Subsystem->AddMappingContext(UIMappingContext, 1);
+			//Subsystem->RemoveMappingContext(UIMappingContext);
+		}
+
+		FInputModeGameAndUI InputMode;
+		SetInputMode(InputMode);
+	}
+	else
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(this->GetLocalPlayer()))
+		{
+			//Subsystem->AddMappingContext(UIMappingContext, 1);
+			Subsystem->RemoveMappingContext(UIMappingContext);
+		}
+		FInputModeGameOnly InputMode;
+		SetInputMode(InputMode);
+	}
+	PlaneHUD->TogglePauseMenu();
+}
+
 void APlaneController::MouseClick()
 {
 	FHitResult hit;
@@ -227,11 +256,13 @@ void APlaneController::MouseClick()
 
 void APlaneController::ControllerInputUI()
 {
+	bShowMouseCursor = false;
 	PlaneHUD->FocusActiveWidget();
 }
 
 void APlaneController::AnalogStickMovement(const FInputActionInstance& Instance)
 {
+	bShowMouseCursor = true;
 	PlaneHUD->UnFocusActiveWidget();
 	FVector2D input = Instance.GetValue().Get<FVector2D>();
 	input.Y *= -1;

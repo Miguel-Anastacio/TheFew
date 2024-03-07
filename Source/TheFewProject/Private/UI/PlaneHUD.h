@@ -29,6 +29,8 @@ public:
 	UFUNCTION()
 	void UpdateHealthBar(float currentPercent);
 
+	void TogglePauseMenu();
+
 	void FocusActiveWidget();
 	void UnFocusActiveWidget();
 	UFUNCTION(BlueprintCallable)
@@ -47,7 +49,7 @@ protected:
 	void RemoveDeathScreen();
 
 	UFUNCTION()
-		void DisplayEndOfRound();
+	void DisplayEndOfRound();
 
 
 
@@ -84,7 +86,9 @@ protected:
 	UPROPERTY(EditAnywhere)
 		TSubclassOf<class USpawnMenuWidget> SpawnClass;
 	UPROPERTY(EditAnywhere)
-		TSubclassOf<class UEndOfRoundWidget> EndOfRoundClass;
+		TSubclassOf<class UEndOfRoundWidget> EndOfRoundClass;	
+	UPROPERTY(EditAnywhere)
+		TSubclassOf<class UEndOfRoundWidget> PauseMenuClass;
 	UPROPERTY(EditAnywhere, Category = "Hitmarker")
 		float DurationHitmarker = 0.3f;
 
@@ -96,6 +100,7 @@ protected:
 	TObjectPtr<class UOutOfBoundsWidget> OutOfBoundsWidget;
 	TObjectPtr<class USpawnMenuWidget> SpawnMenuWidget;
 	TObjectPtr<class UEndOfRoundWidget> EndOfRoundWidget;
+	TObjectPtr<class UEndOfRoundWidget> PauseMenuWidget;
 
 	TWeakObjectPtr<UUserWidget> ActiveWidget;
 

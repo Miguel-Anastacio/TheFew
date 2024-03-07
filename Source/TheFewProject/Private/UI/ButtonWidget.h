@@ -17,7 +17,7 @@ class UButtonWidget : public UUserWidget
 
 public:
 	UFUNCTION(BlueprintCallable)
-	class UButton* GetButton() { return Button; };
+	class UButton* const GetButton() { return Button; };
 	virtual void NativePreConstruct() override;
 
 	UPROPERTY(EditAnywhere)
