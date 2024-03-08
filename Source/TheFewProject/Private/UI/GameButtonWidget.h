@@ -4,14 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "ButtonWidget.generated.h"
+#include "GameButtonWidget.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnUISelectionInputSignature);
 /**
  * 
  */
 UCLASS()
-class UButtonWidget : public UUserWidget
+class UGameButtonWidget : public UUserWidget
 {
 	GENERATED_BODY()
 

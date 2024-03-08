@@ -2,7 +2,7 @@
 
 
 #include "UI/EndOfRoundWidget.h"
-#include "UI/ButtonWidget.h"
+#include "UI/GameButtonWidget.h"
 #include "Components/RichTextBlock.h"
 #include "Components/Button.h"
 #include "Kismet/GameplayStatics.h"

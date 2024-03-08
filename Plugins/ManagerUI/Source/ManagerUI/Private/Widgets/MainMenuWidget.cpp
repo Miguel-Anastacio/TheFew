@@ -1,13 +1,15 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "UI/MainMenuWidget.h"
-#include "MainMenuWidget.h"
+#include "Widgets/MainMenuWidget.h"
 #include "Components/Button.h"
+#include "Widgets/ButtonWidget.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetSystemLibrary.h"
 #include "UObject/UObjectGlobals.h"
-#include "Components/CircularThrobber.h"
+#include "LayerManagerHUD.h"
+#include "TimerManager.h"
+#include "Engine/EngineTypes.h"
 void UMainMenuWidget::AsyncLevelLoad(const FString& levelDir, const FString& levelName)
 {
 	LoadPackageAsync(levelDir + levelName,
@@ -20,21 +22,22 @@ void UMainMenuWidget::AsyncLevelLoad(const FString& levelDir, const FString& lev
 			}
 		),
 		0,
-				PKG_ContainsMap);
-	if (LoadIndicator)
-	{
-		LoadIndicator->SetVisibility(ESlateVisibility::HitTestInvisible);
-	}
-	if(StartButton)
+		PKG_ContainsMap);
+
+	if (StartButton)
 		StartButton->SetVisibility(ESlateVisibility::Collapsed);
-	if(QuitButton)
+	if (QuitButton)
 		QuitButton->SetVisibility(ESlateVisibility::Collapsed);
-	//PlayAnimation(LoadingAnim, 0.0f, 100, EUMGSequencePlayMode::Forward, 1.0f, true);
 }
 
-void UMainMenuWidget::OnPreheatFinished()
+void UMainMenuWidget::OnPreheatFinished() const
 {
 	UGameplayStatics::OpenLevel(GetWorld(), FName(*LevelName));
+	ALayerManagerHUD* hud = Cast<ALayerManagerHUD>(GetOwningPlayer()->GetHUD());
+	if (hud)
+	{
+		hud->PopFromCurrentLayer();
+	}
 }
 
 void UMainMenuWidget::NativeOnInitialized()
@@ -45,37 +48,35 @@ void UMainMenuWidget::NativeOnInitialized()
 		UButton* button = StartButton->GetButton();
 		if (IsValid(button))
 			button->OnClicked.AddDynamic(this, &UMainMenuWidget::StartGame);
-		
-		StartButton->UIInputActionDelegate.AddDynamic(this, &UMainMenuWidget::StartGame);
+
+		//StartButton->UIInputActionDelegate.AddDynamic(this, &UMainMenuWidget::StartGame);
 	}
 
 	if (IsValid(QuitButton))
 	{
 		UButton* button = QuitButton->GetButton();
-		if(IsValid(button))
+		if (IsValid(button))
 			button->OnClicked.AddDynamic(this, &UMainMenuWidget::QuitGame);
 
-		QuitButton->UIInputActionDelegate.AddDynamic(this, &UMainMenuWidget::QuitGame);
+		//QuitButton->UIInputActionDelegate.AddDynamic(this, &UMainMenuWidget::QuitGame);
 	}
-	
+
 }
 
 void UMainMenuWidget::AsyncLevelLoadFinished(const FString& levelName)
 {
 	FTimerHandle timer;
 	LevelName = levelName;
-	GetWorld()->GetTimerManager().SetTimer(timer, this, &UMainMenuWidget::OnPreheatFinished, 3.0f, false);
+	GetWorld()->GetTimerManager().SetTimer(timer, this, &UMainMenuWidget::OnPreheatFinished, MinimumLevelLoadTime, false);
 }
 
 
 void UMainMenuWidget::StartGame()
 {
 	AsyncLevelLoad(LevelDirectory, StartLevelName);
-
-	//RemoveFromViewport();
 }
 
-void UMainMenuWidget::QuitGame()
+void UMainMenuWidget::QuitGame()  
 {
 	UKismetSystemLibrary::QuitGame(GetWorld(), UGameplayStatics::GetPlayerController(GetWorld(), 0), EQuitPreference::Quit, false);
 }

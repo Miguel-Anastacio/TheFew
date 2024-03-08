@@ -4,14 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Blueprint/UserWidget.h"
-#include "UI/ButtonWidget.h"
-#include "MainMenuWidget.generated.h"
+#include "UI/GameButtonWidget.h"
+#include "GameMainMenuWidget.generated.h"
 
 /**
  * 
  */
 UCLASS()
-class UMainMenuWidget : public UUserWidget
+class UGameMainMenuWidget : public UUserWidget
 {
 	GENERATED_BODY()
 public:
@@ -30,9 +30,9 @@ protected:
 	UFUNCTION()
 		void QuitGame();
 	UPROPERTY(EditAnywhere, meta = (BindWidget), BlueprintReadWrite)
-		TObjectPtr<UButtonWidget> StartButton;
+		TObjectPtr<UGameButtonWidget> StartButton;
 	UPROPERTY(meta = (BindWidget), BlueprintReadWrite)
-		TObjectPtr<UButtonWidget> QuitButton;
+		TObjectPtr<UGameButtonWidget> QuitButton;
 
 
 	UPROPERTY(EditAnywhere, Category = "Start Level")

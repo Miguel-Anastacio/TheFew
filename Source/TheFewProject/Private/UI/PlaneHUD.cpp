@@ -343,7 +343,7 @@ void UPlaneHUD::TogglePauseMenu()
 
 	ActiveWidget = PauseMenuWidget;
 }
-
+UE_DISABLE_OPTIMIZATION
 void UPlaneHUD::FocusActiveWidget()
 {
 	if (ActiveWidget.Get())
@@ -360,6 +360,7 @@ void UPlaneHUD::SetActiveWidget(UUserWidget* widget)
 {
 	ActiveWidget = widget;
 }
+UE_ENABLE_OPTIMIZATION
 
 void UPlaneHUD::DisplayHitmarker()
 {
