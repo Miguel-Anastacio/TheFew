@@ -14,6 +14,7 @@
 #include "Interfaces/ReactToClickInterface.h"
 #include "BattlePlaneGameMode.h"
 #include "Components/HealthComponent.h"
+#include "UI/Manager/ManagerHUD.h"
 void APlaneController::InitDebugVariables(AActor* landscape, AAIManager* manager)
 {
 	LandscapeActor = landscape;
@@ -21,7 +22,7 @@ void APlaneController::InitDebugVariables(AActor* landscape, AAIManager* manager
 
 	if (AIManager)
 	{
-		AIManager->TeamDataInitDelegate.AddDynamic(PlaneHUD, &UPlaneHUD::DisplaySpawnScreen);
+		AIManager->TeamDataInitDelegate.AddDynamic(HUDManager, &AManagerHUD::DisplaySpawnScreen);
 	}
 }
 APlanePawn* APlaneController::GetPlaneSelected()
@@ -106,10 +107,15 @@ void APlaneController::OnPossess(APawn* pawn)
 	ControlledPlane = Cast<APlanePawnPlayer>(pawn);
 	ControlledPlane->GetHealthComponent()->ActorDeathDelegate.AddDynamic(this, &APlaneController::OnPlayerDeath);
 
-	PlaneHUD = CreateWidget<UPlaneHUD>(this, PlaneHUDClass);
+	/*PlaneHUD = CreateWidget<UPlaneHUD>(this, PlaneHUDClass);
 	PlaneHUD->AddToViewport();
 	PlaneHUD->SetVisibility(ESlateVisibility::Collapsed);
-	PlaneHUD->SetPlaneReference(ControlledPlane);
+	PlaneHUD->SetPlaneReference(ControlledPlane);*/
+
+
+	HUDManager = Cast<AManagerHUD>(GetHUD());
+	HUDManager->Init();
+	
 
 	//APlanePawnPlayer* player = Cast<APlanePawnPlayer>(ControlledPlane);
 	//if (IsValid(player))
@@ -203,7 +209,8 @@ void APlaneController::ToggleScoreboard()
 	if (PlaneHUD)
 	{
 		ScoreboardStatus = !ScoreboardStatus;
-		PlaneHUD->ToggleScoreboard(ScoreboardStatus);
+		//PlaneHUD->ToggleScoreboard(ScoreboardStatus);
+		HUDManager->TogglePause();
 	}
 }
 
@@ -232,7 +239,8 @@ void APlaneController::TogglePause()
 		FInputModeGameOnly InputMode;
 		SetInputMode(InputMode);
 	}
-	PlaneHUD->TogglePauseMenu();
+	HUDManager->TogglePause();
+	//PlaneHUD->TogglePauseMenu();
 }
 
 void APlaneController::MouseClick()
@@ -257,13 +265,15 @@ void APlaneController::MouseClick()
 void APlaneController::ControllerInputUI()
 {
 	bShowMouseCursor = false;
-	PlaneHUD->FocusActiveWidget();
+	//PlaneHUD->FocusActiveWidget();
+	HUDManager->FocusActiveWidget();
 }
 
 void APlaneController::AnalogStickMovement(const FInputActionInstance& Instance)
 {
 	bShowMouseCursor = true;
-	PlaneHUD->UnFocusActiveWidget();
+	//PlaneHUD->UnFocusActiveWidget();
+	HUDManager->UnFocusActiveWidget();
 	FVector2D input = Instance.GetValue().Get<FVector2D>();
 	input.Y *= -1;
 	FVector2D mousePos;
@@ -277,7 +287,11 @@ void APlaneController::TransitionSpawnToPlaying(const FVector& location)
 	//APlanePawnPlayer* player = Cast<APlanePawnPlayer>(ControlledPlane);
 	if (IsValid(ControlledPlane))
 	{
-		PlaneHUD->RemoveSpawnScreen();
+		//PlaneHUD->RemoveSpawnScreen();
+		// remove spawn 
+		HUDManager->PopFromLayer(HUDManager->Menu);
+		// add hud
+		HUDManager->DisplayHUD();
 		
 		ControlledPlane->RespawnPlayer(location);
 

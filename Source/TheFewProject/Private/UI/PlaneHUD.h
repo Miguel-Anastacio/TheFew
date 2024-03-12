@@ -94,6 +94,7 @@ protected:
 
 	TWeakObjectPtr<class APlanePawnPlayer> ControlledPlane;
 	float* ThrottleRef = NULL;
+	UPROPERTY()
 	UUserWidget* CrosshairWidget = NULL;
 	TObjectPtr<class UScoreboardWidget> ScoreboardWidget;
 	TObjectPtr<class UDeathWidget> DeathWidget;
@@ -101,7 +102,6 @@ protected:
 	TObjectPtr<class USpawnMenuWidget> SpawnMenuWidget;
 	TObjectPtr<class UEndOfRoundWidget> EndOfRoundWidget;
 	TObjectPtr<class UEndOfRoundWidget> PauseMenuWidget;
-
 	TWeakObjectPtr<UUserWidget> ActiveWidget;
 
 	FTimerHandle DeathTimerHandle;

@@ -119,6 +119,9 @@ protected:
 	UPROPERTY(BlueprintReadWrite)
 	UPlaneHUD* PlaneHUD;
 
+	UPROPERTY()
+	class AManagerHUD* HUDManager;
+
 	TObjectPtr<class APlanePawnPlayer> ControlledPlane;
 
 	FVector SteeringInput;

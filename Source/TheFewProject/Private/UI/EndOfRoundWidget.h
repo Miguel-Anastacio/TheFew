@@ -30,9 +30,9 @@ protected:
 
 protected:
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UButtonWidget> MainMenuButton;
+	TObjectPtr<class UGameButtonWidget> MainMenuButton;
 	UPROPERTY(meta = (BindWidget))
-	TObjectPtr<class UButtonWidget> QuitButton;
+	TObjectPtr<class UGameButtonWidget> QuitButton;
 
 	UPROPERTY(EditAnywhere, Category = "Start Level")
 	FName MainMenuName;

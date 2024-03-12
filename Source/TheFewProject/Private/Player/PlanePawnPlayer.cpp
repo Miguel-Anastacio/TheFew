@@ -2,7 +2,6 @@
 
 
 #include "Player/PlanePawnPlayer.h"
-#include "PlanePawnPlayer.h"
 #include "Game/ArenaGameState.h"
 #include "PlaneController.h"
 #include "NiagaraFunctionLibrary.h"
@@ -11,6 +10,7 @@
 #include "Components/HealthComponent.h"
 #include "Components/PrimitiveComponent.h"
 #include "Components/AudioComponent.h"
+#include "UI/Manager/ManagerHUD.h"
 
 void APlanePawnPlayer::PostInitializeComponents()
 {
@@ -57,11 +57,20 @@ void APlanePawnPlayer::RespawnPlayer(const FVector& spawnLocation)
 	// reset aircraft physics
 	// set initial velocity
 	PlanePhysicsComponent->Reset(InitialVelocity);
-	APlaneController* controller = GetController<APlaneController>();
-	if (controller)
+
+	AManagerHUD* hud = GetController<APlaneController>()->GetHUD<AManagerHUD>();
+	if (hud)
 	{
-		controller->GetWidgetHUD()->UpdateHealthBar(1);
+		hud->UpdateWidgetHUD(1);
 	}
+
+	//APlaneController* controller = GetController<APlaneController>();
+	//if (controller)
+	//{
+	//	controller->GetWidgetHUD()->UpdateHealthBar(1);
+
+
+	//}
 
 	PlayerSpawnDelegate.Broadcast(this);
 }
@@ -91,11 +100,18 @@ void APlanePawnPlayer::RespawnPlayer()
 	// reset aircraft physics
 	// set initial velocity
 	PlanePhysicsComponent->Reset(InitialVelocity);
-	APlaneController* controller = GetController<APlaneController>();
-	if (controller)
+
+	AManagerHUD* hud = GetController<APlaneController>()->GetHUD<AManagerHUD>();
+	if (hud)
 	{
-		controller->GetWidgetHUD()->UpdateHealthBar(1);
+		hud->UpdateWidgetHUD(1);
 	}
+
+	//APlaneController* controller = GetController<APlaneController>();
+	//if (controller)
+	//{
+	//	controller->GetWidgetHUD()->UpdateHealthBar(1);
+	//}
 
 	PlayerSpawnDelegate.Broadcast(this);
 }
@@ -167,11 +183,17 @@ void APlanePawnPlayer::PlaneDeath(AActor* instigator)
 	PlanePhysicsComponent->Disable();
 
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), BigExplosionEffect, GetActorLocation());
-	APlaneController* controller = GetController<APlaneController>();
+	AManagerHUD* hud = GetController<APlaneController>()->GetHUD<AManagerHUD>();
+	if(hud)
+	{
+		hud->DisplayDeathScreen();
+	}
+
+	/*APlaneController* controller = GetController<APlaneController>();
 	if (controller)
 	{
 		controller->GetWidgetHUD()->DisplayDeathScreen();
-	}
+	}*/
 	//FTimerHandle timer;
 	//GetWorld()->GetTimerManager().SetTimer(timer, this, &APlanePawnPlayer::RespawnPlayer, 5.0f, false);
 
@@ -194,7 +216,7 @@ void APlanePawnPlayer::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 		if (OtherActor->ActorHasTag("Bounds"))
 		{
 			OverlappedBounds.Add(OtherComp->GetName(), OtherComp);
-			APlaneController* controller = GetController<APlaneController>();
+			/*APlaneController* controller = GetController<APlaneController>();
 			if (controller)
 			{
 				FTimerManager& mgr = GetWorld()->GetTimerManager();
@@ -206,7 +228,23 @@ void APlanePawnPlayer::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActo
 					Delegate.BindUFunction(this, "PlaneDeath", OtherActor);
 					GetWorld()->GetTimerManager().SetTimer(OutOfBoundsTimerHandle, Delegate, lifetime, false);
 				}
+			}*/
+
+			AManagerHUD* hud = GetController<APlaneController>()->GetHUD<AManagerHUD>();
+			if(hud)
+			{
+				FTimerManager& mgr = GetWorld()->GetTimerManager();
+				if (!mgr.IsTimerActive(OutOfBoundsTimerHandle))
+				{
+					hud->DisplayOutOfBoundsWidget();
+					float lifetime = hud->GetLifetimeOfOutOfBoundsWidget();
+					FTimerDelegate Delegate;
+					Delegate.BindUFunction(this, "PlaneDeath", OtherActor);
+					GetWorld()->GetTimerManager().SetTimer(OutOfBoundsTimerHandle, Delegate, lifetime, false);
+				}
+				
 			}
+
 		}
 	}
 }
@@ -223,10 +261,15 @@ void APlanePawnPlayer::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor*
 			if (!OverlappedBounds.IsEmpty())
 				return;
 
-			APlaneController* controller = GetController<APlaneController>();
+			/*APlaneController* controller = GetController<APlaneController>();
 			if (controller)
 			{
 				controller->GetWidgetHUD()->RemoveOutOfBoundsWidget();
+			}*/
+			AManagerHUD* hud = GetController<APlaneController>()->GetHUD<AManagerHUD>();
+			if (hud)
+			{
+				hud->PopFromLayer(hud->Game);
 			}
 
 			FTimerManager& mgr = GetWorld()->GetTimerManager();

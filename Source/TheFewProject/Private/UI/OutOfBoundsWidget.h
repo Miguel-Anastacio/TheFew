@@ -18,6 +18,7 @@ public:
 	UPROPERTY(EditAnywhere)
 		float Lifetime = 5.0f;
 	void ResetTimer();
+	UFUNCTION(BlueprintCallable)
 	void PlayExitAnimation();
 protected:
 	virtual void NativeConstruct() override;
