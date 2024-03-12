@@ -27,6 +27,7 @@ void AInteractableActor::BeginPlay()
 	{
 		gameMode->SpawnMenuStateDelegate.AddDynamic(this, &AInteractableActor::SetWidgetVisible);
 		gameMode->PlayingStateDelegate.AddDynamic(this, &AInteractableActor::HideWidget);
+		gameMode->EndOfRoundStateDelegate.AddDynamic(this, &AInteractableActor::Disable);
 	}
 	
 }
@@ -41,6 +42,11 @@ void AInteractableActor::HideWidget(const FVector& vec)
 {
 	if (WidgetComponent)
 		WidgetComponent->SetVisibility(false);
+}
+
+void AInteractableActor::Disable()
+{
+	SetActorHiddenInGame(true);
 }
 
 // Called every frame

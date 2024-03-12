@@ -28,7 +28,6 @@ public:
 		return AIManager;
 	};
 
-	UPlaneHUD* GetWidgetHUD() { return PlaneHUD; };
 
 protected:
 	void PreInitializeComponents() override;
@@ -57,11 +56,11 @@ protected:
 	UFUNCTION()
 	void TransitionSpawnToPlaying(const FVector& location);
 	UFUNCTION()
-		void FocusOnMap();
+	void FocusOnMap();
 	UFUNCTION()
-		void TransitionToEndOFRound();
+	void TransitionToEndOFRound();
 	UFUNCTION()
-		void OnPlayerDeath(AActor* other);
+	void OnPlayerDeath(AActor* other);
 	
 	// MoveToCreatePlugin()
 	void ControllerInputUI();
@@ -103,45 +102,44 @@ protected:
 		FVector2D MovementDeadzone = FVector2D(0.1, 0.1);
 
 	// Move to create plugin
+	// Controller actions on menus
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* ControllerInputUIAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* ControllerCursorAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* ControllerSelectAction;
-	UPROPERTY(EditAnywhere, Category = " Transitions")
-		float TimeSpawnToPlayCameraTransition = 2.0f;
-	UPROPERTY(EditAnywhere, Category = " Transitions")
-		float TimeDeathToSpawnCameraTransition = 1.0f;
-	// UI
-	UPROPERTY(EditAnywhere, Category = "UI")
-		TSubclassOf<UUserWidget> PlaneHUDClass;
-	UPROPERTY(BlueprintReadWrite)
-	UPlaneHUD* PlaneHUD;
 
+
+	// Camera Transitions
+	UPROPERTY(EditAnywhere, Category = " Transitions")
+	float TimeSpawnToPlayCameraTransition = 2.0f;
+	UPROPERTY(EditAnywhere, Category = " Transitions")
+	float TimeDeathToSpawnCameraTransition = 1.0f;
+
+
+	// HUD reference
 	UPROPERTY()
 	class AManagerHUD* HUDManager;
 
+	// Player reference
 	TObjectPtr<class APlanePawnPlayer> ControlledPlane;
 
 	FVector SteeringInput;
 
-	bool ScoreboardStatus = false;
 
 
 	/*
 	*		DEBUG AI STUFF 
 	*/
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		UInputAction* ChangePlaneSelectedAction;
+	UInputAction* ChangePlaneSelectedAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		UInputAction* ChangeToLevelAction;
-
+	UInputAction* ChangeToLevelAction;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		TObjectPtr<AActor> LandscapeActor;
-
+	TObjectPtr<AActor> LandscapeActor;
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-		TObjectPtr<class AAIManager> AIManager;
+	TObjectPtr<class AAIManager> AIManager;
 
 	TObjectPtr<class APlanePawn> CurrentAISelected;
 

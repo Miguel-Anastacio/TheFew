@@ -19,14 +19,27 @@
 #include "UILayerManagerFunctionLibrary.h"
 void AManagerHUD::Init()
 {
-	ULayerUI* gameLayer = NewObject<ULayerUI>(GameLayer);
-	RegisterLayer(Game, gameLayer);
+	if (GameLayer)
+	{
+		ULayerUI* gameLayer = NewObject<ULayerUI>(GetTransientPackage(), GameLayer);
+		RegisterLayer(Game, gameLayer);
+	}
+	if (PrioLayer)
+	{
+		ULayerUI* prioLayer = NewObject<ULayerUI>(GetTransientPackage(), PrioLayer);
+		RegisterLayer(Priority, prioLayer);
+	}
 
-	ULayerUI* prioLayer = NewObject<ULayerUI>(PrioLayer);
-	RegisterLayer(Priority, prioLayer);
 
-
-	ABattlePlaneGameMode* gameMode = Cast< ABattlePlaneGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
+	if (!IsValid(GetWorld()))
+	{
+		return;
+	}
+	if (!IsValid(UGameplayStatics::GetGameMode(GetWorld())))
+	{
+		return;
+	}
+	ABattlePlaneGameMode* gameMode = Cast<ABattlePlaneGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 	if (IsValid(gameMode))
 	{
 		gameMode->SpawnMenuStateDelegate.AddDynamic(this, &AManagerHUD::DisplaySpawnScreen);
@@ -56,18 +69,7 @@ void AManagerHUD::ToggleScoreboard_Implementation(bool status)
 	{
 		ScoreboardWidget = CreateWidget<UScoreboardWidget>(GetOwningPlayerController(), ScoreboardClass);
 		ScoreboardWidget->AddToViewport();
-		ActiveWidget = ScoreboardWidget;
-		return;
-	}
-
-	if (ScoreboardWidget->IsVisible())
-	{
-		PopFromLayer(GameMenu);
-		// add functionality to peak the top of the layer
-	}
-	else
-	{
-		PushToLayer(GameMenu, ScoreboardWidget);
+		//ActiveWidget = ScoreboardWidget;
 		// this will be moved to the widget itself on pushed
 		AArenaGameState* gameState = Cast<AArenaGameState>(GetWorld()->GetGameState());
 		if (gameState)
@@ -76,7 +78,31 @@ void AManagerHUD::ToggleScoreboard_Implementation(bool status)
 			ScoreboardWidget->InitTeamA(gameState->GetTeamAData());
 			ScoreboardWidget->InitTeamB(gameState->GetTeamBData());
 		}
-		ActiveWidget = ScoreboardWidget;
+		PushToLayer(GameMenu, ScoreboardWidget);
+		return;
+	}
+
+	if (ScoreboardWidget->IsVisible())
+	{
+		PopFromLayerWithFocus(GameMenu);
+		// add functionality to peak the top of the layer
+	}
+	else if (status)
+	{
+		ScoreboardWidget->SetVisibility(ESlateVisibility::SelfHitTestInvisible);
+	}
+	else 
+	{
+		PushToLayer(GameMenu, ScoreboardWidget);
+		// this will be moved to the widget itself on pushed
+		/*AArenaGameState* gameState = Cast<AArenaGameState>(GetWorld()->GetGameState());
+		if (gameState)
+		{
+			gameState->SetScoreboardWidgetRef(ScoreboardWidget);
+			ScoreboardWidget->InitTeamA(gameState->GetTeamAData());
+			ScoreboardWidget->InitTeamB(gameState->GetTeamBData());
+		}*/
+		//ActiveWidget = ScoreboardWidget;
 	}
 }
 
@@ -87,17 +113,17 @@ void AManagerHUD::TogglePause_Implementation()
 		PauseMenuWidget = CreateWidget<UEndOfRoundWidget>(GetOwningPlayerController(), PauseMenuClass);
 		PauseMenuWidget->AddToViewport();
 		ActiveWidget = PauseMenuWidget;
+		PushToLayer(Priority, PauseMenuWidget);
 		return;
 	}
 
-	ToggleWidget(PauseMenuWidget, Menu);
+	ToggleWidget(PauseMenuWidget, Priority);
 }
-
 void AManagerHUD::ToggleWidget(UUserWidget* widget, const FString& layerName)
 {
 	if (widget->IsVisible())
 	{
-		PopFromLayer(layerName);
+		PopFromLayerWithFocus(layerName);
 		// add functionality to peak the top of the layer
 	}
 	else
@@ -113,7 +139,6 @@ void AManagerHUD::DisplayDeathScreen()
 	{
 		DeathWidget = CreateWidget<UDeathWidget>(GetOwningPlayerController(), DeathClass);
 		DeathWidget->AddToViewport();
-		ActiveWidget = DeathWidget;
 	}
 	else
 	{
@@ -123,12 +148,13 @@ void AManagerHUD::DisplayDeathScreen()
 	PushToLayer(Priority, DeathWidget);
 	FTimerHandle timer;
 	GetWorld()->GetTimerManager().SetTimer(timer, this, &AManagerHUD::RemoveDeathScreen, DeathWidget->Lifetime, false);
-	ActiveWidget = DeathWidget;
 }
 
 void AManagerHUD::RemoveDeathScreen()
 {
-	PopFromLayer(Priority);
+
+	PopFromLayerWithFocus(Priority);
+	DeathWidget = NULL;
 	ABattlePlaneGameMode* gameMode = Cast<ABattlePlaneGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 	if (IsValid(gameMode))
 	{
@@ -143,9 +169,15 @@ void AManagerHUD::DisplayOutOfBoundsWidget()
 		OutOfBoundsWidget = CreateWidget<UOutOfBoundsWidget>(GetOwningPlayerController(), OutOfBoundsClass);
 		OutOfBoundsWidget->AddToViewport();
 	}
+	else
+	{
+		OutOfBoundsWidget->ResetTimer();
+	}
 
 	PushToLayer(Game, OutOfBoundsWidget);
-	ActiveWidget = OutOfBoundsWidget;
+	//ActiveWidget = OutOfBoundsWidget;
+
+	//GetWorld()->GetTimerManager().SetTimer(OutOfBoundsHandle, this, &AManagerHUD::RemoveOutOfBoundsWidget, OutOfBoundsWidget->Lifetime, false);
 }
 
 void AManagerHUD::RemoveOutOfBoundsWidget()
@@ -154,7 +186,14 @@ void AManagerHUD::RemoveOutOfBoundsWidget()
 	{
 		OutOfBoundsWidget->PlayExitAnimation();
 	}*/
-	PopFromLayer(Game);
+	/*if (GetWorld()->GetTimerManager().IsTimerActive(OutOfBoundsHandle))
+	{
+		GetWorld()->GetTimerManager().ClearTimer(OutOfBoundsHandle);
+	}*/
+	if(OutOfBoundsWidget == PeakLayer(Game))
+		PopFromLayer(Game);
+
+
 }
 
 float AManagerHUD::GetLifetimeOfOutOfBoundsWidget() const
@@ -185,8 +224,11 @@ void AManagerHUD::DisplaySpawnScreen()
 			SpawnMenuWidget->InitTeamBData(team.TeamName, team.Kills, team.ID);
 		}
 	}
+	
+	//GetLayer(Menu)->ClearStack();
+	//while(PopFromLayer(Game))
 
-	PushToLayer(Menu, SpawnMenuWidget);
+	PushToLayer(Priority, SpawnMenuWidget);
 	ActiveWidget = SpawnMenuWidget;
 }
 void AManagerHUD::DisplayEndOfRound()
@@ -209,8 +251,11 @@ void AManagerHUD::DisplayEndOfRound()
 	}
 
 	GetWorld()->GetTimerManager().ClearAllTimersForObject(this);
-	PushToLayer(Menu, EndOfRoundWidget);
+	PushToLayer(Priority, EndOfRoundWidget);
 	ActiveWidget = EndOfRoundWidget;
+
+	// show scoredoard
+	ToggleScoreboard(true);
 }
 
 void AManagerHUD::FocusActiveWidget() const
@@ -235,4 +280,11 @@ void AManagerHUD::PopFromLayerWithFocus(const FString& layer)
 {
 	PopFromLayer(layer);
 	// add functionality to peak the top of the layer
+	const FString current = GetCurrentLayerTag();
+	UUserWidget* top = PeakLayer(current);
+	if (top)
+	{
+		ActiveWidget = top;
+		FocusActiveWidget();
+	}
 }

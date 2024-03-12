@@ -16,7 +16,7 @@ class UPlaneHUD : public UUserWidget
 public:
 
 	void SetPlaneReference(class APlanePawnPlayer* ref);
-	void ToggleScoreboard(bool status);
+	/*void ToggleScoreboard(bool status);
 	void DisplayDeathScreen();
 
 	void DisplayOutOfBoundsWidget();
@@ -24,17 +24,20 @@ public:
 	float GetLifetimeOfOutOfBoundsWidget();
 	UFUNCTION()
 	void DisplaySpawnScreen();
-	void RemoveSpawnScreen();
+	void RemoveSpawnScreen();*/
 
 	UFUNCTION()
 	void UpdateHealthBar(float currentPercent);
 
-	void TogglePauseMenu();
+	UFUNCTION()
+	void SetCrosshairVisiility(ESlateVisibility state);
 
-	void FocusActiveWidget();
-	void UnFocusActiveWidget();
-	UFUNCTION(BlueprintCallable)
-		void SetActiveWidget(UUserWidget* widget);
+	//void TogglePauseMenu();
+
+	//void FocusActiveWidget();
+	//void UnFocusActiveWidget();
+	//UFUNCTION(BlueprintCallable)
+	//	void SetActiveWidget(UUserWidget* widget);
 
 protected:
 	virtual void NativeConstruct() override;
@@ -45,11 +48,6 @@ protected:
 	void DisplayHitmarker();
 	UFUNCTION()
 	void HideHitmarker();
-	UFUNCTION()
-	void RemoveDeathScreen();
-
-	UFUNCTION()
-	void DisplayEndOfRound();
 
 
 
@@ -77,18 +75,18 @@ protected:
 
 	TWeakObjectPtr<class AArenaGameState> GameState;
 
-	UPROPERTY(EditAnywhere)
-		TSubclassOf<class UScoreboardWidget> ScoreboardClass;
-	UPROPERTY(EditAnywhere)
-		TSubclassOf<class UDeathWidget> DeathClass;
-	UPROPERTY(EditAnywhere)
-		TSubclassOf<class UOutOfBoundsWidget> OutOfBoundsClass;
-	UPROPERTY(EditAnywhere)
-		TSubclassOf<class USpawnMenuWidget> SpawnClass;
-	UPROPERTY(EditAnywhere)
-		TSubclassOf<class UEndOfRoundWidget> EndOfRoundClass;	
-	UPROPERTY(EditAnywhere)
-		TSubclassOf<class UEndOfRoundWidget> PauseMenuClass;
+	//UPROPERTY(EditAnywhere)
+	//	TSubclassOf<class UScoreboardWidget> ScoreboardClass;
+	//UPROPERTY(EditAnywhere)
+	//	TSubclassOf<class UDeathWidget> DeathClass;
+	//UPROPERTY(EditAnywhere)
+	//	TSubclassOf<class UOutOfBoundsWidget> OutOfBoundsClass;
+	//UPROPERTY(EditAnywhere)
+	//	TSubclassOf<class USpawnMenuWidget> SpawnClass;
+	//UPROPERTY(EditAnywhere)
+	//	TSubclassOf<class UEndOfRoundWidget> EndOfRoundClass;	
+	//UPROPERTY(EditAnywhere)
+	//	TSubclassOf<class UEndOfRoundWidget> PauseMenuClass;
 	UPROPERTY(EditAnywhere, Category = "Hitmarker")
 		float DurationHitmarker = 0.3f;
 
@@ -96,13 +94,13 @@ protected:
 	float* ThrottleRef = NULL;
 	UPROPERTY()
 	UUserWidget* CrosshairWidget = NULL;
-	TObjectPtr<class UScoreboardWidget> ScoreboardWidget;
-	TObjectPtr<class UDeathWidget> DeathWidget;
-	TObjectPtr<class UOutOfBoundsWidget> OutOfBoundsWidget;
-	TObjectPtr<class USpawnMenuWidget> SpawnMenuWidget;
-	TObjectPtr<class UEndOfRoundWidget> EndOfRoundWidget;
-	TObjectPtr<class UEndOfRoundWidget> PauseMenuWidget;
-	TWeakObjectPtr<UUserWidget> ActiveWidget;
+	//TObjectPtr<class UScoreboardWidget> ScoreboardWidget;
+	//TObjectPtr<class UDeathWidget> DeathWidget;
+	//TObjectPtr<class UOutOfBoundsWidget> OutOfBoundsWidget;
+	//TObjectPtr<class USpawnMenuWidget> SpawnMenuWidget;
+	//TObjectPtr<class UEndOfRoundWidget> EndOfRoundWidget;
+	//TObjectPtr<class UEndOfRoundWidget> PauseMenuWidget;
+	//TWeakObjectPtr<UUserWidget> ActiveWidget;
 
 	FTimerHandle DeathTimerHandle;
 	// health bar

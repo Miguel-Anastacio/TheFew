@@ -77,11 +77,6 @@ void APlaneController::BeginPlay()
 		Subsystem->AddMappingContext(UIMappingContext, 1);
 	}
 
-	//ControlledPlane = Cast<APlanePawn>(GetPawn());
-
-	//PlaneHUD = CreateWidget<UPlaneHUD>(this, PlaneHUDClass);
-	//PlaneHUD->AddToViewport();
-	//PlaneHUD->SetPlaneReference(ControlledPlane);
 
 	ABattlePlaneGameMode* gameMode = Cast< ABattlePlaneGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 	if (IsValid(gameMode))
@@ -107,21 +102,11 @@ void APlaneController::OnPossess(APawn* pawn)
 	ControlledPlane = Cast<APlanePawnPlayer>(pawn);
 	ControlledPlane->GetHealthComponent()->ActorDeathDelegate.AddDynamic(this, &APlaneController::OnPlayerDeath);
 
-	/*PlaneHUD = CreateWidget<UPlaneHUD>(this, PlaneHUDClass);
-	PlaneHUD->AddToViewport();
-	PlaneHUD->SetVisibility(ESlateVisibility::Collapsed);
-	PlaneHUD->SetPlaneReference(ControlledPlane);*/
-
 
 	HUDManager = Cast<AManagerHUD>(GetHUD());
-	HUDManager->Init();
+	if(HUDManager)
+		HUDManager->Init();
 	
-
-	//APlanePawnPlayer* player = Cast<APlanePawnPlayer>(ControlledPlane);
-	//if (IsValid(player))
-	//{
-	//	player->PlaneDeathSimple();
-	//}
 }
 
 void APlaneController::Yaw(const FInputActionInstance& Instance)
@@ -206,11 +191,9 @@ void APlaneController::StopFiring()
 
 void APlaneController::ToggleScoreboard()
 {
-	if (PlaneHUD)
+	if (HUDManager)
 	{
-		ScoreboardStatus = !ScoreboardStatus;
-		//PlaneHUD->ToggleScoreboard(ScoreboardStatus);
-		HUDManager->TogglePause();
+		HUDManager->ToggleScoreboard(false);
 	}
 }
 
@@ -240,7 +223,6 @@ void APlaneController::TogglePause()
 		SetInputMode(InputMode);
 	}
 	HUDManager->TogglePause();
-	//PlaneHUD->TogglePauseMenu();
 }
 
 void APlaneController::MouseClick()
@@ -272,7 +254,6 @@ void APlaneController::ControllerInputUI()
 void APlaneController::AnalogStickMovement(const FInputActionInstance& Instance)
 {
 	bShowMouseCursor = true;
-	//PlaneHUD->UnFocusActiveWidget();
 	HUDManager->UnFocusActiveWidget();
 	FVector2D input = Instance.GetValue().Get<FVector2D>();
 	input.Y *= -1;
@@ -284,12 +265,11 @@ void APlaneController::AnalogStickMovement(const FInputActionInstance& Instance)
 
 void APlaneController::TransitionSpawnToPlaying(const FVector& location)
 {
-	//APlanePawnPlayer* player = Cast<APlanePawnPlayer>(ControlledPlane);
 	if (IsValid(ControlledPlane))
 	{
 		//PlaneHUD->RemoveSpawnScreen();
 		// remove spawn 
-		HUDManager->PopFromLayer(HUDManager->Menu);
+		HUDManager->PopFromLayerWithFocus(HUDManager->Priority);
 		// add hud
 		HUDManager->DisplayHUD();
 		
@@ -346,6 +326,7 @@ void APlaneController::OnPlayerDeath(AActor* other)
 	}
 }
 
+// Debug Action FUNCTION
 void APlaneController::ChangeFocusedPlane(const FInputActionInstance& Instance)
 {
 	float input = Instance.GetValue().Get<float>();
@@ -357,6 +338,7 @@ void APlaneController::ChangeFocusedPlane(const FInputActionInstance& Instance)
 
 }
 
+// Debug Action FUNCTION
 void APlaneController::FocusOnLevel()
 {
 	if (FocusingOnLevel)

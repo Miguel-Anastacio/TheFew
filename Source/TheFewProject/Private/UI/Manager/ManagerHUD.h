@@ -37,6 +37,7 @@ public:
 	void RemoveDeathScreen();
 
 	void DisplayOutOfBoundsWidget();
+	UFUNCTION()
 	void RemoveOutOfBoundsWidget();
 	float GetLifetimeOfOutOfBoundsWidget() const;
 
@@ -59,13 +60,13 @@ public:
 	
 
 public:
-	UPROPERTY(EditAnywhere, Category = "Layers | Tags")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Layers | Tags")
 	FString Game;
-	UPROPERTY(EditAnywhere, Category = "Layers | Tags")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Layers | Tags")
 	FString GameMenu;
-	UPROPERTY(EditAnywhere, Category = "Layers | Tags")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Layers | Tags")
 	FString Priority;
-	UPROPERTY(EditAnywhere, Category = "Layers | Tags")
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Layers | Tags")
 	FString Menu;
 
 	//void TogglePauseMenu();
@@ -105,6 +106,8 @@ protected:
 	TObjectPtr<class UPlaneHUD> HUDWidget;
 	TWeakObjectPtr<UUserWidget> ActiveWidget;
 
+
+	FTimerHandle OutOfBoundsHandle;
 	//UPROPERTY(BlueprintReadWrite)
 	//TObjectPtr<class UUserWidget> PauseWidget;
 	

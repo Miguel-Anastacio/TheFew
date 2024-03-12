@@ -27,7 +27,8 @@ protected:
 	void SetWidgetVisible();
 	UFUNCTION()
 	void HideWidget(const FVector& vec = FVector(0, 0, 0));
-
+	UFUNCTION()
+	void Disable();
 	virtual void ReactToClick() override;
 protected:
 

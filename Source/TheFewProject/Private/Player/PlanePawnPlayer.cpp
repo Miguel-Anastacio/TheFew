@@ -137,6 +137,8 @@ void APlanePawnPlayer::PlaneDeathSimple()
 		ElevatorMesh->SetVisibility(visibility);
 
 	PlanePhysicsComponent->Disable();
+
+	OverlappedBounds.Empty();
 	//this->actove
 
 	//UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), BigExplosionEffect, GetActorLocation());
@@ -183,11 +185,6 @@ void APlanePawnPlayer::PlaneDeath(AActor* instigator)
 	PlanePhysicsComponent->Disable();
 
 	UNiagaraFunctionLibrary::SpawnSystemAtLocation(GetWorld(), BigExplosionEffect, GetActorLocation());
-	AManagerHUD* hud = GetController<APlaneController>()->GetHUD<AManagerHUD>();
-	if(hud)
-	{
-		hud->DisplayDeathScreen();
-	}
 
 	/*APlaneController* controller = GetController<APlaneController>();
 	if (controller)
@@ -207,6 +204,23 @@ void APlanePawnPlayer::PlaneDeath(AActor* instigator)
 	{
 		gameState->UpdateScoreboard(other->GetGameName(), this->GameName);
 	}
+
+	OverlappedBounds.Empty();
+	AManagerHUD* hud = GetController<APlaneController>()->GetHUD<AManagerHUD>();
+	FTimerManager& mgr = GetWorld()->GetTimerManager();
+	if (mgr.IsTimerActive(OutOfBoundsTimerHandle))
+	{
+		mgr.ClearTimer(OutOfBoundsTimerHandle);
+		if (hud)
+		{
+			hud->RemoveOutOfBoundsWidget();
+		}
+	}
+	if(hud)
+	{
+		hud->DisplayDeathScreen();
+	}
+
 }
 
 void APlanePawnPlayer::OnOverlapBegin(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -266,15 +280,15 @@ void APlanePawnPlayer::OnOverlapEnd(UPrimitiveComponent* OverlappedComp, AActor*
 			{
 				controller->GetWidgetHUD()->RemoveOutOfBoundsWidget();
 			}*/
-			AManagerHUD* hud = GetController<APlaneController>()->GetHUD<AManagerHUD>();
-			if (hud)
-			{
-				hud->PopFromLayer(hud->Game);
-			}
 
 			FTimerManager& mgr = GetWorld()->GetTimerManager();
 			if (mgr.IsTimerActive(OutOfBoundsTimerHandle))
 			{
+				AManagerHUD* hud = GetController<APlaneController>()->GetHUD<AManagerHUD>();
+				if (hud)
+				{
+					hud->RemoveOutOfBoundsWidget();
+				}
 				mgr.ClearTimer(OutOfBoundsTimerHandle);
 			}
 		}
